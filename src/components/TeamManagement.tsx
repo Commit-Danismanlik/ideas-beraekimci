@@ -294,13 +294,13 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Takım Yönetimi</h2>
+        <h2 className="text-2xl font-bold text-gray-100">Takım Yönetimi</h2>
 
         {userTeams.length > 1 && (
           <select
             value={selectedTeam}
             onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-indigo-600"
           >
             {userTeams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -312,14 +312,14 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
       </div>
 
       {selectedTeamData && (
-        <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
+        <div className="mb-6 p-4 bg-indigo-950 border border-indigo-900 rounded-lg">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <h3 className="font-semibold text-indigo-900">{selectedTeamData.name}</h3>
-              <p className="text-sm text-indigo-700 mb-2">
+              <h3 className="font-semibold text-indigo-200">{selectedTeamData.name}</h3>
+              <p className="text-sm text-indigo-300 mb-2">
                 {selectedTeamData.description || 'Açıklama yok'}
               </p>
-              <div className="flex gap-4 text-xs text-indigo-600">
+              <div className="flex gap-4 text-xs text-indigo-400">
                 <span>👥 Üye Sayısı: {members.length}</span>
                 <span>🎭 Rol Sayısı: {roles.length}</span>
               </div>
@@ -330,12 +330,12 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 <div className="mb-2">
                   <p className="text-xs text-gray-500 mb-1">Takım ID</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-sm font-mono bg-white px-2 py-1 rounded border border-indigo-300 text-indigo-800">
+                    <code className="text-sm font-mono bg-gray-800 px-2 py-1 rounded border border-indigo-700 text-indigo-300">
                       {selectedTeamData.id}
                     </code>
                     <button
                       onClick={() => handleCopyTeamId(selectedTeamData.id)}
-                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1 rounded border border-gray-300"
+                      className="bg-cyan-900 shadow transition-all duration-300 hover:bg-cyan-800 text-indigo-200 p-1 rounded border border-indigo-800"
                       title="Takım ID'sini kopyala"
                     >
                       📋
@@ -369,8 +369,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
       {/* Takım Düzenleme Modal */}
       {showEditTeamForm && selectedTeamData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Takımı Düzenle</h3>
+          <div className="bg-gradient-to-b from-indigo-950 to-sky-950 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-indigo-100 mb-4">Takımı Düzenle</h3>
             
             <div className="space-y-4">
               <div>
@@ -381,7 +381,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                   type="text"
                   value={teamEditForm.name}
                   onChange={(e) => setTeamEditForm({ ...teamEditForm, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg"
+                  className="w-full px-4 py-2 border border-indigo-800 rounded-lg text-indigo-200 bg-indigo-950 focus:ring-2 focus:ring-indigo-600"
                   placeholder="Takım adını girin"
                 />
               </div>
@@ -393,7 +393,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 <textarea
                   value={teamEditForm.description}
                   onChange={(e) => setTeamEditForm({ ...teamEditForm, description: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg resize-none"
+                  className="w-full px-4 py-2 border border-indigo-800 rounded-lg text-indigo-200 bg-indigo-950 focus:ring-2 focus:ring-indigo-600 resize-none"
                   rows={3}
                   placeholder="Takım açıklamasını girin"
                 />
@@ -424,9 +424,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Roller */}
-        <div className="bg-white border rounded-lg p-4">
+        <div className="bg-indigo-950 border border-indigo-900 rounded-lg p-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">Roller</h3>
+            <h3 className="text-lg font-bold text-indigo-100">Roller</h3>
             <button
               onClick={() => {
                 setEditingRole(null);
@@ -441,8 +441,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           </div>
 
           {showRoleForm && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold text-gray-800 mb-2">
+            <div className="mb-4 p-3 bg-indigo-950/50 border border-indigo-900 rounded-lg">
+              <h4 className="font-semibold text-indigo-100 mb-2">
                 {editingRole ? `Rol Düzenle: ${editingRole.name}` : 'Yeni Custom Rol'}
               </h4>
               <input
@@ -452,9 +452,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
                 className="w-full mb-2 px-3 py-2 border rounded text-sm"
               />
-              
+                
               <div className="mb-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-100 mb-1">
                   Rol Rengi
                 </label>
                 <div className="flex gap-2 items-center">
@@ -477,7 +477,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
               <p className="text-xs text-gray-600 mb-2 font-semibold">Yetkiler:</p>
               <div className="max-h-60 overflow-y-auto mb-2 space-y-1">
                 {allPermissions.map((permission) => (
-                  <label key={permission} className="flex items-start gap-2 text-xs p-2 hover:bg-gray-100 rounded cursor-pointer">
+                  <label key={permission} className="flex items-start gap-2 text-xs p-2 hover:bg-indigo-900/75 transition-all duration-300 rounded cursor-pointer">
                     <input
                       type="checkbox"
                       checked={roleForm.permissions.includes(permission)}
@@ -486,7 +486,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                     />
                     <div>
                       <span className="font-medium">{permission}</span>
-                      <p className="text-gray-600">{PERMISSION_DESCRIPTIONS[permission]}</p>
+                      <p className="text-indigo-400">{PERMISSION_DESCRIPTIONS[permission]}</p>
                     </div>
                   </label>
                 ))}
@@ -533,13 +533,13 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 <div
                   key={role.id}
                   className={`border rounded p-3 ${
-                    role.isDefault ? 'bg-blue-50 border-blue-200' : 'bg-white'
+                    role.isDefault ? 'bg-green-100 border-green-500' : 'bg-blue-900/50 border border-blue-800'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-gray-800">
+                        <h4 className={`font-semibold ${role.isDefault ? 'text-green-800' : 'text-blue-100'}`}>
                           {role.name}
                         </h4>
                         {role.isDefault && (
@@ -555,7 +555,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                           />
                         )}
                       </div>
-                      <p className="text-xs text-gray-600 mt-1">
+                      <p className={`text-xs ${role.isDefault ? 'text-green-600' : 'text-blue-400'} mt-1`}>
                         {role.permissions.length} yetki
                       </p>
                     </div>
@@ -583,9 +583,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
         </div>
 
         {/* Üye Rol Atama */}
-        <div className="bg-white border rounded-lg p-4">
+        <div className="bg-indigo-950 border border-indigo-900 rounded-lg p-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">Rol Atama</h3>
+            <h3 className="text-lg font-bold text-indigo-100">Rol Atama</h3>
             <button
               onClick={() => setShowAssignForm(!showAssignForm)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-1 px-3 rounded"
@@ -595,10 +595,10 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           </div>
 
           {showAssignForm && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <h4 className="font-semibold text-gray-800 mb-2">Kullanıcıya Rol Ata</h4>
+            <div className="mb-4 p-3 bg-indigo-950/50 border border-indigo-900 rounded-lg">
+              <h4 className="font-semibold text-gray-100 mb-2">Kullanıcıya Rol Ata</h4>
               
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-indigo-300 mb-1">
                 Kullanıcı Seçin
               </label>
               <select
@@ -615,7 +615,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 ))}
               </select>
 
-              <label className="block text-xs font-medium text-gray-700 mb-1 mt-2">
+              <label className="block text-xs font-medium text-indigo-300 mb-1 mt-2">
                 Rol Seçin
               </label>
               <select

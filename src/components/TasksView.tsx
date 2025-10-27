@@ -211,14 +211,14 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Görevler</h2>
+                      <h2 className="text-2xl font-bold text-gray-100">Görevler</h2>
         
         {/* Team Selector */}
         {userTeams.length > 1 && (
           <select
             value={selectedTeam}
             onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-indigo-600"
           >
             {userTeams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -230,19 +230,19 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
       </div>
 
       {selectedTeamData && (
-        <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold text-indigo-900">{selectedTeamData.name}</h3>
-              <p className="text-sm text-indigo-700">
-                {selectedTeamData.description || 'Açıklama yok'}
-              </p>
-            </div>
+                <div className="mb-6 p-4 bg-indigo-950 border border-indigo-900 rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-indigo-200">{selectedTeamData.name}</h3>
+                      <p className="text-sm text-indigo-300">
+                        {selectedTeamData.description || 'Açıklama yok'}
+                      </p>
+                    </div>
             {canViewTeamId && (
               <div className="text-right">
                 <p className="text-xs text-gray-500 mb-1">Takım ID</p>
                 <div className="flex items-center gap-2">
-                  <code className="text-sm font-mono bg-white px-2 py-1 rounded border border-indigo-300 text-indigo-800">
+                  <code className="text-sm font-mono bg-gray-800 px-2 py-1 rounded border border-indigo-700 text-indigo-300">
                     {selectedTeamData.id}
                   </code>
                   <button
@@ -260,28 +260,28 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
       )}
 
       {/* Arama */}
-      <div className="mb-6 bg-white rounded-lg p-4 border border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Arama</h3>
+      <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
         <input
           type="text"
           placeholder="Task başlığı, açıklama veya atanan kişi ara..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600"
         />
       </div>
 
       {/* Filtreler */}
-      <div className="mb-6 bg-gray-50 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Filtreler</h3>
+      <div className="mb-6 bg-gray-800 rounded-lg p-4 border border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Status Filtresi */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Durum</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Durum</label>
             <select
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value as typeof filters.status })}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
             >
               <option value="all">Tümü ({tasks.length})</option>
               <option value="todo">📝 Yapılacak ({tasks.filter(t => t.status === 'todo').length})</option>
@@ -292,11 +292,11 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
 
           {/* Priority Filtresi */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Öncelik</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Öncelik</label>
             <select
               value={filters.priority}
               onChange={(e) => setFilters({ ...filters, priority: e.target.value as typeof filters.priority })}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
             >
               <option value="all">Tümü</option>
               <option value="high">🔴 Yüksek ({tasks.filter(t => t.priority === 'high').length})</option>
@@ -307,11 +307,11 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
 
           {/* Atanan Kişi Filtresi */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Atanan Kişi</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Atanan Kişi</label>
             <select
               value={filters.assignedTo}
               onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
             >
               <option value="all">Tümü</option>
               <option value="unassigned">Atanmamış ({tasks.filter(t => !t.assignedTo).length})</option>
@@ -325,11 +325,11 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
 
           {/* Tarih Filtresi - Haftalık */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Haftalık Tarih</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Haftalık Tarih</label>
             <div className="relative">
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="w-full px-3 py-2 border rounded-lg text-sm text-left bg-white hover:bg-gray-50 flex items-center justify-between"
+                className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-left text-gray-200 hover:bg-gray-800 flex items-center justify-between"
               >
                 <span>
                   {selectedWeek ? getWeekLabel(selectedWeek) : '📅 Hafta Seç'}
@@ -338,16 +338,16 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               </button>
               
               {showCalendar && (
-                <div className="absolute z-50 mt-1 bg-white border rounded-lg shadow-xl p-3 w-80">
+                <div className="absolute z-50 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl p-3 w-80">
                   {/* Basit hafta seçici */}
                   <div className="grid grid-cols-7 gap-1 mb-3">
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Pzt</div>
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Sal</div>
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Çar</div>
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Per</div>
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Cum</div>
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Cmt</div>
-                    <div className="text-xs font-semibold text-center text-gray-600 p-2">Paz</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Pzt</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Sal</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Çar</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Per</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Cum</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Cmt</div>
+                    <div className="text-xs font-semibold text-center text-gray-400 p-2">Paz</div>
                     {Array.from({ length: 14 }, (_, i) => {
                       const date = new Date(calendarPreviewWeek);
                       date.setDate(calendarPreviewWeek.getDate() - 7 + i);
@@ -361,8 +361,8 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                           onClick={() => handleWeekSelect(date)}
                           className={`text-xs p-2 rounded ${
                             isSelected 
-                              ? 'bg-indigo-600 text-white font-semibold' 
-                              : 'hover:bg-gray-100'
+                              ? 'bg-indigo-700 text-white font-semibold' 
+                              : 'hover:bg-gray-700 text-gray-300'
                           }`}
                         >
                           {date.getDate()}
@@ -379,7 +379,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                         prev.setDate(prev.getDate() - 7);
                         setCalendarPreviewWeek(prev);
                       }}
-                      className="flex-1 text-xs bg-gray-100 text-gray-700 py-2 rounded hover:bg-gray-200"
+                      className="flex-1 text-xs bg-gray-700 text-gray-200 py-2 rounded hover:bg-gray-600"
                     >
                       ← Önceki Hafta
                     </button>
@@ -389,7 +389,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                         next.setDate(next.getDate() + 7);
                         setCalendarPreviewWeek(next);
                       }}
-                      className="flex-1 text-xs bg-gray-100 text-gray-700 py-2 rounded hover:bg-gray-200"
+                      className="flex-1 text-xs bg-gray-700 text-gray-200 py-2 rounded hover:bg-gray-600"
                     >
                       Sonraki Hafta →
                     </button>
@@ -403,7 +403,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                         setCalendarPreviewWeek(today);
                         handleWeekSelect(today);
                       }}
-                      className="flex-1 text-xs bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+                      className="flex-1 text-xs bg-indigo-700 text-white py-2 rounded hover:bg-indigo-800"
                     >
                       📅 Bu Hafta
                     </button>
@@ -414,14 +414,14 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                         setCalendarPreviewWeek(lastWeek);
                         handleWeekSelect(lastWeek);
                       }}
-                      className="flex-1 text-xs bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+                      className="flex-1 text-xs bg-gray-600 text-white py-2 rounded hover:bg-gray-700"
                     >
                       ← Geçen Hafta
                     </button>
                   </div>
                   
                   {/* Seçili haftanın tarih aralığı */}
-                  <div className="text-xs text-center text-gray-600 font-semibold">
+                  <div className="text-xs text-center text-gray-300 font-semibold">
                     {getWeekLabel(calendarPreviewWeek)}
                   </div>
                 </div>
@@ -468,29 +468,29 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               + Yeni Görev
             </button>
           ) : (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-gray-800 mb-3">Yeni Görev Oluştur</h3>
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <h3 className="font-semibold text-gray-100 mb-3">Yeni Görev Oluştur</h3>
             <input
               type="text"
               placeholder="Görev Başlığı *"
               value={taskForm.title}
               onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-              className="w-full mb-2 px-4 py-2 border rounded-lg"
+              className="w-full mb-2 px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500"
             />
             <textarea
               placeholder="Açıklama (opsiyonel)"
               value={taskForm.description}
               onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-              className="w-full mb-2 px-4 py-2 border rounded-lg"
+              className="w-full mb-2 px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500"
               rows={3}
             />
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Atanacak Kişi
             </label>
             <select
               value={taskForm.assignedTo}
               onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
-              className="w-full mb-2 px-4 py-2 border rounded-lg"
+              className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
             >
               <option value="">Atanmadı</option>
               {members.map((member) => (
@@ -548,8 +548,8 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
       )}
 
       {!canCreateTask && (
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
+        <div className="mb-4 p-3 bg-yellow-900 border border-yellow-700 rounded-lg">
+          <p className="text-sm text-yellow-200">
             ℹ️ Görev oluşturma yetkiniz yok. Sadece mevcut görevleri görüntüleyebilirsiniz.
           </p>
         </div>
@@ -560,18 +560,18 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : tasks.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-500 text-lg">Bu takımda henüz görev yok</p>
+        <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">
+          <p className="text-gray-400 text-lg">Bu takımda henüz görev yok</p>
         </div>
       ) : filteredTasks.length === 0 ? (
-        <div className="text-center py-12 bg-yellow-50 rounded-lg border border-yellow-200">
-          <p className="text-yellow-800 text-lg">Filtreye uygun görev bulunamadı</p>
+        <div className="text-center py-12 bg-yellow-900 rounded-lg border border-yellow-700">
+          <p className="text-yellow-200 text-lg">Filtreye uygun görev bulunamadı</p>
           <button
             onClick={() => {
               setFilters({ status: 'all', priority: 'all', assignedTo: 'all' });
               setSelectedWeek(null);
             }}
-            className="mt-3 text-sm text-indigo-600 hover:text-indigo-700 font-semibold"
+            className="mt-3 text-sm text-indigo-400 hover:text-indigo-300 font-semibold"
           >
             Tüm Görevleri Göster
           </button>
@@ -585,16 +585,16 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               <div
                 key={task.id}
                 onClick={() => setSelectedTask(task)}
-                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                className="border border-gray-700 rounded-lg p-4 bg-gray-800 hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{task.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-100">{task.title}</h3>
                     {task.description && (
-                      <p className="text-gray-600 mt-1 line-clamp-2">{task.description}</p>
+                      <p className="text-gray-400 mt-1 line-clamp-2">{task.description}</p>
                     )}
                     {assignedMember && (
-                      <p className="text-sm text-blue-600 mt-1">
+                      <p className="text-sm text-blue-400 mt-1">
                         👤 {assignedMember.displayName || assignedMember.email}
                       </p>
                     )}
@@ -602,10 +602,10 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                       <span
                         className={`px-2 py-1 text-xs rounded ${
                           task.status === 'done'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-900 text-green-200'
                             : task.status === 'in-progress'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-blue-900 text-blue-200'
+                            : 'bg-gray-700 text-gray-200'
                         }`}
                       >
                         {task.status === 'done'
@@ -617,10 +617,10 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                       <span
                         className={`px-2 py-1 text-xs rounded ${
                           task.priority === 'high'
-                            ? 'bg-red-100 text-red-800'
+                            ? 'bg-red-900 text-red-200'
                             : task.priority === 'medium'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-yellow-900 text-yellow-200'
+                            : 'bg-gray-700 text-gray-200'
                         }`}
                       >
                         {task.priority === 'high'
@@ -637,7 +637,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                         e.stopPropagation();
                         handleDeleteTask(task.id);
                       }}
-                      className="ml-4 text-red-600 hover:text-red-800 font-medium text-sm"
+                      className="ml-4 text-red-400 hover:text-red-300 font-medium text-sm"
                     >
                       Sil
                     </button>

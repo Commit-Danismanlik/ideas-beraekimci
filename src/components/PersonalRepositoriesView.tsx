@@ -179,7 +179,7 @@ export const PersonalRepositoriesView = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Personal Repositories</h2>
+        <h2 className="text-2xl font-bold text-gray-100">Personal Repositories</h2>
       </div>
 
       {/* Tabs */}
@@ -218,19 +218,19 @@ export const PersonalRepositoriesView = () => {
                 + Yeni Not
               </button>
             ) : (
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-800 p-4 rounded-lg">
                 <input
                   type="text"
                   placeholder="Not Başlığı"
                   value={noteForm.title}
                   onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                  className="w-full mb-2 px-4 py-2 border rounded-lg"
+                  className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
                 />
                 <textarea
                   placeholder="Not İçeriği"
                   value={noteForm.content}
                   onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                  className="w-full mb-2 px-4 py-2 border rounded-lg"
+                  className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                   rows={4}
                 />
                 <input
@@ -238,7 +238,7 @@ export const PersonalRepositoriesView = () => {
                   placeholder="Kategori (opsiyonel)"
                   value={noteForm.category}
                   onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                  className="w-full mb-2 px-4 py-2 border rounded-lg"
+                  className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                 />
                 <div className="flex gap-2">
                   <button
@@ -262,14 +262,14 @@ export const PersonalRepositoriesView = () => {
           </div>
 
           {/* Arama */}
-          <div className="mb-4 bg-white rounded-lg p-4 border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Arama</h3>
+          <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
             <input
               type="text"
               placeholder="Not başlığı, içerik veya kategori ara..."
               value={noteSearchQuery}
               onChange={(e) => setNoteSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600"
             />
           </div>
 
@@ -287,11 +287,11 @@ export const PersonalRepositoriesView = () => {
                 <div
                   key={note.id}
                   className={`border rounded-lg p-4 ${
-                    note.isPinned ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'
+                    note.isPinned ? 'border-lime-500 bg-lime-900' : 'border-gray-200'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="text-lg font-semibold text-gray-200">
                       {note.isPinned && '📌 '}
                       {note.title}
                     </h3>
@@ -310,7 +310,7 @@ export const PersonalRepositoriesView = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-gray-600 mb-2 whitespace-pre-wrap">{note.content}</p>
+                  <p className="text-gray-400 mb-2 whitespace-pre-wrap">{note.content}</p>
                   {note.category && (
                     <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
                       {note.category}
@@ -335,25 +335,25 @@ export const PersonalRepositoriesView = () => {
                 + Yeni To-Do
               </button>
             ) : (
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-800 p-4 rounded-lg">
                 <input
                   type="text"
                   placeholder="To-Do Başlığı"
                   value={todoForm.title}
                   onChange={(e) => setTodoForm({ ...todoForm, title: e.target.value })}
-                  className="w-full mb-2 px-4 py-2 border rounded-lg"
+                  className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
                 />
                 <textarea
                   placeholder="Açıklama (opsiyonel)"
                   value={todoForm.description}
                   onChange={(e) => setTodoForm({ ...todoForm, description: e.target.value })}
-                  className="w-full mb-2 px-4 py-2 border rounded-lg"
+                  className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
                   rows={2}
                 />
                 <select
                   value={todoForm.priority}
                   onChange={(e) => setTodoForm({ ...todoForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                  className="w-full mb-2 px-4 py-2 border rounded-lg"
+                  className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
                 >
                   <option value="low">Düşük Öncelik</option>
                   <option value="medium">Orta Öncelik</option>
@@ -381,14 +381,14 @@ export const PersonalRepositoriesView = () => {
           </div>
 
           {/* Arama */}
-          <div className="mb-4 bg-white rounded-lg p-4 border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Arama</h3>
+          <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
             <input
               type="text"
               placeholder="To-Do başlığı veya açıklama ara..."
               value={todoSearchQuery}
               onChange={(e) => setTodoSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
             />
           </div>
 
@@ -406,7 +406,7 @@ export const PersonalRepositoriesView = () => {
                 <div
                   key={todo.id}
                   className={`border rounded-lg p-4 flex items-start gap-3 ${
-                    todo.completed ? 'bg-gray-50 opacity-75' : 'bg-white'
+                    todo.completed ? 'bg-gray-50 opacity-75' : 'bg-gray-800'
                   }`}
                 >
                   <input
@@ -418,7 +418,7 @@ export const PersonalRepositoriesView = () => {
                   <div className="flex-1">
                     <h3
                       className={`font-semibold ${
-                        todo.completed ? 'line-through text-gray-500' : 'text-gray-800'
+                        todo.completed ? 'line-through text-gray-500' : 'text-gray-200'
                       }`}
                     >
                       {todo.title}

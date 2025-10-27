@@ -297,14 +297,14 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Team Repositories</h2>
+                <h2 className="text-2xl font-bold text-gray-100">Team Repositories</h2>
 
                 {/* Team Selector */}
                 {userTeams.length > 1 && (
                     <select
                         value={selectedTeam}
                         onChange={(e) => setSelectedTeam(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-indigo-600"
                     >
                         {userTeams.map((team) => (
                             <option key={team.id} value={team.id}>
@@ -316,11 +316,11 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
             </div>
 
             {selectedTeamData && (
-                <div className="mb-6 p-4 bg-indigo-50 rounded-lg">
+                <div className="mb-6 p-4 bg-indigo-950 border border-indigo-900 rounded-lg">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h3 className="font-semibold text-indigo-900">{selectedTeamData.name}</h3>
-                            <p className="text-sm text-indigo-700">
+                            <h3 className="font-semibold text-indigo-200">{selectedTeamData.name}</h3>
+                            <p className="text-sm text-indigo-300">
                                 {selectedTeamData.description || 'Açıklama yok'}
                             </p>
                         </div>
@@ -328,7 +328,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             <div className="text-right">
                                 <p className="text-xs text-gray-500 mb-1">Takım ID</p>
                                 <div className="flex items-center gap-2 justify-end">
-                                    <code className="text-sm font-mono bg-white px-2 py-1 rounded border border-indigo-300 text-indigo-800">
+                                    <code className="text-sm font-mono bg-gray-800 px-2 py-1 rounded border border-indigo-700 text-indigo-300">
                                         {selectedTeamData.id}
                                     </code>
                                     <button
@@ -350,8 +350,8 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                 <button
                     onClick={() => setActiveTab('notes')}
                     className={`px-6 py-2 rounded-lg font-semibold transition-colors ${activeTab === 'notes'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-indigo-700 text-white'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                         }`}
                 >
                     📝 Notlar
@@ -359,8 +359,8 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                 <button
                     onClick={() => setActiveTab('todos')}
                     className={`px-6 py-2 rounded-lg font-semibold transition-colors ${activeTab === 'todos'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-indigo-700 text-white'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                         }`}
                 >
                     ✅ To-Do List
@@ -380,19 +380,19 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                     + Yeni Not
                                 </button>
                             ) : (
-                                <div className="bg-gray-50 p-4 rounded-lg">
+                                <div className="bg-gray-800 p-4 rounded-lg">
                                     <input
                                         type="text"
                                         placeholder="Not Başlığı"
                                         value={noteForm.title}
                                         onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                     />
                                     <textarea
                                         placeholder="Not İçeriği"
                                         value={noteForm.content}
                                         onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                         rows={4}
                                     />
                                     <input
@@ -400,7 +400,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         placeholder="Kategori (opsiyonel)"
                                         value={noteForm.category}
                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                     />
                                     <div className="flex gap-2">
                                         <button
@@ -431,38 +431,38 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                     )}
 
                     {/* Arama */}
-                    <div className="mb-4 bg-white rounded-lg p-4 border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Arama</h3>
+                    <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
                         <input
                             type="text"
                             placeholder="Not başlığı, içerik veya kategori ara..."
                             value={noteSearchQuery}
                             onChange={(e) => setNoteSearchQuery(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600"
                         />
                     </div>
 
                     {/* Filtreler */}
-                    <div className="mb-4 bg-gray-50 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Filtreler</h3>
+                    <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Tarih Sıralama</label>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">Tarih Sıralama</label>
                                 <select
                                     value={noteFilter.dateSort}
                                     onChange={(e) => setNoteFilter({ ...noteFilter, dateSort: e.target.value as 'newest' | 'oldest' })}
-                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
                                 >
                                     <option value="newest">En Yeniden En Eskiye</option>
                                     <option value="oldest">En Eskiden En Yeniye</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Oluşturan Kişi</label>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">Oluşturan Kişi</label>
                                 <select
                                     value={noteFilter.creatorId}
                                     onChange={(e) => setNoteFilter({ ...noteFilter, creatorId: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
                                 >
                                     <option value="all">Tümü</option>
                                     {members.map((member) => (
@@ -488,11 +488,11 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             {filteredNotes.map((note) => (
                                 <div
                                     key={note.id}
-                                    className={`border rounded-lg p-4 ${note.isPinned ? 'border-yellow-400 bg-yellow-50' : 'border-gray-200'
+                                    className={`border rounded-lg p-4 ${note.isPinned ? 'border-lime-500 bg-lime-900' : 'border-gray-200'
                                         }`}
                                 >
                                     <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-lg font-semibold text-gray-800">
+                                        <h3 className="text-lg font-semibold text-gray-200">
                                             {note.isPinned && '📌 '}
                                             {note.title}
                                         </h3>
@@ -523,13 +523,13 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-gray-600 mb-2 whitespace-pre-wrap">{note.content}</p>
+                                    <p className="text-gray-400 mb-2 whitespace-pre-wrap">{note.content}</p>
                                     {note.category && (
                                         <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
                                             {note.category}
                                         </span>
                                     )}
-                                    <p className="text-xs text-gray-500 mt-2">
+                                    <p className="text-xs text-white/60 mt-2">
                                         📅 {new Date(note.createdAt).toLocaleString('tr-TR')} 👤 {getUserName(note.createdBy)}
                                     </p>
                                 </div>
@@ -543,23 +543,23 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
             {activeTab === 'todos' && (
                 <div>
                     {/* Arama */}
-                    <div className="mb-4 bg-white rounded-lg p-4 border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Arama</h3>
+                    <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
                         <input
                             type="text"
                             placeholder="To-Do başlığı veya açıklama ara..."
                             value={todoSearchQuery}
                             onChange={(e) => setTodoSearchQuery(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 bg-gray-900 text-indigo-200"
                         />
                     </div>
 
                     {/* Filtreler */}
-                    <div className="mb-4 bg-gray-50 rounded-lg p-4">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">🔍 Filtreler</h3>
+                    <div className="mb-4 bg-gray-800 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Tarih Sıralama</label>
+                                <label className="block text-xs font-medium text-gray-400 mb-1">Tarih Sıralama</label>
                                 <select
                                     value={todoFilter.dateSort}
                                     onChange={(e) => setTodoFilter({ ...todoFilter, dateSort: e.target.value as 'newest' | 'oldest' })}
@@ -597,19 +597,19 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                     + Yeni To-Do
                                 </button>
                             ) : (
-                                <div className="bg-gray-50 p-4 rounded-lg">
+                                <div className="bg-gray-800 p-4 rounded-lg">
                                     <input
                                         type="text"
                                         placeholder="To-Do Başlığı"
                                         value={todoForm.title}
                                         onChange={(e) => setTodoForm({ ...todoForm, title: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                     />
                                     <textarea
                                         placeholder="Açıklama (opsiyonel)"
                                         value={todoForm.description}
                                         onChange={(e) => setTodoForm({ ...todoForm, description: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                         rows={2}
                                     />
                                     <input
@@ -617,12 +617,12 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         placeholder="Kullanıcı ID'si (atama için, opsiyonel)"
                                         value={todoForm.assignedTo}
                                         onChange={(e) => setTodoForm({ ...todoForm, assignedTo: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                     />
                                     <select
                                         value={todoForm.priority}
                                         onChange={(e) => setTodoForm({ ...todoForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg"
+                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
                                     >
                                         <option value="low">Düşük Öncelik</option>
                                         <option value="medium">Orta Öncelik</option>
@@ -669,7 +669,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             {filteredTodos.map((todo) => (
                                 <div
                                     key={todo.id}
-                                    className={`border rounded-lg p-4 flex items-start gap-3 ${todo.completed ? 'bg-gray-50 opacity-75' : 'bg-white'
+                                    className={`border rounded-lg p-4 flex items-start gap-3 ${todo.completed ? 'bg-gray-50 opacity-75' : 'bg-gray-800'
                                         }`}
                                 >
                                     {canEditRepository ? (
@@ -687,7 +687,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                     )}
                                     <div className="flex-1">
                                         <h3
-                                            className={`font-semibold ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'
+                                            className={`font-semibold ${todo.completed ? 'line-through text-gray-500' : 'text-gray-200'
                                                 }`}
                                         >
                                             {todo.title}

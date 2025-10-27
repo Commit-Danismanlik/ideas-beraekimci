@@ -106,56 +106,56 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold">Profil Bilgileri</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <h3 className="text-xl font-bold text-gray-100">Profil Bilgileri</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-300">
             ✕
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+          <div className="mb-4 p-3 bg-red-900 border border-red-700 text-red-200 rounded-lg text-sm">
             {error}
           </div>
         )}
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">İsim</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">İsim</label>
             <input
               type="text"
               value={profileForm.name}
               onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <input
               type="email"
               value={profileForm.email}
               disabled
-              className="w-full px-3 py-2 border rounded-lg bg-gray-100 cursor-not-allowed"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 mt-1">Email değiştirmek için yöneticinize başvurunuz.</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Doğum Tarihi</label>
             <input
               type="text"
               value={profileForm.birthDate ? new Date(profileForm.birthDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
               disabled
-              className="w-full px-3 py-2 border rounded-lg bg-gray-100 cursor-not-allowed"
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 mt-1">Doğum tarihi değiştirilemez</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mevcut Şifre <span className="text-gray-500">(opsiyonel)</span>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Mevcut Şifre <span className="text-gray-400">(opsiyonel)</span>
             </label>
             <input
               type="password"

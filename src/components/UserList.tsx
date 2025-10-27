@@ -66,7 +66,7 @@ export const UserList = () => {
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800">
+                  <h3 className="text-lg font-semibold text-gray-200">
                     {user.name}
                   </h3>
                   <p className="text-gray-600">{user.email}</p>
