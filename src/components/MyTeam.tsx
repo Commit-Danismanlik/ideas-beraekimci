@@ -3,6 +3,7 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { getTeamService, getTeamMemberInfoService } from '../di/container';
 import { ITeam } from '../models/Team.model';
 import { IMemberWithRole } from '../services/TeamMemberInfoService';
+import { ProfileModal } from './ProfileModal';
 
 export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
   const { user } = useAuthContext();
@@ -14,20 +15,9 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [confirmTeamName, setConfirmTeamName] = useState('');
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: '', email: '', currentPassword: '', newPassword: '', confirmPassword: '' });
 
   const openProfileEdit = () => {
-    const currentUser = getCurrentUserInfo();
-    if (currentUser && user) {
-      setProfileForm({
-        name: currentUser.displayName || '',
-        email: currentUser.email,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      setShowProfileEdit(true);
-    }
+    setShowProfileEdit(true);
   };
 
   const teamService = getTeamService();
@@ -110,63 +100,27 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
     }
   };
 
-  const handleUpdateProfile = async () => {
-    if (!user) return;
-
-    // Yeni şifre girilmişse validasyonlar
-    if (profileForm.newPassword || profileForm.confirmPassword) {
-      if (!profileForm.currentPassword) {
-        alert('Mevcut şifrenizi girin');
-        return;
-      }
-
-      if (profileForm.newPassword !== profileForm.confirmPassword) {
-        alert('Yeni şifreler eşleşmiyor');
-        return;
-      }
-
-      if (profileForm.newPassword.length < 6) {
-        alert('Yeni şifre en az 6 karakter olmalıdır');
-        return;
-      }
-    }
-
-    setLoading(true);
-    try {
-      // TODO: Update user profile with password verification
-      console.log('Profile update with password verification');
-      
-      // Şimdilik sadece isim güncellenecek
-      if (profileForm.name) {
-        console.log('Updating name:', profileForm.name);
-        // TODO: Implement name update in Firestore
-      }
-
-      setShowProfileEdit(false);
-      alert('Profil güncellendi (Henüz implement edilmedi)');
-    } catch (err) {
-      alert('Profil güncellenemedi');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getCurrentUserInfo = () => {
-    return members.find(m => m.userId === user?.uid);
-  };
-
   if (loading && teams.length === 0) {
-    return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div></div>;
+    return (
+      <div className="flex flex-col justify-center items-center py-16">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+          <div className="absolute inset-0 animate-spin rounded-full h-16 w-16 border-4 border-purple-600/20" style={{ animationDirection: 'reverse' }}></div>
+        </div>
+        <p className="mt-4 text-indigo-300 font-semibold">Yükleniyor...</p>
+      </div>
+    );
   }
 
   if (teams.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-100 mb-4">Henüz Bir Takımınız Yok</h2>
-        <p className="text-gray-400 mb-4">Bir takıma katılmak veya yeni takım oluşturmak için dashboard'a dönün</p>
+      <div className="text-center py-16 glass rounded-3xl border border-indigo-500/20">
+        <div className="text-6xl mb-4">👥</div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-4">Henüz Bir Takımınız Yok</h2>
+        <p className="text-indigo-300/70 mb-6">Bir takıma katılmak veya yeni takım oluşturmak için dashboard'a dönün</p>
         <button
           onClick={() => window.location.reload()}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg"
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105"
         >
           Dashboard'a Dön
         </button>
@@ -174,13 +128,12 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
     );
   }
 
-  const currentUserInfo = getCurrentUserInfo();
   const isOwner = selectedTeam?.ownerId === user?.uid;
 
   return (
     <div>
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="mb-4 bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-300 px-4 py-3 rounded-xl animate-fade-in-scale">
           {error}
         </div>
       )}
@@ -188,7 +141,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       {/* Takım Seçici */}
       {teams.length > 1 && (
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-bold text-indigo-200 mb-3">
             Takım Seç
           </label>
           <select
@@ -197,7 +150,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
               const team = teams.find(t => t.id === e.target.value);
               if (team) setSelectedTeam(team);
             }}
-            className="w-full max-w-md px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200"
+            className="w-full sm:max-w-md px-4 py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm hover:border-indigo-400/50 transition-all font-semibold text-sm sm:text-base"
           >
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -211,19 +164,19 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       {/* Takım Bilgileri */}
       {selectedTeam && (
         <>
-          <div className="mb-6 p-6 bg-indigo-950 border border-indigo-900 rounded-lg shadow-md">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-100">{selectedTeam.name}</h2>
-                <p className="text-gray-400 mt-2">{selectedTeam.description || 'Açıklama yok'}</p>
-                <div className="mt-4 flex gap-4 text-sm text-gray-400">
+          <div className="mb-6 p-4 sm:p-6 glass rounded-2xl border border-indigo-500/20 shadow-glow">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-bold text-indigo-100">{selectedTeam.name}</h2>
+                <p className="text-indigo-300/70 mt-2 text-sm sm:text-base">{selectedTeam.description || 'Açıklama yok'}</p>
+                <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs sm:text-sm text-indigo-300/80">
                   <span>👥 Üye Sayısı: {members.length}</span>
                   <span>📅 Oluşturulma: {new Date(selectedTeam.createdAt).toLocaleDateString('tr-TR')}</span>
                 </div>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Takım ID</p>
-                <code className="text-sm font-mono bg-gray-700 px-3 py-1 rounded">
+              <div className="text-right self-start sm:self-end">
+                <p className="text-xs text-indigo-300/50 mb-1 sm:mb-2">Takım ID</p>
+                <code className="text-xs sm:text-sm font-mono glass px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-indigo-500/30 text-indigo-300 break-all">
                   {selectedTeam.id}
                 </code>
               </div>
@@ -232,15 +185,21 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
 
           {/* Üyeler */}
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-gray-100 mb-4">Takım Üyeleri</h3>
+            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-4">Takım Üyeleri</h3>
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <div className="flex justify-center py-12">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-indigo-600"></div>
+                  <div className="absolute inset-0 animate-spin rounded-full h-12 w-12 border-4 border-purple-600/20" style={{ animationDirection: 'reverse' }}></div>
+                </div>
               </div>
             ) : members.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">Henüz üye yok</p>
+              <div className="text-center py-12 glass rounded-2xl border border-indigo-500/20">
+                <div className="text-5xl mb-3">👥</div>
+                <p className="text-indigo-300 font-semibold">Henüz üye yok</p>
+              </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-3 sm:gap-4">
                 {members.map((member) => {
                   const isCurrentUser = member.userId === user?.uid;
                   const memberIsOwner = selectedTeam.ownerId === member.userId;
@@ -249,36 +208,36 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
                     <div
                       key={member.userId}
                       onClick={isCurrentUser ? openProfileEdit : undefined}
-                      className={`p-4 bg-gray-900 border-2 border-gray-700 rounded-lg cursor-pointer transition-all ${
+                      className={`p-3 sm:p-4 glass rounded-2xl border-2 cursor-pointer transition-all duration-300 hover:shadow-glow ${
                         isCurrentUser
-                          ? 'border-indigo-600 hover:border-indigo-500 hover:shadow-md'
-                          : 'border-gray-700'
+                          ? 'border-indigo-500/50 hover:border-indigo-400 hover:scale-[1.02]'
+                          : 'border-indigo-500/20 hover:border-indigo-400/30'
                       }`}
                       title={isCurrentUser ? 'Bilgileri düzenlemek için tıklayın' : undefined}
                     >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-indigo-900 rounded-full flex items-center justify-center text-xl font-bold text-indigo-300">
+                      <div className="flex justify-between items-center gap-2 sm:gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold text-white shadow-glow flex-shrink-0">
                             {(member.displayName || member.email || member.userId).charAt(0).toUpperCase()}
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-100">
-                              {member.displayName || member.email} {isCurrentUser && '(Ben)'}
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-indigo-100 text-sm sm:text-base truncate">
+                              {member.displayName || member.email} {isCurrentUser && <span className="text-indigo-400">(Ben)</span>}
                             </h4>
-                            <p className="text-sm text-gray-400">{member.email}</p>
+                            <p className="text-xs sm:text-sm text-indigo-300/70 truncate">{member.email}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold shadow-lg whitespace-nowrap ${
                             memberIsOwner
-                              ? 'bg-yellow-600 text-white'
+                              ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white'
                               : member.roleName === 'Member'
-                              ? 'bg-gray-700 text-gray-300'
-                              : 'bg-green-600 text-white'
+                              ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'
+                              : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
                           }`}>
                             {member.roleName}
                           </span>
-                          {isCurrentUser && <span className="text-indigo-400 text-xs">✏️ Düzenle</span>}
+                          {isCurrentUser && <span className="text-indigo-400 text-xs font-semibold hidden sm:inline">✏️ Düzenle</span>}
                         </div>
                       </div>
                     </div>
@@ -289,10 +248,10 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
           </div>
 
           {/* Takımdan Ayrıl Butonu */}
-          <div className="flex justify-end">
+          <div className="flex justify-end mt-4 sm:mt-0">
             <button
               onClick={() => setShowLeaveConfirm(true)}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg"
+              className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-2.5 sm:py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:scale-105 text-sm sm:text-base"
             >
               🚪 Takımdan Ayrıl
             </button>
@@ -302,36 +261,36 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
 
       {/* Takımdan Ayrıl Confirm Modal */}
       {showLeaveConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-scale p-4">
+          <div className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-glow-lg border border-indigo-500/20 animate-fade-in-up max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-4 sm:mb-6">
               {isOwner ? '⚠️ Takım Sahibi Olarak Ayrılıyorsunuz!' : 'Takımdan Ayrıl'}
             </h3>
             {isOwner && (
-              <div className="mb-4 p-4 bg-yellow-900 border border-yellow-700 rounded-lg">
-                <p className="text-sm text-yellow-200 mb-2">
-                  <strong>Uyarı:</strong> Takım sahibi olarak takımdan ayrılırsanız, takım ve tüm içerik silinecek!
+              <div className="mb-4 p-3 sm:p-4 glass rounded-xl border border-yellow-500/30 bg-gradient-to-br from-yellow-950/20 to-orange-950/20">
+                <p className="text-xs sm:text-sm text-yellow-300 mb-2 font-semibold">
+                  <strong>⚠️ Uyarı:</strong> Takım sahibi olarak takımdan ayrılırsanız, takım ve tüm içerik silinecek!
                 </p>
-                <p className="text-sm text-gray-300 mb-2">Onaylamak için takım adını girin:</p>
+                <p className="text-xs sm:text-sm text-yellow-200/70 mb-3">Onaylamak için takım adını girin:</p>
                 <input
                   type="text"
                   value={confirmTeamName}
                   onChange={(e) => setConfirmTeamName(e.target.value)}
                   placeholder={selectedTeam?.name}
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 glass border border-yellow-500/30 rounded-xl text-yellow-200 backdrop-blur-sm placeholder-yellow-300/50 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-400 transition-all text-sm sm:text-base"
                 />
               </div>
             )}
-            <p className="text-gray-300 mb-4">
+            <p className="text-sm sm:text-base text-indigo-200 mb-4 sm:mb-6 font-semibold">
               {isOwner 
                 ? 'Takımdan ayrılmak ve takımı silmek istediğinize emin misiniz?'
                 : 'Takımdan ayrılmak istediğinize emin misiniz?'}
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={handleLeaveTeam}
                 disabled={isOwner && confirmTeamName !== selectedTeam?.name}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-2.5 sm:py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:scale-105 disabled:transform-none text-sm sm:text-base"
               >
                 Evet, Ayrıl
               </button>
@@ -340,7 +299,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
                   setShowLeaveConfirm(false);
                   setConfirmTeamName('');
                 }}
-                className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                className="w-full sm:w-auto px-6 bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30 text-sm sm:text-base"
               >
                 İptal
               </button>
@@ -350,95 +309,10 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       )}
 
       {/* Profil Düzenleme Modal */}
-      {showProfileEdit && currentUserInfo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Profil Bilgileri</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">İsim</label>
-                <input
-                  type="text"
-                  value={profileForm.name}
-                  onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                  defaultValue={currentUserInfo.displayName}
-                  className="w-full px-3 py-2 border rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={profileForm.email}
-                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                  disabled
-                  className="w-full px-3 py-2 border rounded-lg bg-gray-100 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-500 mt-1">Email değiştirmek için yöneticinize başvurunuz.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Doğum Tarihi</label>
-                <input
-                  type="text"
-                  value={currentUserInfo.birthDate ? new Date(currentUserInfo.birthDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
-                  disabled
-                  className="w-full px-3 py-2 border rounded-lg bg-gray-100 cursor-not-allowed"
-                />
-                <p className="text-xs text-gray-500 mt-1">Doğum tarihi değiştirilemez</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mevcut Şifre <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  value={profileForm.currentPassword}
-                  onChange={(e) => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Şifre değiştirmek için mevcut şifrenizi girin"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Şifre değiştirmek istemiyorsanız boş bırakın
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Yeni Şifre</label>
-                <input
-                  type="password"
-                  value={profileForm.newPassword}
-                  onChange={(e) => setProfileForm({ ...profileForm, newPassword: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="En az 6 karakter"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Yeni Şifre Tekrar</label>
-                <input
-                  type="password"
-                  value={profileForm.confirmPassword}
-                  onChange={(e) => setProfileForm({ ...profileForm, confirmPassword: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Yeni şifrenizi tekrar girin"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-6">
-              <button
-                onClick={handleUpdateProfile}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg"
-              >
-                Kaydet
-              </button>
-              <button
-                onClick={() => setShowProfileEdit(false)}
-                className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
-              >
-                İptal
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProfileModal
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+      />
     </div>
   );
 };

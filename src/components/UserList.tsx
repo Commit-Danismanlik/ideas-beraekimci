@@ -54,7 +54,7 @@ export const UserList = () => {
       </div>
 
       {users.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
+        <div className="text-center py-12 bg-gray-800 rounded-lg">
           <p className="text-gray-500 text-lg">Henüz kullanıcı bulunmuyor</p>
         </div>
       ) : (
@@ -75,11 +75,10 @@ export const UserList = () => {
                   )}
                   <div className="mt-2">
                     <span
-                      className={`inline-block px-2 py-1 text-xs rounded ${
-                        user.isActive
+                      className={`inline-block px-2 py-1 text-xs rounded ${user.isActive
                           ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-800'
-                      }`}
+                        }`}
                     >
                       {user.isActive ? 'Aktif' : 'Pasif'}
                     </span>

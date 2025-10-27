@@ -17,11 +17,11 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
     const [selectedTeam, setSelectedTeam] = useState<string>(userTeams[0]?.id || '');
     const { hasPermission } = usePermissions(selectedTeam);
     const [activeTab, setActiveTab] = useState<TabType>('notes');
-  // Filtrelenmiş veriler
-  const [, setNotes] = useState<ITeamNote[]>([]);
-  const [, setTodos] = useState<ITeamTodo[]>([]);
-  const [filteredNotes, setFilteredNotes] = useState<ITeamNote[]>([]);
-  const [filteredTodos, setFilteredTodos] = useState<ITeamTodo[]>([]);
+    // Filtrelenmiş veriler
+    const [, setNotes] = useState<ITeamNote[]>([]);
+    const [, setTodos] = useState<ITeamTodo[]>([]);
+    const [filteredNotes, setFilteredNotes] = useState<ITeamNote[]>([]);
+    const [filteredTodos, setFilteredTodos] = useState<ITeamTodo[]>([]);
     const [loading, setLoading] = useState(false);
     const [members, setMembers] = useState<IMemberWithRole[]>([]);
 
@@ -223,17 +223,17 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
 
     const handleTogglePin = async (id: string) => {
         if (!user || !selectedTeam) return;
-        
+
         // Mevcut sabitlenmiş notları say (filteredNotes'dan)
         const pinnedCount = filteredNotes.filter(note => note.isPinned).length;
         const noteToToggle = filteredNotes.find(note => note.id === id);
-        
+
         // Sabitlemek istiyorsa ve 3'ten fazla sabitli not varsa uyarı ver
         if (!noteToToggle?.isPinned && pinnedCount >= 3) {
             alert('En fazla 3 not sabitlenebilir. Lütfen önce bir sabitlenmiş notu çözün.');
             return;
         }
-        
+
         await noteService.togglePin(selectedTeam, id, user.uid);
         fetchData();
     };
@@ -297,14 +297,14 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-100">Team Repositories</h2>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">Team Repositories</h2>
 
                 {/* Team Selector */}
                 {userTeams.length > 1 && (
                     <select
                         value={selectedTeam}
                         onChange={(e) => setSelectedTeam(e.target.value)}
-                        className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-indigo-600"
+                        className="px-4 py-2 glass border border-indigo-500/30 rounded-xl text-indigo-200 focus:ring-2 focus:ring-indigo-500 transition-all hover:border-indigo-400"
                     >
                         {userTeams.map((team) => (
                             <option key={team.id} value={team.id}>
@@ -316,24 +316,24 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
             </div>
 
             {selectedTeamData && (
-                <div className="mb-6 p-4 bg-indigo-950 border border-indigo-900 rounded-lg">
+                <div className="mb-6 p-4 glass rounded-2xl border border-indigo-500/20 shadow-glow">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h3 className="font-semibold text-indigo-200">{selectedTeamData.name}</h3>
-                            <p className="text-sm text-indigo-300">
+                            <h3 className="font-bold text-lg text-indigo-200">{selectedTeamData.name}</h3>
+                            <p className="text-sm text-indigo-300/70">
                                 {selectedTeamData.description || 'Açıklama yok'}
                             </p>
                         </div>
                         {canViewTeamId && (
                             <div className="text-right">
-                                <p className="text-xs text-gray-500 mb-1">Takım ID</p>
+                                <p className="text-xs text-indigo-300/50 mb-1">Takım ID</p>
                                 <div className="flex items-center gap-2 justify-end">
-                                    <code className="text-sm font-mono bg-gray-800 px-2 py-1 rounded border border-indigo-700 text-indigo-300">
+                                    <code className="text-sm font-mono glass px-2 py-1 rounded-lg border border-indigo-500/30 text-indigo-300">
                                         {selectedTeamData.id}
                                     </code>
                                     <button
                                         onClick={() => handleCopyTeamId(selectedTeamData.id)}
-                                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-1 rounded border border-gray-300"
+                                        className="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 p-2 rounded-lg border border-indigo-500/30 transition-all hover:border-indigo-400 transform hover:scale-105"
                                         title="Takım ID'sini kopyala"
                                     >
                                         📋
@@ -349,19 +349,21 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
             <div className="flex gap-2 mb-6">
                 <button
                     onClick={() => setActiveTab('notes')}
-                    className={`px-6 py-2 rounded-lg font-semibold transition-colors ${activeTab === 'notes'
-                        ? 'bg-indigo-700 text-white'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                        }`}
+                    className={`px-6 py-2 rounded-xl font-bold transition-all duration-300 transform ${
+                        activeTab === 'notes'
+                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow'
+                            : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-105'
+                    }`}
                 >
                     📝 Notlar
                 </button>
                 <button
                     onClick={() => setActiveTab('todos')}
-                    className={`px-6 py-2 rounded-lg font-semibold transition-colors ${activeTab === 'todos'
-                        ? 'bg-indigo-700 text-white'
-                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                        }`}
+                    className={`px-6 py-2 rounded-xl font-bold transition-all duration-300 transform ${
+                        activeTab === 'todos'
+                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow'
+                            : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-105'
+                    }`}
                 >
                     ✅ To-Do List
                 </button>
@@ -375,24 +377,24 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             {!showNoteForm ? (
                                 <button
                                     onClick={() => setShowNoteForm(true)}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
+                                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
                                 >
                                     + Yeni Not
                                 </button>
                             ) : (
-                                <div className="bg-gray-800 p-4 rounded-lg">
+                                <div className="glass rounded-2xl p-4 border border-indigo-500/20">
                                     <input
                                         type="text"
                                         placeholder="Not Başlığı"
                                         value={noteForm.title}
                                         onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                     />
                                     <textarea
                                         placeholder="Not İçeriği"
                                         value={noteForm.content}
                                         onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                         rows={4}
                                     />
                                     <input
@@ -400,12 +402,12 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         placeholder="Kategori (opsiyonel)"
                                         value={noteForm.category}
                                         onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                     />
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleCreateNote}
-                                            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
+                                            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
                                         >
                                             Kaydet
                                         </button>
@@ -414,7 +416,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                                 setShowNoteForm(false);
                                                 setNoteForm({ title: '', content: '', category: '' });
                                             }}
-                                            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg"
+                                            className="bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30"
                                         >
                                             İptal
                                         </button>
@@ -431,38 +433,38 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                     )}
 
                     {/* Arama */}
-                    <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
+                    <div className="mb-4 glass rounded-2xl p-4 border border-indigo-500/20 shadow-glow">
+                        <h3 className="text-sm font-bold text-indigo-200 mb-3">🔍 Arama</h3>
                         <input
                             type="text"
                             placeholder="Not başlığı, içerik veya kategori ara..."
                             value={noteSearchQuery}
                             onChange={(e) => setNoteSearchQuery(e.target.value)}
-                            className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600"
+                            className="w-full px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm placeholder-indigo-300/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
                         />
                     </div>
 
                     {/* Filtreler */}
-                    <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
+                    <div className="mb-4 glass rounded-2xl p-4 border border-indigo-500/20 shadow-glow">
+                        <h3 className="text-sm font-bold text-indigo-200 mb-3">🔍 Filtreler</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Tarih Sıralama</label>
+                                <label className="block text-xs font-semibold text-indigo-300/80 mb-2">Tarih Sıralama</label>
                                 <select
                                     value={noteFilter.dateSort}
                                     onChange={(e) => setNoteFilter({ ...noteFilter, dateSort: e.target.value as 'newest' | 'oldest' })}
-                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
+                                    className="w-full px-3 py-2 glass border border-indigo-500/30 rounded-xl text-sm text-indigo-200 backdrop-blur-sm hover:border-indigo-400/50 transition-all"
                                 >
                                     <option value="newest">En Yeniden En Eskiye</option>
                                     <option value="oldest">En Eskiden En Yeniye</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Oluşturan Kişi</label>
+                                <label className="block text-xs font-semibold text-indigo-300/80 mb-2">Oluşturan Kişi</label>
                                 <select
                                     value={noteFilter.creatorId}
                                     onChange={(e) => setNoteFilter({ ...noteFilter, creatorId: e.target.value })}
-                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
+                                    className="w-full px-3 py-2 glass border border-indigo-500/30 rounded-xl text-sm text-indigo-200 backdrop-blur-sm hover:border-indigo-400/50 transition-all"
                                 >
                                     <option value="all">Tümü</option>
                                     {members.map((member) => (
@@ -476,23 +478,32 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                     </div>
 
                     {loading ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <div className="flex flex-col justify-center items-center py-16">
+                            <div className="relative">
+                                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+                                <div className="absolute inset-0 animate-spin rounded-full h-16 w-16 border-4 border-purple-600/20" style={{ animationDirection: 'reverse' }}></div>
+                            </div>
+                            <p className="mt-4 text-indigo-300 font-semibold">Yükleniyor...</p>
                         </div>
                     ) : filteredNotes.length === 0 ? (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg">
-                            <p className="text-gray-500">Henüz not yok</p>
+                        <div className="text-center py-16 glass rounded-2xl border border-indigo-500/20">
+                            <div className="text-6xl mb-4">📝</div>
+                            <p className="text-xl font-bold text-indigo-200">Henüz not yok</p>
+                            <p className="text-sm text-indigo-300/60 mt-2">İlk notunuzu oluşturmak için yukarıdaki butonu kullanın</p>
                         </div>
                     ) : (
-                        <div className="grid gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                             {filteredNotes.map((note) => (
                                 <div
                                     key={note.id}
-                                    className={`border rounded-lg p-4 ${note.isPinned ? 'border-lime-500 bg-lime-900' : 'border-gray-200'
-                                        }`}
+                                    className={`glass rounded-2xl p-4 border transition-all duration-300 hover:shadow-glow ${
+                                        note.isPinned 
+                                            ? 'border-lime-500/50 bg-gradient-to-br from-lime-950/30 to-emerald-950/30 shadow-lime-500/20' 
+                                            : 'border-indigo-500/20 hover:border-indigo-400/40'
+                                    }`}
                                 >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="text-lg font-semibold text-gray-200">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <h3 className="text-lg font-bold text-indigo-100">
                                             {note.isPinned && '📌 '}
                                             {note.title}
                                         </h3>
@@ -500,7 +511,8 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                             {canEditRepository && (
                                                 <button
                                                     onClick={() => startEditNote(note)}
-                                                    className="text-sm text-blue-600 hover:text-blue-700"
+                                                    className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                                                    title="Düzenle"
                                                 >
                                                     ✏️
                                                 </button>
@@ -508,28 +520,30 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                             {canEditRepository && (
                                                 <button
                                                     onClick={() => handleTogglePin(note.id)}
-                                                    className="text-sm text-yellow-600 hover:text-yellow-700"
+                                                    className="p-2 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                                                    title={note.isPinned ? 'Sabitlemeyi kaldır' : 'Sabitle'}
                                                 >
-                                                    {note.isPinned ? 'Çöz' : 'Sabitle'}
+                                                    {note.isPinned ? '🔓' : '📌'}
                                                 </button>
                                             )}
                                             {canDeleteRepository && (
                                                 <button
                                                     onClick={() => handleDeleteNote(note.id)}
-                                                    className="text-sm text-red-600 hover:text-red-700"
+                                                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                                                    title="Sil"
                                                 >
-                                                    Sil
+                                                    🗑️
                                                 </button>
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-gray-400 mb-2 whitespace-pre-wrap">{note.content}</p>
+                                    <p className="text-indigo-200/80 mb-3 whitespace-pre-wrap">{note.content}</p>
                                     {note.category && (
-                                        <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-300 rounded-xl mb-3">
                                             {note.category}
                                         </span>
                                     )}
-                                    <p className="text-xs text-white/60 mt-2">
+                                    <p className="text-xs text-indigo-300/60 mt-2">
                                         📅 {new Date(note.createdAt).toLocaleString('tr-TR')} 👤 {getUserName(note.createdBy)}
                                     </p>
                                 </div>
@@ -543,38 +557,38 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
             {activeTab === 'todos' && (
                 <div>
                     {/* Arama */}
-                    <div className="mb-4 bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Arama</h3>
+                    <div className="mb-4 glass rounded-2xl p-4 border border-indigo-500/20 shadow-glow">
+                        <h3 className="text-sm font-bold text-indigo-200 mb-3">🔍 Arama</h3>
                         <input
                             type="text"
                             placeholder="To-Do başlığı veya açıklama ara..."
                             value={todoSearchQuery}
                             onChange={(e) => setTodoSearchQuery(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 placeholder-gray-500 bg-gray-900 text-indigo-200"
+                            className="w-full px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm placeholder-indigo-300/50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
                         />
                     </div>
 
                     {/* Filtreler */}
-                    <div className="mb-4 bg-gray-800 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
+                    <div className="mb-4 glass rounded-2xl p-4 border border-indigo-500/20 shadow-glow">
+                        <h3 className="text-sm font-bold text-indigo-200 mb-3">🔍 Filtreler</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Tarih Sıralama</label>
+                                <label className="block text-xs font-semibold text-indigo-300/80 mb-2">Tarih Sıralama</label>
                                 <select
                                     value={todoFilter.dateSort}
                                     onChange={(e) => setTodoFilter({ ...todoFilter, dateSort: e.target.value as 'newest' | 'oldest' })}
-                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                    className="w-full px-3 py-2 glass border border-indigo-500/30 rounded-xl text-sm text-indigo-200 backdrop-blur-sm hover:border-indigo-400/50 transition-all"
                                 >
                                     <option value="newest">En Yeniden En Eskiye</option>
                                     <option value="oldest">En Eskiden En Yeniye</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Oluşturan Kişi</label>
+                                <label className="block text-xs font-semibold text-indigo-300/80 mb-2">Oluşturan Kişi</label>
                                 <select
                                     value={todoFilter.creatorId}
                                     onChange={(e) => setTodoFilter({ ...todoFilter, creatorId: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                    className="w-full px-3 py-2 glass border border-indigo-500/30 rounded-xl text-sm text-indigo-200 backdrop-blur-sm hover:border-indigo-400/50 transition-all"
                                 >
                                     <option value="all">Tümü</option>
                                     {members.map((member) => (
@@ -592,24 +606,24 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             {!showTodoForm ? (
                                 <button
                                     onClick={() => setShowTodoForm(true)}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
+                                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
                                 >
                                     + Yeni To-Do
                                 </button>
                             ) : (
-                                <div className="bg-gray-800 p-4 rounded-lg">
+                                <div className="glass rounded-2xl p-4 border border-indigo-500/20">
                                     <input
                                         type="text"
                                         placeholder="To-Do Başlığı"
                                         value={todoForm.title}
                                         onChange={(e) => setTodoForm({ ...todoForm, title: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                     />
                                     <textarea
                                         placeholder="Açıklama (opsiyonel)"
                                         value={todoForm.description}
                                         onChange={(e) => setTodoForm({ ...todoForm, description: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                         rows={2}
                                     />
                                     <input
@@ -617,12 +631,12 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         placeholder="Kullanıcı ID'si (atama için, opsiyonel)"
                                         value={todoForm.assignedTo}
                                         onChange={(e) => setTodoForm({ ...todoForm, assignedTo: e.target.value })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                     />
                                     <select
                                         value={todoForm.priority}
                                         onChange={(e) => setTodoForm({ ...todoForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                                        className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600 "
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
                                     >
                                         <option value="low">Düşük Öncelik</option>
                                         <option value="medium">Orta Öncelik</option>
@@ -631,7 +645,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleCreateTodo}
-                                            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
+                                            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
                                         >
                                             Kaydet
                                         </button>
@@ -640,7 +654,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                                 setShowTodoForm(false);
                                                 setTodoForm({ title: '', description: '', priority: 'medium', assignedTo: '' });
                                             }}
-                                            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg"
+                                            className="bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30"
                                         >
                                             İptal
                                         </button>
@@ -657,59 +671,70 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                     )}
 
                     {loading ? (
-                        <div className="flex justify-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        <div className="flex flex-col justify-center items-center py-16">
+                            <div className="relative">
+                                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+                                <div className="absolute inset-0 animate-spin rounded-full h-16 w-16 border-4 border-purple-600/20" style={{ animationDirection: 'reverse' }}></div>
+                            </div>
+                            <p className="mt-4 text-indigo-300 font-semibold">Yükleniyor...</p>
                         </div>
                     ) : filteredTodos.length === 0 ? (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg">
-                            <p className="text-gray-500">Henüz todo yok</p>
+                        <div className="text-center py-16 glass rounded-2xl border border-indigo-500/20">
+                            <div className="text-6xl mb-4">✅</div>
+                            <p className="text-xl font-bold text-indigo-200">Henüz todo yok</p>
+                            <p className="text-sm text-indigo-300/60 mt-2">İlk todo'nuzu oluşturmak için yukarıdaki butonu kullanın</p>
                         </div>
                     ) : (
-                        <div className="grid gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                             {filteredTodos.map((todo) => (
                                 <div
                                     key={todo.id}
-                                    className={`border rounded-lg p-4 flex items-start gap-3 ${todo.completed ? 'bg-gray-50 opacity-75' : 'bg-gray-800'
-                                        }`}
+                                    className={`glass rounded-2xl p-4 flex items-start gap-3 border transition-all duration-300 hover:shadow-glow ${
+                                        todo.completed ? 'opacity-60 border-indigo-400/20' : 'border-indigo-500/20 hover:border-indigo-400/40'
+                                    }`}
                                 >
                                     {canEditRepository ? (
-                                        <input
-                                            type="checkbox"
-                                            checked={todo.completed}
-                                            onChange={() => handleToggleTodo(todo.id)}
-                                            className="mt-1 w-5 h-5"
-                                        />
+                                        <div className="flex items-center mt-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={todo.completed}
+                                                onChange={() => handleToggleTodo(todo.id)}
+                                                className="w-6 h-6 rounded-lg border-2 border-indigo-500/50 bg-slate-800/50 checked:bg-gradient-to-r checked:from-indigo-600 checked:to-purple-600 checked:border-transparent transition-all duration-300 focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                                            />
+                                        </div>
                                     ) : (
-                                        <div className={`mt-1 w-5 h-5 border-2 rounded flex items-center justify-center ${todo.completed ? 'bg-gray-300 border-gray-400' : 'border-gray-300'
-                                            }`}>
-                                            {todo.completed && <span className="text-xs">✓</span>}
+                                        <div className={`mt-1 w-6 h-6 border-2 rounded-lg flex items-center justify-center ${
+                                            todo.completed ? 'bg-gradient-to-r from-indigo-600 to-purple-600 border-transparent' : 'border-indigo-500/50 bg-slate-800/50'
+                                        }`}>
+                                            {todo.completed && <span className="text-xs text-white font-bold">✓</span>}
                                         </div>
                                     )}
                                     <div className="flex-1">
                                         <h3
-                                            className={`font-semibold ${todo.completed ? 'line-through text-gray-500' : 'text-gray-200'
+                                            className={`font-bold ${todo.completed ? 'line-through text-indigo-300/50' : 'text-indigo-100'
                                                 }`}
                                         >
                                             {todo.title}
                                         </h3>
                                         {todo.description && (
-                                            <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
+                                            <p className="text-sm text-indigo-200/70 mt-1">{todo.description}</p>
                                         )}
                                         {todo.assignedTo && (
-                                            <p className="text-xs text-blue-600 mt-1">Atanan: {todo.assignedTo}</p>
+                                            <p className="text-xs text-blue-400 mt-1 font-semibold">🎯 Atanan: {todo.assignedTo}</p>
                                         )}
-                                        <div className="mt-2 flex gap-2 items-center">
+                                        <div className="mt-2 flex gap-2 items-center flex-wrap">
                                             <span
-                                                className={`inline-block px-2 py-1 text-xs rounded ${todo.priority === 'high'
-                                                    ? 'bg-red-100 text-red-800'
-                                                    : todo.priority === 'medium'
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-gray-100 text-gray-800'
-                                                    }`}
+                                                className={`inline-block px-3 py-1 text-xs font-bold rounded-xl ${
+                                                    todo.priority === 'high'
+                                                        ? 'bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 text-red-300'
+                                                        : todo.priority === 'medium'
+                                                            ? 'bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 text-yellow-300'
+                                                            : 'bg-gradient-to-r from-slate-500/20 to-slate-600/20 border border-slate-500/30 text-slate-300'
+                                                }`}
                                             >
-                                                {todo.priority === 'high' ? 'Yüksek' : todo.priority === 'medium' ? 'Orta' : 'Düşük'}
+                                                {todo.priority === 'high' ? '🔴 Yüksek' : todo.priority === 'medium' ? '🟡 Orta' : '⚪ Düşük'}
                                             </span>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-indigo-300/60">
                                                 📅 {new Date(todo.createdAt).toLocaleString('tr-TR')} 👤 {getUserName(todo.createdBy)}
                                             </p>
                                         </div>
@@ -718,7 +743,8 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         {canEditRepository && (
                                             <button
                                                 onClick={() => startEditTodo(todo)}
-                                                className="text-sm text-blue-600 hover:text-blue-700"
+                                                className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                                                title="Düzenle"
                                             >
                                                 ✏️
                                             </button>
@@ -726,9 +752,10 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         {canDeleteRepository && (
                                             <button
                                                 onClick={() => handleDeleteTodo(todo.id)}
-                                                className="text-red-600 hover:text-red-700 text-sm"
+                                                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                                                title="Sil"
                                             >
-                                                Sil
+                                                🗑️
                                             </button>
                                         )}
                                     </div>
@@ -741,48 +768,70 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
 
             {/* Düzenleme Modal'ları */}
             {editingNote && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                        <h3 className="text-xl font-bold mb-4">Notu Düzenle</h3>
-                        <input
-                            type="text"
-                            value={editNoteForm.title}
-                            onChange={(e) => setEditNoteForm({ ...editNoteForm, title: e.target.value })}
-                            className="w-full mb-3 px-4 py-2 border rounded-lg"
-                            placeholder="Başlık"
-                        />
-                        <textarea
-                            value={editNoteForm.content}
-                            onChange={(e) => setEditNoteForm({ ...editNoteForm, content: e.target.value })}
-                            className="w-full mb-3 px-4 py-2 border rounded-lg"
-                            rows={6}
-                            placeholder="İçerik"
-                        />
-                        <input
-                            type="text"
-                            value={editNoteForm.category}
-                            onChange={(e) => setEditNoteForm({ ...editNoteForm, category: e.target.value })}
-                            className="w-full mb-3 px-4 py-2 border rounded-lg"
-                            placeholder="Kategori"
-                        />
-                        <label className="flex items-center gap-2 mb-4">
-                            <input
-                                type="checkbox"
-                                checked={editNoteForm.isPinned}
-                                onChange={(e) => setEditNoteForm({ ...editNoteForm, isPinned: e.target.checked })}
-                            />
-                            <span>Sabitlenmiş</span>
-                        </label>
-                        <div className="flex gap-2">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-scale p-4">
+                    <div className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-glow-lg border border-indigo-500/20 animate-fade-in-up">
+                        <div className="flex justify-between items-center mb-4 sm:mb-6">
+                            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                                Notu Düzenle
+                            </h3>
+                            <button 
+                                onClick={() => setEditingNote(null)} 
+                                className="p-2 text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-4 sm:space-y-5">
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Başlık</label>
+                                <input
+                                    type="text"
+                                    value={editNoteForm.title}
+                                    onChange={(e) => setEditNoteForm({ ...editNoteForm, title: e.target.value })}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
+                                    placeholder="Başlık"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">İçerik</label>
+                                <textarea
+                                    value={editNoteForm.content}
+                                    onChange={(e) => setEditNoteForm({ ...editNoteForm, content: e.target.value })}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
+                                    rows={6}
+                                    placeholder="İçerik"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Kategori</label>
+                                <input
+                                    type="text"
+                                    value={editNoteForm.category}
+                                    onChange={(e) => setEditNoteForm({ ...editNoteForm, category: e.target.value })}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
+                                    placeholder="Kategori"
+                                />
+                            </div>
+                            <label className="flex items-center gap-2 p-3 sm:p-4 glass rounded-xl border border-indigo-500/30 cursor-pointer hover:bg-indigo-500/10 transition-all">
+                                <input
+                                    type="checkbox"
+                                    checked={editNoteForm.isPinned}
+                                    onChange={(e) => setEditNoteForm({ ...editNoteForm, isPinned: e.target.checked })}
+                                    className="w-5 h-5 rounded border-2 border-indigo-500/50 bg-slate-800/50 checked:bg-gradient-to-r checked:from-indigo-600 checked:to-purple-600 checked:border-transparent transition-all cursor-pointer"
+                                />
+                                <span className="text-sm sm:text-base text-indigo-200 font-semibold">📌 Notu Sabitle</span>
+                            </label>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 sm:mt-8">
                             <button
                                 onClick={handleUpdateNote}
-                                className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold"
+                                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105 text-sm sm:text-base"
                             >
                                 Kaydet
                             </button>
                             <button
                                 onClick={() => setEditingNote(null)}
-                                className="px-6 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                                className="w-full sm:w-auto px-4 sm:px-6 bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30 text-sm sm:text-base"
                             >
                                 İptal
                             </button>
@@ -792,50 +841,72 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
             )}
 
             {editingTodo && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-                        <h3 className="text-xl font-bold mb-4">To-Do'yu Düzenle</h3>
-                        <input
-                            type="text"
-                            value={editTodoForm.title}
-                            onChange={(e) => setEditTodoForm({ ...editTodoForm, title: e.target.value })}
-                            className="w-full mb-3 px-4 py-2 border rounded-lg"
-                            placeholder="Başlık"
-                        />
-                        <textarea
-                            value={editTodoForm.description}
-                            onChange={(e) => setEditTodoForm({ ...editTodoForm, description: e.target.value })}
-                            className="w-full mb-3 px-4 py-2 border rounded-lg"
-                            rows={4}
-                            placeholder="Açıklama"
-                        />
-                        <select
-                            value={editTodoForm.priority}
-                            onChange={(e) => setEditTodoForm({ ...editTodoForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                            className="w-full mb-3 px-4 py-2 border rounded-lg"
-                        >
-                            <option value="low">Düşük Öncelik</option>
-                            <option value="medium">Orta Öncelik</option>
-                            <option value="high">Yüksek Öncelik</option>
-                        </select>
-                        <label className="flex items-center gap-2 mb-4">
-                            <input
-                                type="checkbox"
-                                checked={editTodoForm.completed}
-                                onChange={(e) => setEditTodoForm({ ...editTodoForm, completed: e.target.checked })}
-                            />
-                            <span>Tamamlandı</span>
-                        </label>
-                        <div className="flex gap-2">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-scale p-4">
+                    <div className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-glow-lg border border-indigo-500/20 animate-fade-in-up">
+                        <div className="flex justify-between items-center mb-4 sm:mb-6">
+                            <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                                To-Do'yu Düzenle
+                            </h3>
+                            <button 
+                                onClick={() => setEditingTodo(null)} 
+                                className="p-2 text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-4 sm:space-y-5">
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Başlık</label>
+                                <input
+                                    type="text"
+                                    value={editTodoForm.title}
+                                    onChange={(e) => setEditTodoForm({ ...editTodoForm, title: e.target.value })}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
+                                    placeholder="Başlık"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Açıklama</label>
+                                <textarea
+                                    value={editTodoForm.description}
+                                    onChange={(e) => setEditTodoForm({ ...editTodoForm, description: e.target.value })}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
+                                    rows={4}
+                                    placeholder="Açıklama"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Öncelik</label>
+                                <select
+                                    value={editTodoForm.priority}
+                                    onChange={(e) => setEditTodoForm({ ...editTodoForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all text-sm sm:text-base"
+                                >
+                                    <option value="low">⚪ Düşük Öncelik</option>
+                                    <option value="medium">🟡 Orta Öncelik</option>
+                                    <option value="high">🔴 Yüksek Öncelik</option>
+                                </select>
+                            </div>
+                            <label className="flex items-center gap-2 p-3 sm:p-4 glass rounded-xl border border-indigo-500/30 cursor-pointer hover:bg-indigo-500/10 transition-all">
+                                <input
+                                    type="checkbox"
+                                    checked={editTodoForm.completed}
+                                    onChange={(e) => setEditTodoForm({ ...editTodoForm, completed: e.target.checked })}
+                                    className="w-5 h-5 rounded border-2 border-indigo-500/50 bg-slate-800/50 checked:bg-gradient-to-r checked:from-green-600 checked:to-emerald-600 checked:border-transparent transition-all cursor-pointer"
+                                />
+                                <span className="text-sm sm:text-base text-indigo-200 font-semibold">✅ Tamamlandı</span>
+                            </label>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 sm:mt-8">
                             <button
                                 onClick={handleUpdateTodo}
-                                className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold"
+                                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105 text-sm sm:text-base"
                             >
                                 Kaydet
                             </button>
                             <button
                                 onClick={() => setEditingTodo(null)}
-                                className="px-6 bg-gray-500 text-white py-2 rounded-lg font-semibold"
+                                className="w-full sm:w-auto px-4 sm:px-6 bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30 text-sm sm:text-base"
                             >
                                 İptal
                             </button>
