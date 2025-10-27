@@ -26,6 +26,7 @@ export const Login = () => {
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
+            <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="w-full max-w-xs mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Giriş Yap</h1>
             <p className="text-gray-600">Hesabınıza giriş yapın</p>
           </div>

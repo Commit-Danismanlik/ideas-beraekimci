@@ -54,8 +54,9 @@ export const Register = () => {
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Kayıt Ol</h1>
-            <p className="text-gray-600">Yeni hesap oluşturun</p>
+            <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="w-full max-w-xs mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-gray-100 mb-2">Kayıt Ol</h1>
+            <p className="text-gray-300">Yeni hesap oluşturun</p>
           </div>
 
           {error && (
