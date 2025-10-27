@@ -17,11 +17,11 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
     const [selectedTeam, setSelectedTeam] = useState<string>(userTeams[0]?.id || '');
     const { hasPermission } = usePermissions(selectedTeam);
     const [activeTab, setActiveTab] = useState<TabType>('notes');
-  // Filtrelenmiş veriler
-  const [, setNotes] = useState<ITeamNote[]>([]);
-  const [, setTodos] = useState<ITeamTodo[]>([]);
-  const [filteredNotes, setFilteredNotes] = useState<ITeamNote[]>([]);
-  const [filteredTodos, setFilteredTodos] = useState<ITeamTodo[]>([]);
+    // Filtrelenmiş veriler
+    const [, setNotes] = useState<ITeamNote[]>([]);
+    const [, setTodos] = useState<ITeamTodo[]>([]);
+    const [filteredNotes, setFilteredNotes] = useState<ITeamNote[]>([]);
+    const [filteredTodos, setFilteredTodos] = useState<ITeamTodo[]>([]);
     const [loading, setLoading] = useState(false);
     const [members, setMembers] = useState<IMemberWithRole[]>([]);
 
@@ -223,17 +223,17 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
 
     const handleTogglePin = async (id: string) => {
         if (!user || !selectedTeam) return;
-        
+
         // Mevcut sabitlenmiş notları say (filteredNotes'dan)
         const pinnedCount = filteredNotes.filter(note => note.isPinned).length;
         const noteToToggle = filteredNotes.find(note => note.id === id);
-        
+
         // Sabitlemek istiyorsa ve 3'ten fazla sabitli not varsa uyarı ver
         if (!noteToToggle?.isPinned && pinnedCount >= 3) {
             alert('En fazla 3 not sabitlenebilir. Lütfen önce bir sabitlenmiş notu çözün.');
             return;
         }
-        
+
         await noteService.togglePin(selectedTeam, id, user.uid);
         fetchData();
     };
@@ -447,7 +447,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                         <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Tarih Sıralama</label>
+                                <label className="block text-xs font-medium text-gray-300 mb-1">Tarih Sıralama</label>
                                 <select
                                     value={noteFilter.dateSort}
                                     onChange={(e) => setNoteFilter({ ...noteFilter, dateSort: e.target.value as 'newest' | 'oldest' })}
@@ -458,7 +458,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Oluşturan Kişi</label>
+                                <label className="block text-xs font-medium text-gray-300 mb-1">Oluşturan Kişi</label>
                                 <select
                                     value={noteFilter.creatorId}
                                     onChange={(e) => setNoteFilter({ ...noteFilter, creatorId: e.target.value })}
@@ -480,7 +480,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                         </div>
                     ) : filteredNotes.length === 0 ? (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg">
+                        <div className="text-center py-12 bg-gray-800 rounded-lg">
                             <p className="text-gray-500">Henüz not yok</p>
                         </div>
                     ) : (
@@ -556,25 +556,25 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
 
                     {/* Filtreler */}
                     <div className="mb-4 bg-gray-800 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
+                        <h3 className="text-sm font-semibold text-gray-300 mb-3">🔍 Filtreler</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Tarih Sıralama</label>
+                                <label className="block text-xs font-medium text-gray-300 mb-1">Tarih Sıralama</label>
                                 <select
                                     value={todoFilter.dateSort}
                                     onChange={(e) => setTodoFilter({ ...todoFilter, dateSort: e.target.value as 'newest' | 'oldest' })}
-                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                    className="w-full px-3 py-2 border rounded-lg text-sm bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
                                 >
                                     <option value="newest">En Yeniden En Eskiye</option>
                                     <option value="oldest">En Eskiden En Yeniye</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">Oluşturan Kişi</label>
+                                <label className="block text-xs font-medium text-gray-300 mb-1">Oluşturan Kişi</label>
                                 <select
                                     value={todoFilter.creatorId}
                                     onChange={(e) => setTodoFilter({ ...todoFilter, creatorId: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                                    className="w-full px-3 py-2 border rounded-lg text-sm bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
                                 >
                                     <option value="all">Tümü</option>
                                     {members.map((member) => (
@@ -661,7 +661,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
                         </div>
                     ) : filteredTodos.length === 0 ? (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg">
+                        <div className="text-center py-12 bg-gray-800 rounded-lg">
                             <p className="text-gray-500">Henüz todo yok</p>
                         </div>
                     ) : (

@@ -13,17 +13,17 @@ export const PersonalRepositoriesView = () => {
   const [todos, setTodos] = useState<IPersonalTodo[]>([]);
   const [filteredTodos, setFilteredTodos] = useState<IPersonalTodo[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Arama
   const [noteSearchQuery, setNoteSearchQuery] = useState('');
   const [todoSearchQuery, setTodoSearchQuery] = useState('');
-  
+
   // Form states
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [showTodoForm, setShowTodoForm] = useState(false);
   const [noteForm, setNoteForm] = useState({ title: '', content: '', category: '' });
   const [todoForm, setTodoForm] = useState({ title: '', description: '', priority: 'medium' as 'low' | 'medium' | 'high' });
-  
+
   const noteService = getPersonalNoteService();
   const todoService = getPersonalTodoService();
 
@@ -41,13 +41,13 @@ export const PersonalRepositoriesView = () => {
 
   const fetchData = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     if (activeTab === 'notes') {
       const result = await noteService.getUserNotes(user.uid);
       if (result.success) {
         setNotes(result.data);
-        
+
         // Arama filtresini uygula
         let filtered = [...result.data];
         if (noteSearchQuery.trim()) {
@@ -57,21 +57,21 @@ export const PersonalRepositoriesView = () => {
             note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
           );
         }
-        
+
         // Sabitlenmiş notları en başa taşı
         filtered.sort((a, b) => {
           if (a.isPinned && !b.isPinned) return -1;
           if (!a.isPinned && b.isPinned) return 1;
           return 0;
         });
-        
+
         setFilteredNotes(filtered);
       }
     } else {
       const result = await todoService.getUserTodos(user.uid);
       if (result.success) {
         setTodos(result.data);
-        
+
         // Arama filtresini uygula
         let filtered = [...result.data];
         if (todoSearchQuery.trim()) {
@@ -85,7 +85,7 @@ export const PersonalRepositoriesView = () => {
     }
     setLoading(false);
   };
-  
+
   // Arama değiştiğinde filtreleri tekrar uygula
   useEffect(() => {
     if (activeTab === 'notes') {
@@ -97,14 +97,14 @@ export const PersonalRepositoriesView = () => {
           note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
         );
       }
-      
+
       // Sabitlenmiş notları en başa taşı
       filtered.sort((a, b) => {
         if (a.isPinned && !b.isPinned) return -1;
         if (!a.isPinned && b.isPinned) return 1;
         return 0;
       });
-      
+
       setFilteredNotes(filtered);
     } else {
       let filtered = [...todos];
@@ -120,7 +120,7 @@ export const PersonalRepositoriesView = () => {
 
   const handleCreateNote = async () => {
     if (!user || !noteForm.title.trim()) return;
-    
+
     const result = await noteService.createNote(user.uid, noteForm);
     if (result.success) {
       setNoteForm({ title: '', content: '', category: '' });
@@ -131,7 +131,7 @@ export const PersonalRepositoriesView = () => {
 
   const handleCreateTodo = async () => {
     if (!user || !todoForm.title.trim()) return;
-    
+
     const result = await todoService.createTodo(user.uid, todoForm);
     if (result.success) {
       setTodoForm({ title: '', description: '', priority: 'medium' });
@@ -163,15 +163,15 @@ export const PersonalRepositoriesView = () => {
     // Mevcut sabitlenmiş notları say
     const pinnedCount = notes.filter(note => note.isPinned).length;
     const noteToToggle = notes.find(note => note.id === id);
-    
+
     // Sabitlemek istiyorsa ve 3'ten fazla sabitli not varsa uyarı ver
     if (!noteToToggle?.isPinned && pinnedCount >= 3) {
       alert('En fazla 3 not sabitlenebilir. Lütfen önce bir sabitlenmiş notu çözün.');
       return;
     }
-    
+
     await noteService.togglePin(id);
-    
+
     // Verileri yeniden yükle ve sırala
     fetchData();
   };
@@ -186,21 +186,19 @@ export const PersonalRepositoriesView = () => {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab('notes')}
-          className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-            activeTab === 'notes'
+          className={`px-6 py-2 rounded-lg font-semibold transition-colors ${activeTab === 'notes'
               ? 'bg-indigo-600 text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+            }`}
         >
           📝 Notlar
         </button>
         <button
           onClick={() => setActiveTab('todos')}
-          className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-            activeTab === 'todos'
+          className={`px-6 py-2 rounded-lg font-semibold transition-colors ${activeTab === 'todos'
               ? 'bg-indigo-600 text-white'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+            }`}
         >
           ✅ To-Do List
         </button>
@@ -278,7 +276,7 @@ export const PersonalRepositoriesView = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
             </div>
           ) : filteredNotes.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <div className="text-center py-12 bg-gray-800 rounded-lg">
               <p className="text-gray-500">Henüz notunuz yok</p>
             </div>
           ) : (
@@ -286,9 +284,8 @@ export const PersonalRepositoriesView = () => {
               {filteredNotes.map((note) => (
                 <div
                   key={note.id}
-                  className={`border rounded-lg p-4 ${
-                    note.isPinned ? 'border-lime-500 bg-lime-900' : 'border-gray-200'
-                  }`}
+                  className={`border rounded-lg p-4 ${note.isPinned ? 'border-lime-500 bg-lime-900' : 'border-gray-200'
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold text-gray-200">
@@ -397,7 +394,7 @@ export const PersonalRepositoriesView = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
             </div>
           ) : filteredTodos.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
+            <div className="text-center py-12 bg-gray-800 rounded-lg">
               <p className="text-gray-500">Henüz todo'nuz yok</p>
             </div>
           ) : (
@@ -405,9 +402,8 @@ export const PersonalRepositoriesView = () => {
               {filteredTodos.map((todo) => (
                 <div
                   key={todo.id}
-                  className={`border rounded-lg p-4 flex items-start gap-3 ${
-                    todo.completed ? 'bg-gray-50 opacity-75' : 'bg-gray-800'
-                  }`}
+                  className={`border rounded-lg p-4 flex items-start gap-3 ${todo.completed ? 'bg-gray-50 opacity-75' : 'bg-gray-800'
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -417,9 +413,8 @@ export const PersonalRepositoriesView = () => {
                   />
                   <div className="flex-1">
                     <h3
-                      className={`font-semibold ${
-                        todo.completed ? 'line-through text-gray-500' : 'text-gray-200'
-                      }`}
+                      className={`font-semibold ${todo.completed ? 'line-through text-gray-500' : 'text-gray-200'
+                        }`}
                     >
                       {todo.title}
                     </h3>
@@ -428,13 +423,12 @@ export const PersonalRepositoriesView = () => {
                     )}
                     <div className="mt-2">
                       <span
-                        className={`inline-block px-2 py-1 text-xs rounded ${
-                          todo.priority === 'high'
+                        className={`inline-block px-2 py-1 text-xs rounded ${todo.priority === 'high'
                             ? 'bg-red-100 text-red-800'
                             : todo.priority === 'medium'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
                       >
                         {todo.priority === 'high' ? 'Yüksek' : todo.priority === 'medium' ? 'Orta' : 'Düşük'}
                       </span>

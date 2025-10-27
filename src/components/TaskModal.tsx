@@ -74,9 +74,9 @@ export const TaskModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-indigo-950 rounded-2xl shadow-2xl drop-shadow-xl shadow-indigo-950 border border-indigo-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-indigo-950 to-purple-950 via-indigo-900 p-6 rounded-t-2xl">
           <div className="flex justify-between items-start">
             <div className="flex-1">
               {isEditing ? (
@@ -84,11 +84,11 @@ export const TaskModal = ({
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded bg-white text-gray-800 font-bold text-xl"
+                  className="w-full px-3 py-2 rounded bg-indigo-950 border border-indigo-800 text-gray-100 font-bold text-xl"
                   placeholder="Görev başlığı"
                 />
               ) : (
-                <h2 className="text-2xl font-bold text-white">{task.title}</h2>
+                <h2 className="text-2xl font-bold text-gray-100">{task.title}</h2>
               )}
             </div>
             <button
@@ -101,10 +101,10 @@ export const TaskModal = ({
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 bg-gradient-to-tr via-slate-900 to-slate-800 from-slate-950">
           {/* Status */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-100 mb-2">
               Durum
             </label>
             {canChangeStatus ? (
@@ -120,7 +120,7 @@ export const TaskModal = ({
                           : status === 'in-progress'
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'backdrop-brightness-125 bg-gray-900 hover:bg-indigo-950 text-gray-100/50 hover:text-indigo-400 transition-all duration-300 '
                     }`}
                   >
                     {status === 'done' ? '✅ Tamamlandı' : status === 'in-progress' ? '⏳ Devam Ediyor' : '📝 Yapılacak'}
@@ -142,7 +142,7 @@ export const TaskModal = ({
 
           {/* Priority */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-100 mb-2">
               Öncelik
             </label>
             {isEditing && canEditTask ? (
@@ -158,10 +158,10 @@ export const TaskModal = ({
             ) : (
               <span className={`inline-block px-3 py-1 rounded ${
                 task.priority === 'high'
-                  ? 'bg-red-100 text-red-800'
+                  ? 'bg-red-300 text-red-900'
                   : task.priority === 'medium'
                   ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-gray-100 text-gray-800'
+                  : 'bg-gray-400 text-gray-900'
               }`}>
                 {task.priority === 'high' ? '🔴 Yüksek' : task.priority === 'medium' ? '🟡 Orta' : '⚪ Düşük'}
               </span>
@@ -170,7 +170,7 @@ export const TaskModal = ({
 
           {/* Assigned To */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-100 mb-2">
               Atanan Kişi
             </label>
             {isEditing && canEditTask ? (
@@ -187,13 +187,13 @@ export const TaskModal = ({
                 ))}
               </select>
             ) : (
-              <div className="px-4 py-2 bg-gray-50 rounded-lg">
+              <div className="px-4 py-2 bg-indigo-950 border border-indigo-900 rounded-lg">
                 {assignedMember ? (
                   <div>
-                    <p className="font-semibold text-gray-800">
+                    <p className="font-semibold text-gray-100">
                       {assignedMember.displayName || assignedMember.email}
                     </p>
-                    <p className="text-xs text-gray-500">{assignedMember.email}</p>
+                    <p className="text-xs text-gray-300/75">{assignedMember.email}</p>
                   </div>
                 ) : (
                   <p className="text-gray-500">Atanmadı</p>
@@ -204,7 +204,7 @@ export const TaskModal = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-100 mb-2">
               Açıklama
             </label>
             {isEditing && canEditTask ? (
@@ -216,8 +216,8 @@ export const TaskModal = ({
                 placeholder="Görev açıklaması..."
               />
             ) : (
-              <div className="px-4 py-3 bg-gray-50 rounded-lg min-h-[100px]">
-                <p className="text-gray-700 whitespace-pre-wrap">
+              <div className="px-4 py-3 bg-indigo-950 border border-indigo-900 rounded-lg min-h-[100px]">
+                <p className="text-gray-100/75 whitespace-pre-wrap">
                   {task.description || 'Açıklama yok'}
                 </p>
               </div>
@@ -268,7 +268,23 @@ export const TaskModal = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 bg-gray-50 rounded-b-2xl flex justify-between">
+        <div className="p-6 bg-gradient-to-br via-slate-900 to-slate-800 from-slate-950 flex justify-between">
+        <div className="flex gap-2">
+            {canDeleteTask && (
+              <button
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg"
+              >
+                Sil
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg"
+            >
+              Kapat
+            </button>
+          </div>
           <div className="flex gap-2">
             {canEditTask && (
               <>
@@ -307,22 +323,7 @@ export const TaskModal = ({
               </>
             )}
           </div>
-          <div className="flex gap-2">
-            {canDeleteTask && (
-              <button
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg"
-              >
-                Sil
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg"
-            >
-              Kapat
-            </button>
-          </div>
+          
         </div>
       </div>
     </div>
