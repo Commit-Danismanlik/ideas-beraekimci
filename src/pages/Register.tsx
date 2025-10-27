@@ -50,24 +50,37 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-8">
-          <div className="text-center mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-radial"></div>
+        <div className="absolute inset-0 bg-gradient-mesh"></div>
+        
+        {/* Floating orbs */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+      </div>
+
+      <div className="max-w-md w-full relative z-10">
+        <div className="glass-strong rounded-3xl shadow-glow-lg p-8 backdrop-blur-xl">
+          <div className="text-center mb-8 animate-fade-in-up">
             <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="w-full max-w-xs mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-100 mb-2">Kayıt Ol</h1>
-            <p className="text-gray-400">Yeni hesap oluşturun</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+              Kayıt Ol
+            </h1>
+            <p className="text-indigo-300 text-lg">Yeni hesap oluşturun</p>
           </div>
 
           {error && (
-            <div className="mb-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
+            <div className="mb-4 bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-300 px-4 py-3 rounded-xl animate-fade-in-scale">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-indigo-200">
                 İsim
               </label>
               <input
@@ -77,13 +90,13 @@ export const Register = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, displayName: e.target.value })
                 }
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-indigo-500/30 rounded-xl text-white placeholder-indigo-300/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-400/50"
                 placeholder="Adınız Soyadınız"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-indigo-200">
                 Email
               </label>
               <input
@@ -91,13 +104,13 @@ export const Register = () => {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-indigo-500/30 rounded-xl text-white placeholder-indigo-300/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-400/50"
                 placeholder="ornek@email.com"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-indigo-200">
                 Şifre
               </label>
               <input
@@ -105,14 +118,14 @@ export const Register = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-indigo-500/30 rounded-xl text-white placeholder-indigo-300/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-400/50"
                 placeholder="••••••••"
                 minLength={6}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-indigo-200">
                 Şifre Tekrar
               </label>
               <input
@@ -120,27 +133,27 @@ export const Register = () => {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-indigo-500/30 rounded-xl text-white placeholder-indigo-300/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all duration-200 hover:border-indigo-400/50"
                 placeholder="••••••••"
                 minLength={6}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-indigo-200">
                 Doğum Tarihi
               </label>
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-200 hover:border-indigo-500"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-indigo-500/30 rounded-xl text-left text-white hover:border-indigo-400 transition-all duration-200"
                 >
                   {selectedDate ? selectedDate.toLocaleDateString('tr-TR') : 'Tarih seçin'}
                 </button>
                 
                 {showDatePicker && (
-                  <div className="absolute z-50 bottom-0 bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-[345px] h-[315px]">
+                  <div className="absolute z-50 bottom-0 glass border border-indigo-500/30 rounded-xl shadow-glow w-[345px] h-[315px]">
                     <style>{`
                       .custom-calendar {
                         transform: scale(0.85);
@@ -176,7 +189,7 @@ export const Register = () => {
                         placeholder="Doğum tarihinizi seçin"
                       />
                       <div className="absolute top-1 -right-6">
-                        <button onClick={() => setShowDatePicker(false)} className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-2 px-4 rounded-lg">
+                        <button onClick={() => setShowDatePicker(false)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl transition-all transform hover:scale-105">
                           x
                         </button>
                       </div>
@@ -189,16 +202,26 @@ export const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-indigo-500/50 disabled:transform-none"
             >
-              {loading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Kayıt yapılıyor...
+                </span>
+              ) : (
+                'Kayıt Ol'
+              )}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-gray-400">
+          <div className="mt-8 text-center">
+            <p className="text-indigo-300">
               Zaten hesabınız var mı?{' '}
-              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold">
+              <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold hover:underline transition-colors">
                 Giriş Yap
               </Link>
             </p>

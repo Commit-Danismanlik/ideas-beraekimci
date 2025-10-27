@@ -72,8 +72,18 @@ export const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-700 via-black to-indigo-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-indigo-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-radial"></div>
+        <div className="absolute inset-0 bg-gradient-mesh"></div>
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-indigo-600"></div>
+            <div className="absolute inset-0 animate-spin rounded-full h-20 w-20 border-4 border-purple-600/20" style={{ animationDirection: 'reverse' }}></div>
+          </div>
+          <p className="mt-6 text-xl font-semibold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            Yükleniyor...
+          </p>
+        </div>
       </div>
     );
   }
@@ -125,15 +135,15 @@ export const Dashboard = () => {
       {/* Content Container */}
       <div className="relative z-10">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-950/90 via-indigo-950/90 to-slate-950/90 backdrop-blur-lg shadow-2xl border-b border-indigo-900/30">
+        <div className="glass-strong border-b border-indigo-500/20 shadow-glow sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             {/* Logo ve Başlık */}
             <div className="flex items-center gap-2 lg:gap-4">
-              <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="h-8 lg:h-12" />
+              <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="h-8 lg:h-12 drop-shadow-lg" />
               <div className="hidden sm:block">
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-100">Dashboard</h1>
-                <p className="text-sm lg:text-base text-gray-400 hidden lg:block">Hoş geldin, {user?.displayName || user?.email}</p>
+                <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">Dashboard</h1>
+                <p className="text-sm lg:text-base text-indigo-300/70 hidden lg:block">Hoş geldin, {user?.displayName || user?.email}</p>
               </div>
             </div>
 
@@ -141,7 +151,7 @@ export const Dashboard = () => {
             <div className="hidden lg:flex gap-3">
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="bg-indigo-600/80 hover:bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105"
               >
                 👤 Profil
               </button>
@@ -150,13 +160,13 @@ export const Dashboard = () => {
                   setActiveView('myteam');
                   setIsMobileMenuOpen(false);
                 }}
-                className="bg-indigo-600/80 hover:bg-indigo-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105"
               >
                 👥 Takımım
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-600/80 hover:bg-red-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-lg shadow-red-500/20 hover:shadow-red-500/40"
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:scale-105"
               >
                 Çıkış Yap
               </button>
@@ -182,53 +192,53 @@ export const Dashboard = () => {
             </button>
           </div>
 
-          {/* Mobile Menu */}
-          <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}>
-            <div className="mt-4 pb-4 border-t border-indigo-900/30">
-              <div className="flex flex-col gap-2 pt-4">
-                <button
-                  onClick={() => {
-                    setShowProfileModal(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full bg-indigo-600/90 hover:bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-lg shadow-indigo-500/20 text-left ${
-                    isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
-                  }`}
-                >
-                  👤 Profil
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveView('myteam');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full bg-indigo-600/90 hover:bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-lg shadow-indigo-500/20 text-left ${
-                    isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
-                  }`}
-                >
-                  👥 Takımım
-                </button>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full bg-red-600/90 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-lg shadow-red-500/20 text-left ${
-                    isMobileMenuOpen ? 'animate-fade-in-up delay-300' : ''
-                  }`}
-                >
-                  Çıkış Yap
-                </button>
-                <div className={`pt-2 text-sm text-gray-400 px-4 ${
-                  isMobileMenuOpen ? 'animate-fade-in delay-400' : ''
-                }`}>
-                  Hoş geldin, {user?.displayName || user?.email}
+            {/* Mobile Menu */}
+            <div className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+              isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}>
+              <div className="mt-4 pb-4 border-t border-indigo-500/20">
+                <div className="flex flex-col gap-2 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowProfileModal(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
+                      isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
+                    }`}
+                  >
+                    👤 Profil
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveView('myteam');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
+                      isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
+                    }`}
+                  >
+                    👥 Takımım
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
+                      isMobileMenuOpen ? 'animate-fade-in-up delay-300' : ''
+                    }`}
+                  >
+                    Çıkış Yap
+                  </button>
+                  <div className={`pt-2 text-sm text-indigo-300/70 px-4 ${
+                    isMobileMenuOpen ? 'animate-fade-in delay-400' : ''
+                  }`}>
+                    Hoş geldin, {user?.displayName || user?.email}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
           <style>{`
             @keyframes fade-in-up {
@@ -281,42 +291,46 @@ export const Dashboard = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-10 lg:py-20">
         {/* Toggle Buttons - Permission bazlı görünüm */}
-        <div className="bg-slate-900/50 backdrop-blur-lg border border-indigo-900/30 rounded-2xl shadow-2xl p-4 lg:p-6 mb-6">
+        <div className="glass-strong rounded-3xl shadow-glow-lg p-4 lg:p-6 mb-6 animate-fade-in-up">
           <div className={`grid gap-3 lg:gap-4 ${canManageTeam ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
             <button
               onClick={() => setActiveView('personal')}
-              className={`py-4 lg:py-6 px-4 rounded-xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-200 ${activeView === 'personal'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]'
-                  : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700/50 border border-slate-700/30 hover:border-indigo-500/30'
-                }`}
+              className={`py-4 lg:py-6 px-4 rounded-2xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-300 transform ${
+                activeView === 'personal'
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-glow-lg scale-[1.02]'
+                  : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-[1.02]'
+              }`}
             >
               📝 Personal
             </button>
             <button
               onClick={() => setActiveView('repositories')}
-              className={`py-4 lg:py-6 px-4 rounded-xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-200 ${activeView === 'repositories'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]'
-                  : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700/50 border border-slate-700/30 hover:border-indigo-500/30'
-                }`}
+              className={`py-4 lg:py-6 px-4 rounded-2xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-300 transform ${
+                activeView === 'repositories'
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-glow-lg scale-[1.02]'
+                  : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-[1.02]'
+              }`}
             >
               📦 Repositories
             </button>
             <button
               onClick={() => setActiveView('tasks')}
-              className={`py-4 lg:py-6 px-4 rounded-xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-200 ${activeView === 'tasks'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]'
-                  : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700/50 border border-slate-700/30 hover:border-indigo-500/30'
-                }`}
+              className={`py-4 lg:py-6 px-4 rounded-2xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-300 transform ${
+                activeView === 'tasks'
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-glow-lg scale-[1.02]'
+                  : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-[1.02]'
+              }`}
             >
               ✅ Tasks
             </button>
             {canManageTeam && (
               <button
                 onClick={() => setActiveView('management')}
-                className={`py-4 lg:py-6 px-4 rounded-xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-200 ${activeView === 'management'
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]'
-                    : 'bg-slate-800/50 text-gray-300 hover:bg-slate-700/50 border border-slate-700/30 hover:border-indigo-500/30'
-                  }`}
+                className={`py-4 lg:py-6 px-4 rounded-2xl font-bold text-base sm:text-xl lg:text-2xl transition-all duration-300 transform ${
+                  activeView === 'management'
+                    ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-glow-lg scale-[1.02]'
+                    : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-[1.02]'
+                }`}
               >
                 ⚙️ Yönetim
               </button>
@@ -325,7 +339,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Active View Content */}
-        <div className="bg-slate-900/50 backdrop-blur-lg border border-indigo-900/30 rounded-2xl shadow-2xl p-4 sm:p-6">
+        <div className="glass-strong rounded-3xl shadow-glow-lg p-4 sm:p-6 animate-fade-in-scale">
           {activeView === 'personal' && <PersonalRepositoriesView />}
 
           {activeView === 'repositories' && (
