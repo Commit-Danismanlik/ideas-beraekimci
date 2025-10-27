@@ -50,23 +50,24 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Kayıt Ol</h1>
-            <p className="text-gray-600">Yeni hesap oluşturun</p>
+            <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="w-full max-w-xs mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-gray-100 mb-2">Kayıt Ol</h1>
+            <p className="text-gray-400">Yeni hesap oluşturun</p>
           </div>
 
           {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="mb-4 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 İsim
               </label>
               <input
@@ -76,13 +77,13 @@ export const Register = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, displayName: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                 placeholder="Adınız Soyadınız"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Email
               </label>
               <input
@@ -90,13 +91,13 @@ export const Register = () => {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                 placeholder="ornek@email.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Şifre
               </label>
               <input
@@ -104,14 +105,14 @@ export const Register = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                 placeholder="••••••••"
                 minLength={6}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Şifre Tekrar
               </label>
               <input
@@ -119,27 +120,27 @@ export const Register = () => {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                 placeholder="••••••••"
                 minLength={6}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Doğum Tarihi
               </label>
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-left hover:border-indigo-500"
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-200 hover:border-indigo-500"
                 >
                   {selectedDate ? selectedDate.toLocaleDateString('tr-TR') : 'Tarih seçin'}
                 </button>
                 
                 {showDatePicker && (
-                  <div className="absolute z-50 bottom-0  bg-white border rounded-lg shadow-xl w-[345px] h-[315px]">
+                  <div className="absolute z-50 bottom-0 bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-[345px] h-[315px]">
                     <style>{`
                       .custom-calendar {
                         transform: scale(0.85);
@@ -175,7 +176,7 @@ export const Register = () => {
                         placeholder="Doğum tarihinizi seçin"
                       />
                       <div className="absolute top-1 -right-6">
-                        <button onClick={() => setShowDatePicker(false)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg">
+                        <button onClick={() => setShowDatePicker(false)} className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-2 px-4 rounded-lg">
                           x
                         </button>
                       </div>
@@ -188,16 +189,16 @@ export const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed"
             >
               {loading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-400">
               Zaten hesabınız var mı?{' '}
-              <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+              <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-semibold">
                 Giriş Yap
               </Link>
             </p>

@@ -71,8 +71,8 @@ export const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-700 via-black to-indigo-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-indigo-600"></div>
       </div>
     );
   }
@@ -80,31 +80,34 @@ export const Dashboard = () => {
   const hasTeam = userTeams.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-md">
+      <div className="bg-black border-b border-gray-800 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-              <p className="text-gray-600">Hoş geldin, {user?.displayName || user?.email}</p>
+            <div className="flex items-center gap-4">
+              <img src="/gbtalks_row.svg" alt="GBTalks Logo" className="h-12" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-100">Dashboard</h1>
+                <p className="text-gray-400">Hoş geldin, {user?.displayName || user?.email}</p>
+              </div>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowProfileModal(true)}
-                className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
               >
                 👤 Profil
               </button>
               <button
                 onClick={() => setActiveView('myteam')}
-                className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
               >
                 👥 Takımım
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                className="bg-red-700 hover:bg-red-800 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
               >
                 Çıkış Yap
               </button>
@@ -116,14 +119,14 @@ export const Dashboard = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Toggle Buttons - Permission bazlı görünüm */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-lg p-6 mb-6">
           <div className={`grid gap-4 ${canManageTeam ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 lg:grid-cols-3'}`}>
             <button
               onClick={() => setActiveView('personal')}
               className={`py-8 px-4 rounded-lg font-bold text-xl lg:text-2xl transition-all ${
                 activeView === 'personal'
-                  ? 'bg-indigo-600 text-white shadow-xl scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-700 text-white shadow-xl scale-105'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`}
             >
               📝 Personal
@@ -132,8 +135,8 @@ export const Dashboard = () => {
               onClick={() => setActiveView('repositories')}
               className={`py-8 px-4 rounded-lg font-bold text-xl lg:text-2xl transition-all ${
                 activeView === 'repositories'
-                  ? 'bg-indigo-600 text-white shadow-xl scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-700 text-white shadow-xl scale-105'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`}
             >
               📦 Repositories
@@ -142,8 +145,8 @@ export const Dashboard = () => {
               onClick={() => setActiveView('tasks')}
               className={`py-8 px-4 rounded-lg font-bold text-xl lg:text-2xl transition-all ${
                 activeView === 'tasks'
-                  ? 'bg-indigo-600 text-white shadow-xl scale-105'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-700 text-white shadow-xl scale-105'
+                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
               }`}
             >
               ✅ Tasks
@@ -153,8 +156,8 @@ export const Dashboard = () => {
                 onClick={() => setActiveView('management')}
                 className={`py-8 px-4 rounded-lg font-bold text-xl lg:text-2xl transition-all ${
                   activeView === 'management'
-                    ? 'bg-indigo-600 text-white shadow-xl scale-105'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-indigo-700 text-white shadow-xl scale-105'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
               >
                 ⚙️ Yönetim
@@ -164,7 +167,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Active View Content */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-lg p-6">
           {activeView === 'personal' && <PersonalRepositoriesView />}
           
           {activeView === 'repositories' && (

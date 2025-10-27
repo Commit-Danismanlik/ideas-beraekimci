@@ -69,7 +69,7 @@ export const CreateUserForm = ({ onSuccess }: CreateUserFormProps) => {
             onChange={(e) =>
               setFormData({ ...formData, name: e.target.value })
             }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500 bg-gray-900 text-indigo-200  "
             placeholder="Kullanıcı adı"
           />
         </div>
@@ -85,7 +85,7 @@ export const CreateUserForm = ({ onSuccess }: CreateUserFormProps) => {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500 bg-gray-900 text-indigo-200"
             placeholder="ornek@email.com"
           />
         </div>
@@ -105,7 +105,7 @@ export const CreateUserForm = ({ onSuccess }: CreateUserFormProps) => {
                 age: e.target.value ? parseInt(e.target.value) : undefined,
               })
             }
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder-gray-500 bg-gray-900 text-indigo-200"
             placeholder="Yaş (opsiyonel)"
           />
         </div>

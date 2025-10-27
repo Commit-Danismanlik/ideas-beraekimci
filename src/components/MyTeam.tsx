@@ -162,8 +162,8 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
   if (teams.length === 0) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Henüz Bir Takımınız Yok</h2>
-        <p className="text-gray-600 mb-4">Bir takıma katılmak veya yeni takım oluşturmak için dashboard'a dönün</p>
+        <h2 className="text-2xl font-bold text-gray-100 mb-4">Henüz Bir Takımınız Yok</h2>
+        <p className="text-gray-400 mb-4">Bir takıma katılmak veya yeni takım oluşturmak için dashboard'a dönün</p>
         <button
           onClick={() => window.location.reload()}
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg"
@@ -188,7 +188,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       {/* Takım Seçici */}
       {teams.length > 1 && (
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
             Takım Seç
           </label>
           <select
@@ -197,7 +197,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
               const team = teams.find(t => t.id === e.target.value);
               if (team) setSelectedTeam(team);
             }}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
+            className="w-full max-w-md px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200"
           >
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -211,19 +211,19 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       {/* Takım Bilgileri */}
       {selectedTeam && (
         <>
-          <div className="mb-6 p-6 bg-white rounded-lg shadow-md">
+          <div className="mb-6 p-6 bg-indigo-950 border border-indigo-900 rounded-lg shadow-md">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">{selectedTeam.name}</h2>
-                <p className="text-gray-600 mt-2">{selectedTeam.description || 'Açıklama yok'}</p>
-                <div className="mt-4 flex gap-4 text-sm text-gray-600">
+                <h2 className="text-2xl font-bold text-gray-100">{selectedTeam.name}</h2>
+                <p className="text-gray-400 mt-2">{selectedTeam.description || 'Açıklama yok'}</p>
+                <div className="mt-4 flex gap-4 text-sm text-gray-400">
                   <span>👥 Üye Sayısı: {members.length}</span>
                   <span>📅 Oluşturulma: {new Date(selectedTeam.createdAt).toLocaleDateString('tr-TR')}</span>
                 </div>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Takım ID</p>
-                <code className="text-sm font-mono bg-gray-100 px-3 py-1 rounded">
+                <code className="text-sm font-mono bg-gray-700 px-3 py-1 rounded">
                   {selectedTeam.id}
                 </code>
               </div>
@@ -232,13 +232,13 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
 
           {/* Üyeler */}
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Takım Üyeleri</h3>
+            <h3 className="text-xl font-bold text-gray-100 mb-4">Takım Üyeleri</h3>
             {loading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
               </div>
             ) : members.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">Henüz üye yok</p>
+              <p className="text-gray-400 text-center py-8">Henüz üye yok</p>
             ) : (
               <div className="grid gap-4">
                 {members.map((member) => {
@@ -249,36 +249,36 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
                     <div
                       key={member.userId}
                       onClick={isCurrentUser ? openProfileEdit : undefined}
-                      className={`p-4 bg-white rounded-lg border-2 cursor-pointer transition-all ${
+                      className={`p-4 bg-gray-900 border-2 border-gray-700 rounded-lg cursor-pointer transition-all ${
                         isCurrentUser
-                          ? 'border-indigo-500 hover:border-indigo-600 hover:shadow-md'
-                          : 'border-gray-200'
+                          ? 'border-indigo-600 hover:border-indigo-500 hover:shadow-md'
+                          : 'border-gray-700'
                       }`}
                       title={isCurrentUser ? 'Bilgileri düzenlemek için tıklayın' : undefined}
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-xl font-bold text-indigo-600">
+                          <div className="w-12 h-12 bg-indigo-900 rounded-full flex items-center justify-center text-xl font-bold text-indigo-300">
                             {(member.displayName || member.email || member.userId).charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-800">
+                            <h4 className="font-semibold text-gray-100">
                               {member.displayName || member.email} {isCurrentUser && '(Ben)'}
                             </h4>
-                            <p className="text-sm text-gray-500">{member.email}</p>
+                            <p className="text-sm text-gray-400">{member.email}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             memberIsOwner
-                              ? 'bg-yellow-500 text-white'
+                              ? 'bg-yellow-600 text-white'
                               : member.roleName === 'Member'
-                              ? 'bg-gray-200 text-gray-700'
-                              : 'bg-green-500 text-white'
+                              ? 'bg-gray-700 text-gray-300'
+                              : 'bg-green-600 text-white'
                           }`}>
                             {member.roleName}
                           </span>
-                          {isCurrentUser && <span className="text-indigo-600 text-xs">✏️ Düzenle</span>}
+                          {isCurrentUser && <span className="text-indigo-400 text-xs">✏️ Düzenle</span>}
                         </div>
                       </div>
                     </div>
@@ -308,21 +308,21 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
               {isOwner ? '⚠️ Takım Sahibi Olarak Ayrılıyorsunuz!' : 'Takımdan Ayrıl'}
             </h3>
             {isOwner && (
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800 mb-2">
+              <div className="mb-4 p-4 bg-yellow-900 border border-yellow-700 rounded-lg">
+                <p className="text-sm text-yellow-200 mb-2">
                   <strong>Uyarı:</strong> Takım sahibi olarak takımdan ayrılırsanız, takım ve tüm içerik silinecek!
                 </p>
-                <p className="text-sm text-gray-700 mb-2">Onaylamak için takım adını girin:</p>
+                <p className="text-sm text-gray-300 mb-2">Onaylamak için takım adını girin:</p>
                 <input
                   type="text"
                   value={confirmTeamName}
                   onChange={(e) => setConfirmTeamName(e.target.value)}
                   placeholder={selectedTeam?.name}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200"
                 />
               </div>
             )}
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-300 mb-4">
               {isOwner 
                 ? 'Takımdan ayrılmak ve takımı silmek istediğinize emin misiniz?'
                 : 'Takımdan ayrılmak istediğinize emin misiniz?'}
@@ -356,7 +356,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
             <h3 className="text-xl font-bold mb-4">Profil Bilgileri</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">İsim</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">İsim</label>
                 <input
                   type="text"
                   value={profileForm.name}
@@ -366,7 +366,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
                 <input
                   type="email"
                   value={profileForm.email}
@@ -377,7 +377,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
                 <p className="text-xs text-gray-500 mt-1">Email değiştirmek için yöneticinize başvurunuz.</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Doğum Tarihi</label>
                 <input
                   type="text"
                   value={currentUserInfo.birthDate ? new Date(currentUserInfo.birthDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
