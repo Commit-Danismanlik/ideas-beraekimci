@@ -57,6 +57,14 @@ export const PersonalRepositoriesView = () => {
             note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
           );
         }
+        
+        // Sabitlenmiş notları en başa taşı
+        filtered.sort((a, b) => {
+          if (a.isPinned && !b.isPinned) return -1;
+          if (!a.isPinned && b.isPinned) return 1;
+          return 0;
+        });
+        
         setFilteredNotes(filtered);
       }
     } else {
@@ -89,6 +97,14 @@ export const PersonalRepositoriesView = () => {
           note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
         );
       }
+      
+      // Sabitlenmiş notları en başa taşı
+      filtered.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return 0;
+      });
+      
       setFilteredNotes(filtered);
     } else {
       let filtered = [...todos];
@@ -100,7 +116,7 @@ export const PersonalRepositoriesView = () => {
       }
       setFilteredTodos(filtered);
     }
-  }, [noteSearchQuery, todoSearchQuery, activeTab]);
+  }, [noteSearchQuery, todoSearchQuery, activeTab, notes]);
 
   const handleCreateNote = async () => {
     if (!user || !noteForm.title.trim()) return;
@@ -144,7 +160,19 @@ export const PersonalRepositoriesView = () => {
   };
 
   const handleTogglePin = async (id: string) => {
+    // Mevcut sabitlenmiş notları say
+    const pinnedCount = notes.filter(note => note.isPinned).length;
+    const noteToToggle = notes.find(note => note.id === id);
+    
+    // Sabitlemek istiyorsa ve 3'ten fazla sabitli not varsa uyarı ver
+    if (!noteToToggle?.isPinned && pinnedCount >= 3) {
+      alert('En fazla 3 not sabitlenebilir. Lütfen önce bir sabitlenmiş notu çözün.');
+      return;
+    }
+    
     await noteService.togglePin(id);
+    
+    // Verileri yeniden yükle ve sırala
     fetchData();
   };
 

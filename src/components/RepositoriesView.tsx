@@ -125,6 +125,13 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                     filteredNotes.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
                 }
 
+                // Sabitlenmiş notları en başa taşı
+                filteredNotes.sort((a, b) => {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    return 0;
+                });
+
                 // Orijinal ve filtrelenmiş verileri kaydet
                 setFilteredNotes(filteredNotes);
                 setNotes(result.data);
@@ -216,6 +223,17 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
 
     const handleTogglePin = async (id: string) => {
         if (!user || !selectedTeam) return;
+        
+        // Mevcut sabitlenmiş notları say (filteredNotes'dan)
+        const pinnedCount = filteredNotes.filter(note => note.isPinned).length;
+        const noteToToggle = filteredNotes.find(note => note.id === id);
+        
+        // Sabitlemek istiyorsa ve 3'ten fazla sabitli not varsa uyarı ver
+        if (!noteToToggle?.isPinned && pinnedCount >= 3) {
+            alert('En fazla 3 not sabitlenebilir. Lütfen önce bir sabitlenmiş notu çözün.');
+            return;
+        }
+        
         await noteService.togglePin(selectedTeam, id, user.uid);
         fetchData();
     };
