@@ -512,8 +512,8 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
         <MemoizedVirtualizedList
           items={filteredTasks}
           itemKey={(t) => t.id}
-          itemHeight={50}
-          height={Math.min(750, Math.max(320, filteredTasks.length * 88))}
+          itemHeight={120}
+          height={Math.min(600, Math.max(320, filteredTasks.length * 120))}
           className=""
           renderItem={(task) => {
             const assignedMember = task.assignedTo ? membersMap.get(task.assignedTo) : undefined;
