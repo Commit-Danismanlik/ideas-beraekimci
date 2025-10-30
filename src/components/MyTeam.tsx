@@ -48,11 +48,12 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
   };
 
   const fetchTeamMembers = async (teamId: string) => {
-    if (!selectedTeam) return;
+    const team = teams.find((t) => t.id === teamId) || selectedTeam;
+    if (!team) return;
 
     setLoading(true);
     try {
-      const membersData = await memberInfoService.getMembersWithInfo(teamId, selectedTeam.members);
+      const membersData = await memberInfoService.getMembersWithInfo(teamId, team.members);
       setMembers(membersData);
     } catch (err) {
       console.error('Üyeler yüklenemedi:', err);

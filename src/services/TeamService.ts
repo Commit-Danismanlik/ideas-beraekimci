@@ -178,28 +178,11 @@ export class TeamService implements ITeamService {
         total: 0,
       };
     }
-
-    // Kullanıcının üye olduğu tüm takımları getir
-    const allTeamsResult = await this.teamRepository.getAll();
-    if (!allTeamsResult.success) {
-      return {
-        success: false,
-        data: [],
-        error: allTeamsResult.error,
-        total: 0,
-      };
-    }
-
-    // Kullanıcının members array'inde olduğu takımları filtrele
-    const userTeams = allTeamsResult.data.filter((team) => 
-      team.members.includes(userId)
-    );
-
-    return {
-      success: true,
-      data: userTeams,
-      total: userTeams.length,
-    };
+    // Firestore tarafında 'array-contains' ile filtrele (çok daha hızlı)
+    const result = await this.teamRepository.getByFilter([
+      { field: 'members', operator: 'array-contains', value: userId },
+    ]);
+    return result;
   }
 
   // Join Team

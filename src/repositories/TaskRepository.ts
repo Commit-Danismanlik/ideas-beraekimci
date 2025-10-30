@@ -1,4 +1,4 @@
-import { DocumentData, Firestore, Timestamp } from 'firebase/firestore';
+import { DocumentData, Firestore, Timestamp, collection, query, orderBy, limit as fbLimit, getDocs, where } from 'firebase/firestore';
 import { SubcollectionRepository } from './SubcollectionRepository';
 import { ITask } from '../models/Task.model';
 import { IFilter, IListQueryResult } from '../types/base.types';
@@ -68,6 +68,42 @@ export class TaskRepository extends SubcollectionRepository<ITask> {
       },
     ];
     return this.getByFilter(teamId, filters);
+  }
+
+  // Son oluşturulan görevleri getir (createdAt desc, limit)
+  public async getRecent(teamId: string, take: number): Promise<IListQueryResult<ITask>> {
+    try {
+      const subRef = collection(this.db, 'teams', teamId, 'tasks');
+      const q = query(subRef, orderBy('createdAt', 'desc'), fbLimit(take));
+      const snap = await getDocs(q);
+      const data: ITask[] = [];
+      snap.forEach((doc) => {
+        data.push(
+          this.fromFirestore({ id: doc.id, ...doc.data() })
+        );
+      });
+      return { success: true, data, total: data.length };
+    } catch (error) {
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
+    }
+  }
+
+  // Belirli bir tarihten önceki görevleri getir (createdAt < before, desc, limit)
+  public async getRecentBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITask>> {
+    try {
+      const subRef = collection(this.db, 'teams', teamId, 'tasks');
+      const q = query(subRef, where('createdAt', '<', Timestamp.fromDate(before)), orderBy('createdAt', 'desc'), fbLimit(take));
+      const snap = await getDocs(q);
+      const data: ITask[] = [];
+      snap.forEach((doc) => {
+        data.push(
+          this.fromFirestore({ id: doc.id, ...doc.data() })
+        );
+      });
+      return { success: true, data, total: data.length };
+    } catch (error) {
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
+    }
   }
 }
 

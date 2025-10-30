@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { getTeamService, getRoleService, getTeamMemberInfoService } from '../di/container';
 import { ITeam } from '../models/Team.model';
 import { IRole, Permission, PERMISSION_DESCRIPTIONS } from '../models/Role.model';
 import { MemberItem } from './MemberItem';
 import { IMemberWithRole } from '../services/TeamMemberInfoService';
+import { MemoizedVirtualizedList } from './VirtualizedList';
 
 interface TeamManagementProps {
   userTeams: ITeam[];
@@ -95,28 +96,28 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     setError(null);
     
     try {
-      // Rolleri getir
-      const rolesResult = await roleService.getTeamRoles(selectedTeam);
+      // Rolleri ve üye ID'lerini paralel çek
+      const [rolesResult, membersArray] = await Promise.all([
+        roleService.getTeamRoles(selectedTeam),
+        teamService.getTeamMembers(selectedTeam),
+      ]);
+
       if (rolesResult.success) {
         setRoles(rolesResult.data);
-        console.log('Roller yüklendi:', rolesResult.data);
       } else {
         setError('Roller yüklenemedi: ' + rolesResult.error);
       }
 
-      // Üyeleri getir
-      const membersArray = await teamService.getTeamMembers(selectedTeam);
       setMembers(membersArray);
-      console.log('Üyeler yüklendi:', membersArray);
 
-      // Üyelerin detaylı bilgilerini getir
-      if (membersArray.length > 0 && rolesResult.data.length > 0) {
+      // Üye detaylarını (varsa) ayrı bir turda getir
+      if (membersArray.length > 0) {
         const membersInfo = await memberInfoService.getMembersWithInfo(selectedTeam, membersArray);
         setMembersWithInfo(membersInfo);
-        console.log('Üye detayları yüklendi:', membersInfo);
+      } else {
+        setMembersWithInfo([]);
       }
     } catch (err) {
-      console.error('fetchData error:', err);
       setError('Veri yüklenirken hata oluştu');
     }
 
@@ -144,7 +145,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
 
     const result = await roleService.deleteRole(selectedTeam, roleId, user.uid);
     if (result.success) {
-      fetchData();
+      // Optimistik kaldır
+      setRoles((prev) => prev.filter((r) => r.id !== roleId));
       alert('Rol başarıyla silindi!');
     } else {
       alert('Hata: ' + result.error);
@@ -192,10 +194,16 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
       console.log('Rol kaydetme sonucu:', result);
 
       if (result.success) {
+        if (editingRole) {
+          // Optimistik güncelle
+          setRoles((prev) => prev.map((r) => (r.id === editingRole.id ? { ...r, name: roleForm.name, permissions: roleForm.permissions, color: roleForm.color } : r)));
+        } else if (result.data) {
+          // Optimistik ekleme: servis yeni ID döndürür
+          setRoles((prev) => [result.data, ...prev]);
+        }
         setRoleForm({ name: '', permissions: [], color: '#3B82F6' });
         setShowRoleForm(false);
         setEditingRole(null);
-        fetchData();
         alert(editingRole ? 'Rol başarıyla güncellendi!' : 'Rol başarıyla oluşturuldu!');
       } else {
         setError(result.error || 'Rol kaydedilemedi');
@@ -213,7 +221,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     const result = await teamService.assignUserRole(selectedTeam, userId, roleId, user.uid);
 
     if (result.success) {
-      fetchData();
+      // Optimistik güncelle: membersWithInfo içindeki roleId/roleName güncelle
+      const role = roles.find((r) => r.id === roleId);
+      setMembersWithInfo((prev) => prev.map((m) => (m.userId === userId ? { ...m, roleId, roleName: role?.name || m.roleName } : m)));
       alert('Rol başarıyla değiştirildi!');
     } else {
       alert('Hata: ' + result.error);
@@ -226,7 +236,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     const result = await teamService.removeMember(selectedTeam, userId, user.uid);
 
     if (result.success) {
-      fetchData();
+      // Optimistik olarak listeden çıkar
+      setMembers((prev) => prev.filter((id) => id !== userId));
+      setMembersWithInfo((prev) => prev.filter((m) => m.userId !== userId));
       alert('Kullanıcı takımdan çıkarıldı!');
     } else {
       alert('Hata: ' + result.error);
@@ -528,57 +540,39 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           ) : roles.length === 0 ? (
             <p className="text-center text-gray-500 py-8">Henüz rol yok</p>
           ) : (
-            <div className="space-y-2">
-              {roles.map((role) => (
+            <MemoizedVirtualizedList
+              items={roles}
+              itemKey={(r) => r.id}
+              itemHeight={68}
+              height={Math.min(480, Math.max(240, roles.length * 68))}
+              renderItem={(role) => (
                 <div
                   key={role.id}
-                  className={`border rounded p-3 ${
-                    role.isDefault ? 'bg-green-100 border-green-500' : 'bg-blue-900/50 border border-blue-800'
-                  }`}
+                  className={`border rounded p-3 ${role.isDefault ? 'bg-green-100 border-green-500' : 'bg-blue-900/50 border border-blue-800'}`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className={`font-semibold ${role.isDefault ? 'text-green-800' : 'text-blue-100'}`}>
-                          {role.name}
-                        </h4>
+                        <h4 className={`font-semibold ${role.isDefault ? 'text-green-800' : 'text-blue-100'}`}>{role.name}</h4>
                         {role.isDefault && (
-                          <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">
-                            Varsayılan
-                          </span>
+                          <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">Varsayılan</span>
                         )}
                         {role.isCustom && role.color && (
-                          <div
-                            className="w-4 h-4 rounded-full border-2 border-white shadow"
-                            style={{ backgroundColor: role.color }}
-                            title={`Renk: ${role.color}`}
-                          />
+                          <div className="w-4 h-4 rounded-full border-2 border-white shadow" style={{ backgroundColor: role.color }} title={`Renk: ${role.color}`} />
                         )}
                       </div>
-                      <p className={`text-xs ${role.isDefault ? 'text-green-600' : 'text-blue-400'} mt-1`}>
-                        {role.permissions.length} yetki
-                      </p>
+                      <p className={`text-xs ${role.isDefault ? 'text-green-600' : 'text-blue-400'} mt-1`}>{role.permissions.length} yetki</p>
                     </div>
                     {role.isCustom && (
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditRole(role)}
-                          className="text-blue-600 hover:text-blue-700 text-xs"
-                        >
-                          Düzenle
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRole(role.id)}
-                          className="text-red-600 hover:text-red-700 text-xs"
-                        >
-                          Sil
-                        </button>
+                        <button onClick={() => handleEditRole(role)} className="text-blue-600 hover:text-blue-700 text-xs">Düzenle</button>
+                        <button onClick={() => handleDeleteRole(role.id)} className="text-red-600 hover:text-red-700 text-xs">Sil</button>
                       </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            />
           )}
         </div>
 
@@ -666,8 +660,12 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
             ) : membersWithInfo.length === 0 ? (
               <p className="text-center text-gray-500 text-sm py-4">Henüz üye yok</p>
             ) : (
-              <div className="space-y-2">
-                {membersWithInfo.map((member) => (
+              <MemoizedVirtualizedList
+                items={membersWithInfo}
+                itemKey={(m) => m.userId}
+                itemHeight={86}
+                height={Math.min(600, Math.max(280, membersWithInfo.length * 86))}
+                renderItem={(member) => (
                   <MemberItem
                     key={member.userId}
                     userId={member.userId}
@@ -680,8 +678,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                     onAssignRole={handleAssignRole}
                     onRemoveMember={handleRemoveMember}
                   />
-                ))}
-              </div>
+                )}
+              />
             )}
           </div>
         </div>
