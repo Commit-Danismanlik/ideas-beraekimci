@@ -14,5 +14,9 @@ export interface ITaskService {
   getTasksByStatus(teamId: string, status: 'todo' | 'in-progress' | 'done'): Promise<IListQueryResult<ITask>>;
   assignTask(teamId: string, taskId: string, userId: string): Promise<IQueryResult<ITask>>;
   updateTaskStatus(teamId: string, taskId: string, status: 'todo' | 'in-progress' | 'done'): Promise<IQueryResult<ITask>>;
+
+  // Performans: hızlı açılış için yakın tarihli görevleri getir (server-side limit)
+  getRecentTasks(teamId: string, limit: number): Promise<IListQueryResult<ITask>>;
+  getRecentTasksBefore(teamId: string, before: Date, limit: number): Promise<IListQueryResult<ITask>>;
 }
 

@@ -23,6 +23,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
     members,
     membersMap,
     loading,
+    hasMore,
     filters,
     setFilters,
     searchQuery,
@@ -30,6 +31,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
     selectedWeek,
     setSelectedWeek,
     fetchTasks,
+    loadMore,
     createTask,
     updateTask,
     deleteTask,
@@ -570,6 +572,18 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
             );
           }}
         />
+      )}
+
+      {/* Daha Fazla Yükle */}
+      {!loading && hasMore && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => loadMore(selectedTeam)}
+            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700"
+          >
+            Daha Fazla Yükle
+          </button>
+        </div>
       )}
 
       {/* Task Modal */}

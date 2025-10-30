@@ -131,6 +131,22 @@ export class TaskService implements ITaskService {
     return this.taskRepository.getAll(teamId);
   }
 
+  // Performans: yakın tarihli görevleri getir (limitli)
+  public async getRecentTasks(teamId: string, take: number): Promise<IListQueryResult<ITask>> {
+    if (!teamId || teamId.trim() === '' || take <= 0) {
+      return { success: false, data: [], error: 'Geçersiz parametre', total: 0 };
+    }
+    return this.taskRepository.getRecent(teamId, take);
+  }
+
+  // Performans: belirli tarihten önceki görevleri getir (limitli)
+  public async getRecentTasksBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITask>> {
+    if (!teamId || teamId.trim() === '' || take <= 0) {
+      return { success: false, data: [], error: 'Geçersiz parametre', total: 0 };
+    }
+    return this.taskRepository.getRecentBefore(teamId, before, take);
+  }
+
   // Get Tasks By Assignee
   public async getTasksByAssignee(teamId: string, userId: string): Promise<IListQueryResult<ITask>> {
     if (!userId || userId.trim() === '' || !teamId) {

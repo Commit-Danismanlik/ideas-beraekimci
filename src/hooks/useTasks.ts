@@ -15,6 +15,7 @@ export interface UseTasksState {
   members: IMemberWithRole[];
   membersMap: ReadonlyMap<string, IMemberWithRole>;
   loading: boolean;
+  hasMore: boolean;
   filters: TaskFilters;
   setFilters: (next: TaskFilters) => void;
   searchQuery: string;
@@ -22,6 +23,7 @@ export interface UseTasksState {
   selectedWeek: Date | null;
   setSelectedWeek: (d: Date | null) => void;
   fetchTasks: (teamId: string, teamMemberIds: string[] | undefined) => Promise<void>;
+  loadMore: (teamId: string) => Promise<void>;
   createTask: (teamId: string, dto: Omit<ITask, 'id' | 'createdAt' | 'updatedAt'>) => Promise<boolean>;
   updateTask: (teamId: string, id: string, updates: Partial<ITask>) => Promise<boolean>;
   deleteTask: (teamId: string, id: string) => Promise<boolean>;
@@ -63,6 +65,8 @@ export const useTasks = (): UseTasksState => {
   const [filters, setFilters] = useState<TaskFilters>({ status: 'all', priority: 'all', assignedTo: 'all' });
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedWeek, setSelectedWeek] = useState<Date | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [lastCreatedAt, setLastCreatedAt] = useState<Date | null>(null);
 
   const debouncedSearch = useDebouncedValue(searchQuery, 250);
 
@@ -154,20 +158,45 @@ export const useTasks = (): UseTasksState => {
     if (!teamId) return;
     setLoading(true);
     try {
-      const result = await taskService.getTasksByTeam(teamId);
-      if (result.success) {
-        setTasks(result.data);
+      // Görevleri ve üyeleri paralel çek
+      const take = 50;
+      const [tasksRes, membersInfo] = await Promise.all([
+        taskService.getRecentTasks(teamId, take),
+        teamMemberIds && teamMemberIds.length > 0
+          ? memberInfoService.getMembersWithInfo(teamId, teamMemberIds)
+          : Promise.resolve([]),
+      ]);
+
+      if (tasksRes.success) {
+        setTasks(tasksRes.data);
+        setHasMore(tasksRes.data.length === take);
+        const last = tasksRes.data[tasksRes.data.length - 1];
+        setLastCreatedAt(last ? last.createdAt : null);
       }
-      if (teamMemberIds && teamMemberIds.length > 0) {
-        const membersInfo = await memberInfoService.getMembersWithInfo(teamId, teamMemberIds);
-        setMembers(membersInfo);
-      } else {
-        setMembers([]);
-      }
+      setMembers(membersInfo as IMemberWithRole[]);
     } finally {
       setLoading(false);
     }
   }, [taskService, memberInfoService]);
+
+  const loadMore = useCallback(async (teamId: string): Promise<void> => {
+    if (!teamId || !lastCreatedAt || !hasMore) return;
+    setLoading(true);
+    try {
+      const take = 50;
+      const res = await taskService.getRecentTasksBefore(teamId, lastCreatedAt, take);
+      if (res.success && res.data.length > 0) {
+        setTasks((prev) => [...prev, ...res.data]);
+        setHasMore(res.data.length === take);
+        const last = res.data[res.data.length - 1];
+        setLastCreatedAt(last.createdAt);
+      } else {
+        setHasMore(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [taskService, lastCreatedAt, hasMore]);
 
   const createTask = useCallback(async (teamId: string, dto: Omit<ITask, 'id' | 'createdAt' | 'updatedAt'>): Promise<boolean> => {
     const res = await taskService.createTask({
@@ -210,6 +239,7 @@ export const useTasks = (): UseTasksState => {
     members,
     membersMap,
     loading,
+    hasMore,
     filters,
     setFilters,
     searchQuery,
@@ -217,6 +247,7 @@ export const useTasks = (): UseTasksState => {
     selectedWeek,
     setSelectedWeek,
     fetchTasks,
+    loadMore,
     createTask,
     updateTask,
     deleteTask,
