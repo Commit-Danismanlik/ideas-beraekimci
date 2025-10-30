@@ -320,7 +320,7 @@ export const PersonalRepositoriesView = () => {
                       </button>
                     </div>
                   </div>
-                  <p className="text-indigo-200/80 mb-3 whitespace-pre-wrap">{note.content}</p>
+                  <p className="text-indigo-200/80 mb-3 whitespace-pre-wrap h-40 overflow-y-auto">{note.content}</p>
                   {note.category && (
                     <span className="inline-block px-3 py-1 text-xs font-semibold bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-300 rounded-xl mb-3">
                       {note.category}

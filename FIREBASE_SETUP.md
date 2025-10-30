@@ -146,7 +146,7 @@ npm run dev
 ```
 
 ### Adım 2: Uygulamayı Açma
-Tarayıcınızda `http://localhost:5173` adresini açın
+Tarayıcınızda `http://localhost:3000` adresini açın
 
 ### Adım 3: Kullanıcı Oluşturma
 1. Sol taraftaki formu doldurun
