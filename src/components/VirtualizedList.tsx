@@ -26,13 +26,12 @@ export const VirtualizedList = <T,>(props: VirtualizedListProps<T>) => {
       ref={containerRef}
       onScroll={onScroll}
       className={className}
-      style={{ height, overflowY: 'auto', position: 'relative' }}
+      style={{ height, overflowY: 'auto', position: 'relative', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>
-        <div style={{ position: 'absolute', top: offsetTop, left: 0, right: 0 }} 
-        className='grid space-y-20'>
+        <div style={{ position: 'absolute', top: offsetTop, left: 0, right: 0 }}>
           {visibleItems.map((item, idx) => (
-            <div key={itemKey(item)} style={{ height: itemHeight }} className='grid'>
+            <div key={itemKey(item)} style={{ height: itemHeight }}>
               {renderItem(item, startIndex + idx)}
             </div>
           ))}
