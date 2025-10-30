@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { getTeamService, getRoleService, getTeamMemberInfoService } from '../di/container';
 import { ITeam } from '../models/Team.model';
@@ -195,11 +195,17 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
 
       if (result.success) {
         if (editingRole) {
-          // Optimistik güncelle
-          setRoles((prev) => prev.map((r) => (r.id === editingRole.id ? { ...r, name: roleForm.name, permissions: roleForm.permissions, color: roleForm.color } : r)));
+          // Optimistik güncelle (index bazlı, kesin IRole[] döner)
+          setRoles((prev) => {
+            const idx = prev.findIndex((r) => r.id === editingRole.id);
+            if (idx === -1) return prev;
+            const updated: IRole = { ...prev[idx], name: roleForm.name, permissions: roleForm.permissions, color: roleForm.color };
+            return [...prev.slice(0, idx), updated, ...prev.slice(idx + 1)];
+          });
         } else if (result.data) {
           // Optimistik ekleme: servis yeni ID döndürür
-          setRoles((prev) => [result.data, ...prev]);
+          const newRole: IRole = result.data;
+          setRoles((prev) => [newRole, ...prev]);
         }
         setRoleForm({ name: '', permissions: [], color: '#3B82F6' });
         setShowRoleForm(false);
