@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthContext } from '../contexts/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { ITeam } from '../models/Team.model';
 import { ITask } from '../models/Task.model';
-import { getTaskService, getTeamMemberInfoService } from '../di/container';
+ 
 import { TaskModal } from './TaskModal';
-import { IMemberWithRole } from '../services/TeamMemberInfoService';
+import { useTasks } from '../hooks/useTasks';
+import { MemoizedVirtualizedList } from './VirtualizedList';
 // PrimeReact Calendar locale hatası nedeniyle kaldırıldı, HTML5 date picker kullanılacak
 
 interface TasksViewProps {
@@ -16,11 +17,24 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
   const { user } = useAuthContext();
   const [selectedTeam, setSelectedTeam] = useState<string>(userTeams[0]?.id || '');
   const { hasPermission } = usePermissions(selectedTeam);
-  const [tasks, setTasks] = useState<ITask[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<ITask[]>([]);
-  const [members, setMembers] = useState<IMemberWithRole[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const {
+    tasks,
+    filteredTasks,
+    members,
+    membersMap,
+    loading,
+    filters,
+    setFilters,
+    searchQuery,
+    setSearchQuery,
+    selectedWeek,
+    setSelectedWeek,
+    fetchTasks,
+    createTask,
+    updateTask,
+    deleteTask,
+    counts,
+  } = useTasks();
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [taskForm, setTaskForm] = useState({
@@ -31,20 +45,10 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
     status: 'todo' as 'todo' | 'in-progress' | 'done'
   });
 
-  // Filtreler
-  const [filters, setFilters] = useState({
-    status: 'all' as 'all' | 'todo' | 'in-progress' | 'done',
-    priority: 'all' as 'all' | 'low' | 'medium' | 'high',
-    assignedTo: 'all' as string,
-  });
-
-  // Haftalık tarih seçimi için
-  const [selectedWeek, setSelectedWeek] = useState<Date | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarPreviewWeek, setCalendarPreviewWeek] = useState<Date>(new Date());
 
-  const taskService = getTaskService();
-  const memberInfoService = getTeamMemberInfoService();
+  
 
   const canCreateTask = hasPermission('CREATE_TASK');
   const canDeleteTask = hasPermission('DELETE_TASK');
@@ -62,14 +66,11 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
 
   useEffect(() => {
     if (selectedTeam) {
-      fetchTasks();
+      const team = userTeams.find((t) => t.id === selectedTeam);
+      fetchTasks(selectedTeam, team?.members);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTeam]);
-
-  // Filtreleri uygula
-  useEffect(() => {
-    applyFilters();
-  }, [tasks, filters, selectedWeek, searchQuery]);
 
   const getWeekRange = (date: Date): { start: Date; end: Date } => {
     const start = new Date(date);
@@ -86,49 +87,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
     return { start, end };
   };
 
-  const applyFilters = () => {
-    let filtered = [...tasks];
-
-    // Arama filtresi
-    if (searchQuery.trim()) {
-      filtered = filtered.filter((task) =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.assignedTo?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Status filtresi
-    if (filters.status !== 'all') {
-      filtered = filtered.filter((task) => task.status === filters.status);
-    }
-
-    // Priority filtresi
-    if (filters.priority !== 'all') {
-      filtered = filtered.filter((task) => task.priority === filters.priority);
-    }
-
-    // Atanan kişi filtresi
-    if (filters.assignedTo !== 'all') {
-      if (filters.assignedTo === 'unassigned') {
-        filtered = filtered.filter((task) => !task.assignedTo);
-      } else {
-        filtered = filtered.filter((task) => task.assignedTo === filters.assignedTo);
-      }
-    }
-
-    // Haftalık tarih filtresi
-    if (selectedWeek) {
-      const { start, end } = getWeekRange(selectedWeek);
-
-      filtered = filtered.filter((task) => {
-        const taskDate = new Date(task.createdAt);
-        return taskDate >= start && taskDate <= end;
-      });
-    }
-
-    setFilteredTasks(filtered);
-  };
+  // Counts -> useTasks içinde memoize edildi (counts)
 
   const handleWeekSelect = (date: Date | null) => {
     setSelectedWeek(date);
@@ -145,43 +104,18 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
     return `${start.getDate()} ${months[start.getMonth()]} - ${end.getDate()} ${months[end.getMonth()]}`;
   };
 
-  const fetchTasks = async () => {
-    if (!selectedTeam) return;
-
-    setLoading(true);
-
-    // Tasks'i getir
-    const result = await taskService.getTasksByTeam(selectedTeam);
-    if (result.success) {
-      setTasks(result.data);
-    }
-
-    // Team üyelerini getir
-    const selectedTeamData = userTeams.find((t) => t.id === selectedTeam);
-    if (selectedTeamData && selectedTeamData.members) {
-      const membersInfo = await memberInfoService.getMembersWithInfo(
-        selectedTeam,
-        selectedTeamData.members
-      );
-      setMembers(membersInfo);
-    }
-
-    setLoading(false);
-  };
+  // useTasks.fetchTasks kullanılacak
 
   const handleCreateTask = async () => {
     if (!user || !selectedTeam || !taskForm.title.trim()) return;
-
-    const result = await taskService.createTask({
-      teamId: selectedTeam,
+    const ok = await createTask(selectedTeam, {
       title: taskForm.title,
       description: taskForm.description || undefined,
       assignedTo: taskForm.assignedTo || undefined,
       priority: taskForm.priority,
       status: taskForm.status,
     });
-
-    if (result.success) {
+    if (ok) {
       setTaskForm({
         title: '',
         description: '',
@@ -190,20 +124,17 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
         status: 'todo'
       });
       setShowTaskForm(false);
-      fetchTasks();
     }
   };
 
   const handleDeleteTask = async (id: string) => {
     if (!selectedTeam || !window.confirm('Bu görevi silmek istediğinize emin misiniz?')) return;
-    await taskService.deleteTask(selectedTeam, id);
-    fetchTasks();
+    await deleteTask(selectedTeam, id);
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<ITask>) => {
     if (!selectedTeam) return;
-    await taskService.updateTask(selectedTeam, taskId, updates);
-    fetchTasks();
+    await updateTask(selectedTeam, taskId, updates);
   };
 
   const selectedTeamData = userTeams.find((t) => t.id === selectedTeam);
@@ -283,10 +214,10 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               onChange={(e) => setFilters({ ...filters, status: e.target.value as typeof filters.status })}
               className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
             >
-              <option value="all">Tümü ({tasks.length})</option>
-              <option value="todo">📝 Yapılacak ({tasks.filter(t => t.status === 'todo').length})</option>
-              <option value="in-progress">⏳ Devam Ediyor ({tasks.filter(t => t.status === 'in-progress').length})</option>
-              <option value="done">✅ Tamamlanan ({tasks.filter(t => t.status === 'done').length})</option>
+              <option value="all">Tümü ({counts.total})</option>
+              <option value="todo">📝 Yapılacak ({counts.byStatus['todo']})</option>
+              <option value="in-progress">⏳ Devam Ediyor ({counts.byStatus['in-progress']})</option>
+              <option value="done">✅ Tamamlanan ({counts.byStatus['done']})</option>
             </select>
           </div>
 
@@ -299,9 +230,9 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
             >
               <option value="all">Tümü</option>
-              <option value="high">🔴 Yüksek ({tasks.filter(t => t.priority === 'high').length})</option>
-              <option value="medium">🟡 Orta ({tasks.filter(t => t.priority === 'medium').length})</option>
-              <option value="low">⚪ Düşük ({tasks.filter(t => t.priority === 'low').length})</option>
+              <option value="high">🔴 Yüksek ({counts.byPriority['high']})</option>
+              <option value="medium">🟡 Orta ({counts.byPriority['medium']})</option>
+              <option value="low">⚪ Düşük ({counts.byPriority['low']})</option>
             </select>
           </div>
 
@@ -314,10 +245,10 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
             >
               <option value="all">Tümü</option>
-              <option value="unassigned">Atanmamış ({tasks.filter(t => !t.assignedTo).length})</option>
+              <option value="unassigned">Atanmamış ({counts.unassigned})</option>
               {members.map((member) => (
                 <option key={member.userId} value={member.userId}>
-                  {member.displayName || member.email} ({tasks.filter(t => t.assignedTo === member.userId).length})
+                  {member.displayName || member.email} ({counts.byAssignee[member.userId] || 0})
                 </option>
               ))}
             </select>
@@ -576,15 +507,19 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredTasks.map((task) => {
-            const assignedMember = members.find((m) => m.userId === task.assignedTo);
-
+        <MemoizedVirtualizedList
+          items={filteredTasks}
+          itemKey={(t) => t.id}
+          itemHeight={50}
+          height={Math.min(750, Math.max(320, filteredTasks.length * 88))}
+          className=""
+          renderItem={(task) => {
+            const assignedMember = task.assignedTo ? membersMap.get(task.assignedTo) : undefined;
             return (
               <div
                 key={task.id}
                 onClick={() => setSelectedTask(task)}
-                className={`border rounded-lg px-3 py-2 hover:shadow-md transition-shadow cursor-pointer ${task.status === 'done'
+                className={`border rounded-lg px-3 py-2 hover:shadow-md transition-shadow cursor-pointer h-[120px] ${task.status === 'done'
                     ? 'bg-green-900/20 border-green-700'
                     : task.status === 'in-progress'
                       ? 'bg-blue-900/20 border-blue-700'
@@ -620,21 +555,21 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                     </div>
                   </div>
                   {canDeleteTask && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteTask(task.id);
-                        }}
-                        className="ml-2 hover:text-red-300 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-2 my-auto rounded-lg "
-                      >
-                        <h1 className="text-xs">🗑️ Sil</h1>
-                      </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTask(task.id);
+                      }}
+                      className="ml-2 hover:text-red-300 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-2 my-auto rounded-lg "
+                    >
+                      <h1 className="text-xs">🗑️ Sil</h1>
+                    </button>
                   )}
                 </div>
               </div>
             );
-          })}
-        </div>
+          }}
+        />
       )}
 
       {/* Task Modal */}
