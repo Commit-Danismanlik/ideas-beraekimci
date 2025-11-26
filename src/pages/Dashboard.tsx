@@ -11,6 +11,7 @@ import { TeamManagement } from '../components/TeamManagement';
 import { NoTeamWarning } from '../components/NoTeamWarning';
 import { MyTeam } from '../components/MyTeam';
 import { ProfileModal } from '../components/ProfileModal';
+import { ChatBot } from '../components/ChatBot';
 
 type ViewType = 'repositories' | 'tasks' | 'personal' | 'management' | 'myteam';
 
@@ -21,6 +22,7 @@ export const Dashboard = () => {
   const [userTeams, setUserTeams] = useState<ITeam[]>([]);
   const [loading, setLoading] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showChatBot, setShowChatBot] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const teamService = getTeamService();
 
@@ -150,6 +152,17 @@ export const Dashboard = () => {
             {/* Desktop Menu */}
             <div className="hidden lg:flex gap-3">
               <button
+                onClick={() => setShowChatBot(true)}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105 flex items-center gap-2"
+              >
+                <img
+                  src="/gemini-color.svg"
+                  alt="Gemini"
+                  className="w-5 h-5"
+                />
+                ChatBot
+              </button>
+              <button
                 onClick={() => setShowProfileModal(true)}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105"
               >
@@ -200,11 +213,27 @@ export const Dashboard = () => {
                 <div className="flex flex-col gap-2 pt-4">
                   <button
                     onClick={() => {
+                      setShowChatBot(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] flex items-center gap-2 ${
+                      isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
+                    }`}
+                  >
+                    <img
+                      src="/gemini-color.svg"
+                      alt="Gemini"
+                      className="w-5 h-5"
+                    />
+                    ChatBot
+                  </button>
+                  <button
+                    onClick={() => {
                       setShowProfileModal(true);
                       setIsMobileMenuOpen(false);
                     }}
                     className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
-                      isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
+                      isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
                     }`}
                   >
                     👤 Profil
@@ -226,13 +255,13 @@ export const Dashboard = () => {
                       setIsMobileMenuOpen(false);
                     }}
                     className={`w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
-                      isMobileMenuOpen ? 'animate-fade-in-up delay-300' : ''
+                      isMobileMenuOpen ? 'animate-fade-in-up delay-400' : ''
                     }`}
                   >
                     Çıkış Yap
                   </button>
-                  <div className={`pt-2 text-sm text-indigo-300/70 px-4 ${
-                    isMobileMenuOpen ? 'animate-fade-in delay-400' : ''
+                  <div                     className={`pt-2 text-sm text-indigo-300/70 px-4 ${
+                    isMobileMenuOpen ? 'animate-fade-in delay-500' : ''
                   }`}>
                     Hoş geldin, {user?.displayName || user?.email}
                   </div>
@@ -283,6 +312,10 @@ export const Dashboard = () => {
 
             .delay-400 {
               animation-delay: 0.2s;
+            }
+
+            .delay-500 {
+              animation-delay: 0.25s;
             }
           `}</style>
         </div>
@@ -376,6 +409,12 @@ export const Dashboard = () => {
       <ProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
+      />
+
+      {/* ChatBot Modal */}
+      <ChatBot
+        isOpen={showChatBot}
+        onClose={() => setShowChatBot(false)}
       />
       </div>
 
