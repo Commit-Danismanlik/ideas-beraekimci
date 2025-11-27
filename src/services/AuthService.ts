@@ -8,6 +8,7 @@ import {
   updateProfile,
   sendPasswordResetEmail,
   confirmPasswordReset,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { IAuthService } from '../interfaces/IAuthService';
 import { IUserService } from '../interfaces/IUserService';
@@ -56,6 +57,21 @@ export class AuthService implements IAuthService {
         });
       }
 
+      // Email doğrulama maili gönder
+      try {
+        await sendEmailVerification(userCredential.user, {
+          url: typeof window !== 'undefined' 
+            ? (window.location.hostname.includes('localhost') || window.location.hostname === '127.0.0.1'
+              ? 'http://localhost:3000/login'
+              : 'https://students.beraekimci.com.tr/login')
+            : 'https://students.beraekimci.com.tr/login',
+          handleCodeInApp: false,
+        });
+      } catch (emailError) {
+        console.error('Email doğrulama maili gönderilemedi:', emailError);
+        // Email gönderilemese bile kayıt başarılı sayılır
+      }
+
       const authUser = this.mapFirebaseUserToAuthUser(userCredential.user);
 
       return {
@@ -87,6 +103,16 @@ export class AuthService implements IAuthService {
         dto.email,
         dto.password
       );
+
+      // Email doğrulama kontrolü
+      if (!userCredential.user.emailVerified) {
+        // Kullanıcıyı çıkış yaptır
+        await signOut(this.auth);
+        return {
+          success: false,
+          error: 'Lütfen email adresinizi doğrulayın. Email kutunuzu kontrol edin.',
+        };
+      }
 
       const authUser = this.mapFirebaseUserToAuthUser(userCredential.user);
 
@@ -191,6 +217,54 @@ export class AuthService implements IAuthService {
 
       // Firebase şifre sıfırlama onayı
       await confirmPasswordReset(this.auth, dto.oobCode, dto.newPassword);
+
+      return {
+        success: true,
+      };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: this.getErrorMessage(error),
+      };
+    }
+  }
+
+  // Send Email Verification
+  public async sendEmailVerification(): Promise<IAuthResult> {
+    try {
+      const currentUser = this.auth.currentUser;
+      if (!currentUser) {
+        return {
+          success: false,
+          error: 'Kullanıcı giriş yapmamış',
+        };
+      }
+
+      if (currentUser.emailVerified) {
+        return {
+          success: false,
+          error: 'Email adresi zaten doğrulanmış',
+        };
+      }
+
+      // URL yapılandırması - localhost ve production için dinamik
+      let continueUrl: string;
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname.includes('localhost') || hostname === '127.0.0.1') {
+          continueUrl = 'http://localhost:3000/login';
+        } else {
+          continueUrl = 'https://students.beraekimci.com.tr/login';
+        }
+      } else {
+        continueUrl = 'https://students.beraekimci.com.tr/login';
+      }
+
+      // Firebase email doğrulama maili gönder
+      await sendEmailVerification(currentUser, {
+        url: continueUrl,
+        handleCodeInApp: false,
+      });
 
       return {
         success: true,

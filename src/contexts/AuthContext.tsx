@@ -14,6 +14,7 @@ interface IAuthContext {
   logout: () => Promise<IAuthResult>;
   sendPasswordResetEmail: (dto: IPasswordResetDto) => Promise<IAuthResult>;
   confirmPasswordReset: (dto: IConfirmPasswordResetDto) => Promise<IAuthResult>;
+  sendEmailVerification: () => Promise<IAuthResult>;
   clearError: () => void;
 }
 

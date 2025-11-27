@@ -11,6 +11,9 @@ export interface IAuthService {
   sendPasswordResetEmail(dto: IPasswordResetDto): Promise<IAuthResult>;
   confirmPasswordReset(dto: IConfirmPasswordResetDto): Promise<IAuthResult>;
   
+  // Email Verification metodları
+  sendEmailVerification(): Promise<IAuthResult>;
+  
   // Observer
   onAuthStateChanged(callback: (user: IAuthUser | null) => void): () => void;
 }

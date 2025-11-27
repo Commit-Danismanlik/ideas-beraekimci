@@ -197,6 +197,28 @@ export const useAuth = () => {
     [authService]
   );
 
+  // Send Email Verification
+  const sendEmailVerification = useCallback(
+    async (): Promise<IAuthResult> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await authService.sendEmailVerification();
+        if (!result.success) {
+          setError(result.error || 'Email doğrulama maili gönderilemedi');
+        }
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authService]
+  );
+
   // Clear Error
   const clearError = useCallback(() => {
     setError(null);
@@ -215,6 +237,7 @@ export const useAuth = () => {
     logout,
     sendPasswordResetEmail,
     confirmPasswordReset,
+    sendEmailVerification,
     clearError,
 
     // Service

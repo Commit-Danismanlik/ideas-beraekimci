@@ -6,7 +6,7 @@ import { Calendar } from 'primereact/calendar';
 
 export const Register = () => {
   const navigate = useNavigate();
-  const { register, login, loading, error } = useAuthContext();
+  const { register, loading, error } = useAuthContext();
   const [formData, setFormData] = useState<IRegisterDto>({
     email: '',
     password: '',
@@ -16,6 +16,7 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -36,16 +37,8 @@ export const Register = () => {
     const registerResult = await register(registerData);
 
     if (registerResult.success) {
-      // Kayıt başarılıysa otomatik login
-      const loginResult = await login({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (loginResult.success) {
-        // Dashboard'a yönlendir
-        navigate('/dashboard');
-      }
+      // Kayıt başarılı, email doğrulama mesajı göster
+      setSuccess(true);
     }
   };
 
@@ -72,13 +65,28 @@ export const Register = () => {
             <p className="text-indigo-300 text-lg">Yeni hesap oluşturun</p>
           </div>
 
-          {error && (
-            <div className="mb-4 bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-300 px-4 py-3 rounded-xl animate-fade-in-scale">
-              {error}
+          {success ? (
+            <div className="mb-4 bg-green-500/20 border border-green-500/30 backdrop-blur-sm text-green-300 px-4 py-3 rounded-xl animate-fade-in-scale">
+              <p className="font-semibold mb-2">Kayıt başarılı!</p>
+              <p className="text-sm mb-2">
+                {formData.email} adresine email doğrulama linki gönderdik. Lütfen email kutunuzu kontrol edin ve email adresinizi doğrulayın.
+              </p>
+              <p className="text-sm">
+                Email adresinizi doğruladıktan sonra{' '}
+                <Link to="/login" className="text-green-400 hover:text-green-300 font-semibold hover:underline transition-colors">
+                  giriş yapabilirsiniz
+                </Link>.
+              </p>
             </div>
-          )}
+          ) : (
+            <>
+              {error && (
+                <div className="mb-4 bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-300 px-4 py-3 rounded-xl animate-fade-in-scale">
+                  {error}
+                </div>
+              )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-indigo-200">
                 İsim
@@ -217,6 +225,8 @@ export const Register = () => {
               )}
             </button>
           </form>
+            </>
+          )}
 
           <div className="mt-8 text-center">
             <p className="text-indigo-300">
