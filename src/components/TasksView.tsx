@@ -151,7 +151,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
           <select
             value={selectedTeam}
             onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-indigo-600"
+            className="px-4 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
           >
             {userTeams.map((team) => (
               <option key={team.id} value={team.id}>
@@ -214,7 +214,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
             <select
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value as typeof filters.status })}
-              className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-sm text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
             >
               <option value="all">Tümü ({counts.total})</option>
               <option value="todo">📝 Yapılacak ({counts.byStatus['todo']})</option>
@@ -229,7 +229,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
             <select
               value={filters.priority}
               onChange={(e) => setFilters({ ...filters, priority: e.target.value as typeof filters.priority })}
-              className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-sm text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
             >
               <option value="all">Tümü</option>
               <option value="high">🔴 Yüksek ({counts.byPriority['high']})</option>
@@ -244,7 +244,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
             <select
               value={filters.assignedTo}
               onChange={(e) => setFilters({ ...filters, assignedTo: e.target.value })}
-              className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-gray-200"
+              className="w-full px-3 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-sm text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
             >
               <option value="all">Tümü</option>
               <option value="unassigned">Atanmamış ({counts.unassigned})</option>
@@ -422,7 +422,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
               <select
                 value={taskForm.assignedTo}
                 onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
-                className="w-full mb-2 px-4 py-2 border rounded-lg bg-gray-900 text-indigo-200 focus:ring-2 focus:ring-indigo-600"
+                className="w-full mb-2 px-4 py-2 border border-indigo-500/30 rounded-lg bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
               >
                 <option value="">Atanmadı</option>
                 {members.map((member) => (
@@ -435,7 +435,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                 <select
                   value={taskForm.status}
                   onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value as 'todo' | 'in-progress' | 'done' })}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border border-indigo-500/30 rounded-lg bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
                 >
                   <option value="todo">Yapılacak</option>
                   <option value="in-progress">Devam Ediyor</option>
@@ -444,7 +444,7 @@ export const TasksView = ({ userTeams }: TasksViewProps) => {
                 <select
                   value={taskForm.priority}
                   onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as 'low' | 'medium' | 'high' })}
-                  className="px-4 py-2 border rounded-lg"
+                  className="px-4 py-2 border border-indigo-500/30 rounded-lg bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
                 >
                   <option value="low">Düşük Öncelik</option>
                   <option value="medium">Orta Öncelik</option>

@@ -626,13 +626,19 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps) => {
                                         className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                                         rows={2}
                                     />
-                                    <input
-                                        type="text"
-                                        placeholder="Kullanıcı ID'si (atama için, opsiyonel)"
+                                    <select
                                         value={todoForm.assignedTo}
                                         onChange={(e) => setTodoForm({ ...todoForm, assignedTo: e.target.value })}
-                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
-                                    />
+                                        className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
+                                    >
+                                        <option value="">Atama yapılmadı (Opsiyonel)</option>
+                                        {members.map((member) => (
+                                            <option key={member.userId} value={member.userId}>
+                                                {member.displayName || member.email || member.userId}
+                                                {member.displayName && member.email ? ` (${member.email})` : ''}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <select
                                         value={todoForm.priority}
                                         onChange={(e) => setTodoForm({ ...todoForm, priority: e.target.value as 'low' | 'medium' | 'high' })}

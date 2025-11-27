@@ -318,7 +318,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           <select
             value={selectedTeam}
             onChange={(e) => setSelectedTeam(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:ring-2 focus:ring-indigo-600"
+            className="px-4 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all"
           >
             {userTeams.map((team) => (
               <option key={team.id} value={team.id}>

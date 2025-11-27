@@ -47,7 +47,7 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
     setMessages((prev) => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
-    setIsTyping(true);
+    setIsTyping(false);
     setTypingMessage('');
 
     try {
@@ -57,9 +57,13 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
       });
 
       if (result.success && result.data) {
+        // Yükleme animasyonunu kaldır, typing animasyonunu başlat
+        setIsLoading(false);
+        setIsTyping(true);
         // Mesajı yavaşça yükle (typing effect)
         await typeMessage(result.data);
       } else {
+        setIsLoading(false);
         const errorMessage: IChatMessage = {
           role: 'assistant',
           content: result.error || 'Bir hata oluştu',
@@ -68,6 +72,7 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
         setMessages((prev) => [...prev, errorMessage]);
       }
     } catch (error) {
+      setIsLoading(false);
       const errorMessage: IChatMessage = {
         role: 'assistant',
         content: 'Bir hata oluştu. Lütfen tekrar deneyin.',
@@ -75,7 +80,6 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsLoading(false);
       setIsTyping(false);
       setTypingMessage('');
     }
@@ -190,13 +194,13 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
               </div>
             )}
 
-            {isLoading && !isTyping && (
+            {isLoading && (
               <div className="flex justify-start">
                 <div className="max-w-[80%] sm:max-w-[70%] rounded-2xl p-3 sm:p-4 glass text-indigo-200 border border-indigo-500/30">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></div>
+                  <div className="flex gap-1 items-center">
+                    <span className="text-indigo-400 text-2xl font-bold animate-dot-1">.</span>
+                    <span className="text-indigo-400 text-2xl font-bold animate-dot-2">.</span>
+                    <span className="text-indigo-400 text-2xl font-bold animate-dot-3">.</span>
                   </div>
                 </div>
               </div>
@@ -207,24 +211,24 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
 
           {/* Input */}
           <div className="p-4 sm:p-6 border-t border-indigo-500/20">
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
               <textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Mesajınızı yazın..."
                 disabled={isLoading}
-                className="flex-1 glass rounded-xl p-3 sm:p-4 text-indigo-200 placeholder-indigo-400/50 border border-indigo-500/30 focus:outline-none focus:border-indigo-400/50 focus:ring-2 focus:ring-indigo-500/20 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:flex-1 glass rounded-xl p-3 sm:p-4 text-indigo-200 placeholder-indigo-400/50 border border-indigo-500/30 focus:outline-none focus:border-indigo-400/50 focus:ring-2 focus:ring-indigo-500/20 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={1}
                 style={{ minHeight: '48px', maxHeight: '120px' }}
               />
               <button
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
                 ) : (
                   'Gönder'
                 )}
@@ -255,12 +259,37 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps) => {
           }
         }
 
+        @keyframes dot-bounce {
+          0%, 80%, 100% {
+            opacity: 0.3;
+            transform: translateY(0);
+          }
+          40% {
+            opacity: 1;
+            transform: translateY(-8px);
+          }
+        }
+
         .animate-fade-in {
           animation: fade-in 0.3s ease-out;
         }
 
         .animate-fade-in-up {
           animation: fade-in-up 0.3s ease-out;
+        }
+
+        .animate-dot-1 {
+          animation: dot-bounce 1.4s infinite;
+        }
+
+        .animate-dot-2 {
+          animation: dot-bounce 1.4s infinite;
+          animation-delay: 0.2s;
+        }
+
+        .animate-dot-3 {
+          animation: dot-bounce 1.4s infinite;
+          animation-delay: 0.4s;
         }
 
         .delay-100 {
