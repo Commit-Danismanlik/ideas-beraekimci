@@ -66,9 +66,17 @@ export const Login = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-indigo-200">
-                Şifre
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-semibold text-indigo-200">
+                  Şifre
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-purple-400 hover:text-purple-300 font-semibold hover:underline transition-colors"
+                >
+                  Şifremi Unuttum
+                </Link>
+              </div>
               <input
                 type="password"
                 required

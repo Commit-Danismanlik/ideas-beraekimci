@@ -29,3 +29,14 @@ export interface IAuthResult {
   error?: string;
 }
 
+// Password Reset DTO
+export interface IPasswordResetDto {
+  email: string;
+}
+
+// Confirm Password Reset DTO
+export interface IConfirmPasswordResetDto {
+  oobCode: string;
+  newPassword: string;
+}
+

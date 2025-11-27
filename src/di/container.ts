@@ -74,7 +74,8 @@ export class ServiceContainer {
   // Auth Service - Lazy initialization
   public getAuthService(): IAuthService {
     if (!this.authServiceInstance) {
-      this.authServiceInstance = new AuthService(this.auth);
+      const userService = this.getUserService();
+      this.authServiceInstance = new AuthService(this.auth, userService);
     }
     return this.authServiceInstance;
   }

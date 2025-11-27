@@ -6,16 +6,21 @@ import {
   onAuthStateChanged as firebaseOnAuthStateChanged,
   User,
   updateProfile,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
 } from 'firebase/auth';
 import { IAuthService } from '../interfaces/IAuthService';
-import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult } from '../models/Auth.model';
+import { IUserService } from '../interfaces/IUserService';
+import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult, IPasswordResetDto, IConfirmPasswordResetDto } from '../models/Auth.model';
 
 // SOLID: Single Responsibility - Sadece authentication işlemlerinden sorumlu
 export class AuthService implements IAuthService {
   private auth: Auth;
+  private userService: IUserService;
 
-  constructor(auth: Auth) {
+  constructor(auth: Auth, userService: IUserService) {
     this.auth = auth;
+    this.userService = userService;
   }
 
   // Register
@@ -121,6 +126,83 @@ export class AuthService implements IAuthService {
     return this.mapFirebaseUserToAuthUser(user);
   }
 
+  // Send Password Reset Email
+  public async sendPasswordResetEmail(dto: IPasswordResetDto): Promise<IAuthResult> {
+    try {
+      // Email validasyonu
+      if (!this.isValidEmail(dto.email)) {
+        return {
+          success: false,
+          error: 'Geçersiz email adresi',
+        };
+      }
+
+      // Email'in veritabanında olup olmadığını kontrol et
+      const emailExists = await this.userService.emailExists(dto.email);
+      if (!emailExists) {
+        // Güvenlik nedeniyle genel bir mesaj döndür
+        return {
+          success: false,
+          error: 'Bu email adresine kayıtlı kullanıcı bulunamadı',
+        };
+      }
+
+      // URL yapılandırması - localhost ve production için dinamik
+      let continueUrl: string;
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname.includes('localhost') || hostname === '127.0.0.1') {
+          continueUrl = 'http://localhost:3000/login';
+        } else {
+          continueUrl = 'https://students.beraekimci.com.tr/login';
+        }
+      } else {
+        // Server-side rendering durumunda production URL'i kullan
+        continueUrl = 'https://students.beraekimci.com.tr/login';
+      }
+
+      // Firebase şifre sıfırlama email'i gönder
+      await sendPasswordResetEmail(this.auth, dto.email, {
+        url: continueUrl,
+        handleCodeInApp: false,
+      });
+
+      return {
+        success: true,
+      };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: this.getErrorMessage(error),
+      };
+    }
+  }
+
+  // Confirm Password Reset
+  public async confirmPasswordReset(dto: IConfirmPasswordResetDto): Promise<IAuthResult> {
+    try {
+      // Password validasyonu
+      if (dto.newPassword.length < 6) {
+        return {
+          success: false,
+          error: 'Şifre en az 6 karakter olmalıdır',
+        };
+      }
+
+      // Firebase şifre sıfırlama onayı
+      await confirmPasswordReset(this.auth, dto.oobCode, dto.newPassword);
+
+      return {
+        success: true,
+      };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: this.getErrorMessage(error),
+      };
+    }
+  }
+
   // Auth State Observer
   public onAuthStateChanged(callback: (user: IAuthUser | null) => void): () => void {
     const unsubscribe = firebaseOnAuthStateChanged(this.auth, (firebaseUser) => {
@@ -181,6 +263,15 @@ export class AuthService implements IAuthService {
       }
       if (message.includes('auth/invalid-credential')) {
         return 'Geçersiz kullanıcı bilgileri';
+      }
+      if (message.includes('auth/invalid-action-code')) {
+        return 'Geçersiz veya süresi dolmuş şifre sıfırlama kodu';
+      }
+      if (message.includes('auth/expired-action-code')) {
+        return 'Şifre sıfırlama kodu süresi dolmuş';
+      }
+      if (message.includes('auth/user-not-found')) {
+        return 'Bu email adresine kayıtlı kullanıcı bulunamadı';
       }
       
       return message;

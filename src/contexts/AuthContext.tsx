@@ -2,6 +2,8 @@ import { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult } from '../models/Auth.model';
 
+import { IPasswordResetDto, IConfirmPasswordResetDto } from '../models/Auth.model';
+
 interface IAuthContext {
   user: IAuthUser | null;
   loading: boolean;
@@ -10,6 +12,8 @@ interface IAuthContext {
   register: (dto: IRegisterDto) => Promise<IAuthResult>;
   login: (dto: ILoginDto) => Promise<IAuthResult>;
   logout: () => Promise<IAuthResult>;
+  sendPasswordResetEmail: (dto: IPasswordResetDto) => Promise<IAuthResult>;
+  confirmPasswordReset: (dto: IConfirmPasswordResetDto) => Promise<IAuthResult>;
   clearError: () => void;
 }
 

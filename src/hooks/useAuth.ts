@@ -1,11 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IAuthService } from '../interfaces/IAuthService';
-import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult } from '../models/Auth.model';
+import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult, IPasswordResetDto, IConfirmPasswordResetDto } from '../models/Auth.model';
 import { getAuthService, getUserService } from '../di/container';
 
 export const useAuth = () => {
-  const [authService] = useState<IAuthService>(() => getAuthService());
-  const [userService] = useState(() => getUserService());
+  const [authService] = useState<IAuthService>(() => {
+    try {
+      return getAuthService();
+    } catch (error) {
+      console.error('AuthService initialization error:', error);
+      throw error;
+    }
+  });
+  const [userService] = useState(() => {
+    try {
+      return getUserService();
+    } catch (error) {
+      console.error('UserService initialization error:', error);
+      throw error;
+    }
+  });
   const [user, setUser] = useState<IAuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,13 +27,19 @@ export const useAuth = () => {
 
   // Auth state observer
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged((authUser) => {
-      setUser(authUser);
-      setIsAuthenticated(!!authUser);
-      setLoading(false);
-    });
+    try {
+      const unsubscribe = authService.onAuthStateChanged((authUser) => {
+        setUser(authUser);
+        setIsAuthenticated(!!authUser);
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Auth state observer error:', err);
+      setError('Auth initialization failed');
+      setLoading(false);
+    }
   }, [authService]);
 
   // Register
@@ -133,6 +153,50 @@ export const useAuth = () => {
     }
   }, [authService]);
 
+  // Send Password Reset Email
+  const sendPasswordResetEmail = useCallback(
+    async (dto: IPasswordResetDto): Promise<IAuthResult> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await authService.sendPasswordResetEmail(dto);
+        if (!result.success) {
+          setError(result.error || 'Şifre sıfırlama emaili gönderilemedi');
+        }
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authService]
+  );
+
+  // Confirm Password Reset
+  const confirmPasswordReset = useCallback(
+    async (dto: IConfirmPasswordResetDto): Promise<IAuthResult> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await authService.confirmPasswordReset(dto);
+        if (!result.success) {
+          setError(result.error || 'Şifre sıfırlama başarısız');
+        }
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authService]
+  );
+
   // Clear Error
   const clearError = useCallback(() => {
     setError(null);
@@ -149,6 +213,8 @@ export const useAuth = () => {
     register,
     login,
     logout,
+    sendPasswordResetEmail,
+    confirmPasswordReset,
     clearError,
 
     // Service
