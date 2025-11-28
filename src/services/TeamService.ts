@@ -4,11 +4,15 @@ import { TeamRepository } from '../repositories/TeamRepository';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
 import { ITeam, ICreateTeamDto, IUpdateTeamDto } from '../models/Team.model';
 import { IQueryResult, IListQueryResult } from '../types/base.types';
+import { TeamSetupService } from './TeamSetupService';
+import { getLogger } from './Logger';
 
 export class TeamService implements ITeamService {
   private teamRepository: TeamRepository;
   private teamMemberRepository: TeamMemberRepository;
   private roleService: IRoleService;
+  private teamSetupService: TeamSetupService;
+  private logger = getLogger();
 
   constructor(
     teamRepository: TeamRepository,
@@ -18,6 +22,7 @@ export class TeamService implements ITeamService {
     this.teamRepository = teamRepository;
     this.teamMemberRepository = teamMemberRepository;
     this.roleService = roleService;
+    this.teamSetupService = new TeamSetupService(roleService, teamMemberRepository);
   }
 
   // Create Team
@@ -46,68 +51,25 @@ export class TeamService implements ITeamService {
     // Takım oluştur
     const teamResult = await this.teamRepository.create(teamData);
     if (!teamResult.success || !teamResult.data) {
-      console.error('Takım oluşturma hatası:', teamResult.error);
+      this.logger.error('Takım oluşturma hatası', { error: teamResult.error });
       return teamResult;
     }
 
     const team = teamResult.data;
-    console.log('Takım oluşturuldu:', team.id);
+    this.logger.info('Takım oluşturuldu', { teamId: team.id });
 
-    try {
-      // Varsayılan rolleri oluştur (Owner ve Member) - AWAIT ile bekle
-      console.log('Varsayılan roller oluşturuluyor (Owner ve Member)...');
-      await this.roleService.createDefaultRoles(team.id);
-      console.log('Varsayılan roller oluşturuldu');
-
-      // Owner rolünü getir
-      console.log('Owner rolü getiriliyor...');
-      const ownerRoleResult = await this.roleService.getOwnerRole(team.id);
-      
-      if (!ownerRoleResult.success || !ownerRoleResult.data) {
-        console.error('Owner rolü bulunamadı:', ownerRoleResult.error);
-        // Takımı sil çünkü setup tamamlanamadı
-        await this.teamRepository.delete(team.id);
-        return {
-          success: false,
-          error: 'Takım rolleri oluşturulamadı',
-        };
-      }
-
-      console.log('Owner rolü bulundu:', ownerRoleResult.data.id);
-
-      // Takım sahibini Owner rolüyle members subcollection'a ekle
-      console.log('Takım sahibi Owner rolüyle ekleniyor...');
-      const now = new Date();
-      const memberResult = await this.teamMemberRepository.create(team.id, {
-        userId: ownerId,
-        roleId: ownerRoleResult.data.id,
-        addedBy: ownerId,
-        addedAt: now,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      if (!memberResult.success) {
-        console.error('Owner üye olarak eklenemedi:', memberResult.error);
-        // Takımı sil
-        await this.teamRepository.delete(team.id);
-        return {
-          success: false,
-          error: 'Takım kurucusu üye olarak eklenemedi',
-        };
-      }
-
-      console.log('Takım kurulumu tamamlandı! Owner rolü atandı.');
-      return teamResult;
-    } catch (error) {
-      console.error('Takım kurulum exception:', error);
+    // Takım kurulumunu yap
+    const setupSuccess = await this.teamSetupService.setupTeam(team.id, ownerId);
+    if (!setupSuccess) {
       // Hata durumunda takımı sil
       await this.teamRepository.delete(team.id);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Takım kurulumu başarısız',
+        error: 'Takım kurulumu başarısız',
       };
     }
+
+    return teamResult;
   }
 
   // Get Team By Id
@@ -188,7 +150,7 @@ export class TeamService implements ITeamService {
   // Join Team
   public async joinTeam(teamId: string, userId: string): Promise<IQueryResult<ITeam>> {
     try {
-      console.log('TeamService.joinTeam çağrıldı:', { teamId, userId });
+      this.logger.info('TeamService.joinTeam çağrıldı', { teamId, userId });
 
       if (!teamId || !userId) {
         return {
@@ -198,11 +160,11 @@ export class TeamService implements ITeamService {
       }
 
       // Takımı getir
-      console.log('Takım getiriliyor:', teamId);
+      this.logger.info('Takım getiriliyor', { teamId });
       const teamResult = await this.teamRepository.getById(teamId);
-      
+
       if (!teamResult.success) {
-        console.error('Takım getirme hatası:', teamResult.error);
+        this.logger.error('Takım getirme hatası', { teamId, error: teamResult.error });
         return {
           success: false,
           error: `Takım bulunamadı. Girdiğiniz ID doğru mu? (${teamId})`,
@@ -217,7 +179,7 @@ export class TeamService implements ITeamService {
       }
 
       const team = teamResult.data;
-      console.log('Takım bulundu:', team.name);
+      this.logger.info('Takım bulundu', { teamId, teamName: team.name });
 
       // Zaten üye mi kontrol et
       if (team.members.includes(userId)) {
@@ -228,36 +190,36 @@ export class TeamService implements ITeamService {
       }
 
       // Member rolünü getir veya oluştur (katılanlar otomatik Member rolüne atanır)
-      console.log('Member rolü getiriliyor...');
+      this.logger.info('Member rolü getiriliyor', { teamId });
       let memberRoleResult = await this.roleService.getMemberRole(teamId);
-      
+
       // Member rolü yoksa oluştur
       if (!memberRoleResult.success || !memberRoleResult.data) {
-        console.log('Member rolü bulunamadı, oluşturuluyor...');
-        
+        this.logger.info('Member rolü bulunamadı, oluşturuluyor', { teamId });
+
         // Varsayılan rolleri oluştur
         await this.roleService.createDefaultRoles(teamId);
-        
+
         // Tekrar dene
         memberRoleResult = await this.roleService.getMemberRole(teamId);
-        
+
         if (!memberRoleResult.success || !memberRoleResult.data) {
-          console.error('Member rolü oluşturulamadı');
+          this.logger.error('Member rolü oluşturulamadı', { teamId });
           return {
             success: false,
             error: 'Takım rolleri oluşturulamadı. Lütfen tekrar deneyin.',
           };
         }
-        
-        console.log('Member rolü başarıyla oluşturuldu');
+
+        this.logger.info('Member rolü başarıyla oluşturuldu', { teamId });
       }
 
-      console.log('Member rolü bulundu:', memberRoleResult.data.id);
+      this.logger.info('Member rolü bulundu', { teamId, roleId: memberRoleResult.data.id });
 
       // Üyeyi otomatik olarak Member rolüyle subcollection'a ekle
       const now = new Date();
-      console.log('Üye otomatik olarak Member rolüyle ekleniyor...');
-      
+      this.logger.info('Üye otomatik olarak Member rolüyle ekleniyor', { teamId, userId });
+
       const memberCreateResult = await this.teamMemberRepository.create(teamId, {
         userId,
         roleId: memberRoleResult.data.id,
@@ -268,17 +230,21 @@ export class TeamService implements ITeamService {
       });
 
       if (!memberCreateResult.success) {
-        console.error('Üye eklenme hatası:', memberCreateResult.error);
+        this.logger.error('Üye eklenme hatası', {
+          teamId,
+          userId,
+          error: memberCreateResult.error,
+        });
         return {
           success: false,
           error: 'Üye kaydı oluşturulamadı: ' + memberCreateResult.error,
         };
       }
 
-      console.log('Üye Member rolüyle subcollection\'a eklendi');
+      this.logger.info('Üye Member rolüyle subcollection\'a eklendi', { teamId, userId });
 
       // Team document'ine members array ve member count'u güncelle
-      console.log('Team document güncelleniyor...');
+      this.logger.info('Team document güncelleniyor', { teamId });
       const updatedMembers = [...team.members, userId];
       const updatedTeam = await this.teamRepository.update(teamId, {
         members: updatedMembers,
@@ -286,12 +252,15 @@ export class TeamService implements ITeamService {
       });
 
       if (updatedTeam.success) {
-        console.log('Takıma katılma başarılı! Member rolü otomatik atandı.');
+        this.logger.info('Takıma katılma başarılı! Member rolü otomatik atandı.', {
+          teamId,
+          userId,
+        });
       }
 
       return updatedTeam;
     } catch (error) {
-      console.error('joinTeam exception:', error);
+      this.logger.error('joinTeam exception', { teamId, userId, error });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu',
@@ -419,13 +388,13 @@ export class TeamService implements ITeamService {
         });
       }
 
-      console.log(`Kullanıcı ${userId} role ${roleId} atandı`);
+      this.logger.info('Kullanıcı role atandı', { teamId, userId, roleId });
       return {
         success: true,
         data: true,
       };
     } catch (error) {
-      console.error('assignUserRole exception:', error);
+      this.logger.error('assignUserRole exception', { teamId, userId, roleId, error });
       return {
         success: false,
         data: false,
@@ -466,8 +435,8 @@ export class TeamService implements ITeamService {
     removedBy: string
   ): Promise<IQueryResult<boolean>> {
     try {
-      console.log(`Kullanıcı ${userId} takımdan çıkarılıyor (çıkaran: ${removedBy})`);
-      
+      this.logger.info('Kullanıcı takımdan çıkarılıyor', { teamId, userId, removedBy });
+
       // Takımı getir
       const teamResult = await this.teamRepository.getById(teamId);
       if (!teamResult.success || !teamResult.data) {
@@ -512,13 +481,13 @@ export class TeamService implements ITeamService {
         memberCount: Math.max(0, team.memberCount - 1),
       });
 
-      console.log(`Kullanıcı ${userId} takımdan çıkarıldı`);
+      this.logger.info('Kullanıcı takımdan çıkarıldı', { teamId, userId });
       return {
         success: true,
         data: true,
       };
     } catch (error) {
-      console.error('removeMember exception:', error);
+      this.logger.error('removeMember exception', { teamId, userId, removedBy, error });
       return {
         success: false,
         data: false,

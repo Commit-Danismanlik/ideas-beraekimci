@@ -20,7 +20,8 @@ export const usePermissions = (teamId: string | null) => {
       setLoading(true);
       const userPermissions = await roleService.getUserPermissions(user.uid, teamId);
       setPermissions(userPermissions);
-      console.log('Kullanıcı yetkileri:', userPermissions);
+      // yayın için gizliye almak daha iyi 
+      //console.log('Kullanıcı yetkileri:', userPermissions);
       setLoading(false);
     };
 

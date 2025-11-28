@@ -9,10 +9,12 @@ import {
   DEFAULT_PERMISSIONS,
 } from '../models/Role.model';
 import { IQueryResult, IListQueryResult } from '../types/base.types';
+import { getLogger } from './Logger';
 
 export class RoleService implements IRoleService {
   private roleRepository: RoleRepository;
   private teamMemberRepository: TeamMemberRepository;
+  private logger = getLogger();
 
   constructor(roleRepository: RoleRepository, teamMemberRepository: TeamMemberRepository) {
     this.roleRepository = roleRepository;
@@ -35,9 +37,9 @@ export class RoleService implements IRoleService {
     try {
       // Takım var mı kontrol et
       const teamResult = await this.teamMemberRepository.getMemberByUserId(teamId, creatorId);
-      console.log('Üyelik kontrolü yapılıyor... teamId:', teamId, 'userId:', creatorId);
-      console.log('Üyelik sonucu:', teamResult);
-      
+      this.logger.debug('Üyelik kontrolü yapılıyor', { teamId, userId: creatorId });
+      this.logger.debug('Üyelik sonucu', { teamId, result: teamResult });
+
       // Eğer subcollection'da yoksa, team.members array'ine bak
       const roleData = {
         name: dto.name,
@@ -48,18 +50,18 @@ export class RoleService implements IRoleService {
         updatedAt: new Date(),
       };
 
-      console.log('Custom rol oluşturuluyor:', roleData);
+      this.logger.info('Custom rol oluşturuluyor', { teamId, roleData });
       const result = await this.roleRepository.create(teamId, roleData);
-      
+
       if (result.success) {
-        console.log('Custom rol başarıyla oluşturuldu:', result.data);
+        this.logger.info('Custom rol başarıyla oluşturuldu', { teamId, roleId: result.data?.id });
       } else {
-        console.error('Custom rol oluşturma hatası:', result.error);
+        this.logger.error('Custom rol oluşturma hatası', { teamId, error: result.error });
       }
-      
+
       return result;
     } catch (error) {
-      console.error('createRole exception:', error);
+      this.logger.error('createRole exception', { teamId, creatorId, error });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Rol oluşturulamadı',
@@ -112,7 +114,7 @@ export class RoleService implements IRoleService {
       };
     }
 
-    console.log('Custom rol güncelleniyor:', dto);
+    this.logger.info('Custom rol güncelleniyor', { teamId, roleId, dto });
     return this.roleRepository.update(teamId, roleId, dto);
   }
 
@@ -163,7 +165,7 @@ export class RoleService implements IRoleService {
       };
     }
 
-    console.log('Custom rol siliniyor:', roleId);
+    this.logger.info('Custom rol siliniyor', { teamId, roleId });
     return this.roleRepository.delete(teamId, roleId);
   }
 

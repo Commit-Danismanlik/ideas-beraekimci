@@ -59,5 +59,50 @@ export class TeamTodoRepository extends SubcollectionRepository<ITeamTodo> {
     ];
     return this.getByFilter(teamId, filters);
   }
+
+  // Tamamlanma durumuna göre todo'ları getir
+  public async getTodosByCompleted(
+    teamId: string,
+    completed: boolean
+  ): Promise<IListQueryResult<ITeamTodo>> {
+    const filters: IFilter[] = [
+      {
+        field: 'completed',
+        operator: '==',
+        value: completed,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Priority'ye göre todo'ları getir
+  public async getTodosByPriority(
+    teamId: string,
+    priority: 'low' | 'medium' | 'high'
+  ): Promise<IListQueryResult<ITeamTodo>> {
+    const filters: IFilter[] = [
+      {
+        field: 'priority',
+        operator: '==',
+        value: priority,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Oluşturan kişiye göre todo'ları getir
+  public async getTodosByCreator(
+    teamId: string,
+    userId: string
+  ): Promise<IListQueryResult<ITeamTodo>> {
+    const filters: IFilter[] = [
+      {
+        field: 'createdBy',
+        operator: '==',
+        value: userId,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
 }
 
