@@ -52,19 +52,12 @@ export const useAuth = () => {
         if (result.success && result.user) {
           // Firebase Authentication'dan sonra Firestore'a kaydet
           try {
-            // Authentication UID ile aynı ID'yi kullanarak kaydet
-            const { setDoc, doc } = await import('firebase/firestore');
-            const { getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
-            await setDoc(doc(db, 'users', result.user.uid), {
-              id: result.user.uid,
-              name: dto.displayName || '',
-              email: dto.email,
-              birthDate: dto.birthDate || null,
-              isActive: true,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            });
+            await userService.createOrUpdateUserFromAuth(
+              result.user.uid,
+              result.user.email,
+              dto.displayName,
+              dto.birthDate
+            );
             console.log('Kullanıcı Firestore\'a kaydedildi:', result.user.uid);
           } catch (dbError) {
             console.error('Firestore kayıt hatası:', dbError);
@@ -94,26 +87,14 @@ export const useAuth = () => {
       try {
         const result = await authService.login(dto);
         if (result.success && result.user) {
-          // Kullanıcının Firestore'da olup olmadığını kontrol et
+          // Kullanıcının Firestore'da olup olmadığını kontrol et ve yoksa ekle
           try {
-            const userResult = await userService.getUserById(result.user.uid);
-            if (!userResult.success || !userResult.data) {
-              // Kullanıcı Firestore'da yok, ekle
-              console.log('Kullanıcı Firestore\'da yok, ekleniyor...');
-              const { setDoc, doc } = await import('firebase/firestore');
-              const { getFirestore } = await import('firebase/firestore');
-              const db = getFirestore();
-              await setDoc(doc(db, 'users', result.user.uid), {
-                id: result.user.uid,
-                name: result.user.displayName || '',
-                email: result.user.email || dto.email,
-                birthDate: null,
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              });
-              console.log('Kullanıcı Firestore\'a eklendi:', result.user.uid);
-            }
+            await userService.createOrUpdateUserFromAuth(
+              result.user.uid,
+              result.user.email,
+              result.user.displayName
+            );
+            console.log('Kullanıcı Firestore\'da kontrol edildi/güncellendi:', result.user.uid);
           } catch (dbError) {
             console.error('Firestore kontrol hatası:', dbError);
             // Hata olsa bile authentication başarılı olduğu için devam et

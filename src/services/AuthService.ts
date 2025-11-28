@@ -13,6 +13,8 @@ import {
 import { IAuthService } from '../interfaces/IAuthService';
 import { IUserService } from '../interfaces/IUserService';
 import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult, IPasswordResetDto, IConfirmPasswordResetDto } from '../models/Auth.model';
+import { EmailValidator } from '../validators/EmailValidator';
+import { PasswordValidator } from '../validators/PasswordValidator';
 
 // SOLID: Single Responsibility - Sadece authentication işlemlerinden sorumlu
 export class AuthService implements IAuthService {
@@ -28,18 +30,20 @@ export class AuthService implements IAuthService {
   public async register(dto: IRegisterDto): Promise<IAuthResult> {
     try {
       // Email validasyonu
-      if (!this.isValidEmail(dto.email)) {
+      const emailValidation = EmailValidator.validate(dto.email);
+      if (!emailValidation.valid) {
         return {
           success: false,
-          error: 'Geçersiz email adresi',
+          error: emailValidation.error || 'Geçersiz email adresi',
         };
       }
 
       // Password validasyonu
-      if (dto.password.length < 6) {
+      const passwordValidation = PasswordValidator.validate(dto.password);
+      if (!passwordValidation.valid) {
         return {
           success: false,
-          error: 'Şifre en az 6 karakter olmalıdır',
+          error: passwordValidation.error || 'Geçersiz şifre',
         };
       }
 
@@ -90,10 +94,11 @@ export class AuthService implements IAuthService {
   public async login(dto: ILoginDto): Promise<IAuthResult> {
     try {
       // Email validasyonu
-      if (!this.isValidEmail(dto.email)) {
+      const emailValidation = EmailValidator.validate(dto.email);
+      if (!emailValidation.valid) {
         return {
           success: false,
-          error: 'Geçersiz email adresi',
+          error: emailValidation.error || 'Geçersiz email adresi',
         };
       }
 
@@ -156,10 +161,11 @@ export class AuthService implements IAuthService {
   public async sendPasswordResetEmail(dto: IPasswordResetDto): Promise<IAuthResult> {
     try {
       // Email validasyonu
-      if (!this.isValidEmail(dto.email)) {
+      const emailValidation = EmailValidator.validate(dto.email);
+      if (!emailValidation.valid) {
         return {
           success: false,
-          error: 'Geçersiz email adresi',
+          error: emailValidation.error || 'Geçersiz email adresi',
         };
       }
 
@@ -208,10 +214,11 @@ export class AuthService implements IAuthService {
   public async confirmPasswordReset(dto: IConfirmPasswordResetDto): Promise<IAuthResult> {
     try {
       // Password validasyonu
-      if (dto.newPassword.length < 6) {
+      const passwordValidation = PasswordValidator.validate(dto.newPassword);
+      if (!passwordValidation.valid) {
         return {
           success: false,
-          error: 'Şifre en az 6 karakter olmalıdır',
+          error: passwordValidation.error || 'Geçersiz şifre',
         };
       }
 
@@ -291,11 +298,6 @@ export class AuthService implements IAuthService {
   }
 
   // Private helper metodları
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
   private mapFirebaseUserToAuthUser(user: User): IAuthUser {
     return {
       uid: user.uid,

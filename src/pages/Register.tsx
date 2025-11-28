@@ -187,8 +187,8 @@ export const Register = () => {
                     <div className="custom-calendar">
                       <Calendar
                         value={selectedDate}
-                        onChange={(e: any) => {
-                          setSelectedDate(e.value as Date | null);
+                        onChange={(e: { value: Date | null }) => {
+                          setSelectedDate(e.value);
                           setShowDatePicker(false);
                         }}
                         inline

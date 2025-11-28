@@ -95,8 +95,9 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           setError(updateResult.error || 'Profil güncellenemedi');
         }
       }
-    } catch (err: any) {
-      setError(err.message || 'Bir hata oluştu');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Bir hata oluştu';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

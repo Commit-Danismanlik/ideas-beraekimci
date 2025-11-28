@@ -21,5 +21,6 @@ export interface IUserService {
   getActiveUserCount(): Promise<number>;
   userExists(id: string): Promise<boolean>;
   emailExists(email: string): Promise<boolean>;
+  createOrUpdateUserFromAuth(uid: string, email: string, displayName?: string, birthDate?: Date): Promise<IQueryResult<IUser>>;
 }
 
