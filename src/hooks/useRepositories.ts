@@ -67,7 +67,8 @@ export const useRepositories = (
   const [loading, setLoading] = useState<boolean>(false);
   const [members, setMembers] = useState<IMemberWithRole[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(true);
-  const [lastCreatedAt, setLastCreatedAt] = useState<Date | null>(null);
+  const [lastNoteCreatedAt, setLastNoteCreatedAt] = useState<Date | null>(null);
+  const [lastTodoCreatedAt, setLastTodoCreatedAt] = useState<Date | null>(null);
   const [noteSearchQuery, setNoteSearchQuery] = useState<string>('');
   const [todoSearchQuery, setTodoSearchQuery] = useState<string>('');
   const [noteFilter, setNoteFilter] = useState<INoteFilter>({
@@ -111,6 +112,81 @@ export const useRepositories = (
     [members]
   );
 
+  // Client-side filtreleme (veri zaten yüklü) - useMemo ile optimize edildi
+  const applyFilters = useCallback((): void => {
+    if (activeTab === 'notes' && notes.length > 0) {
+      let filtered = [...notes];
+
+      // Arama filtresini uygula
+      if (noteSearchQuery.trim()) {
+        filtered = filtered.filter(
+          (note) =>
+            note.title.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
+            note.content.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
+            note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
+        );
+      }
+
+      // Filtreleri uygula
+      if (noteFilter.creatorId !== 'all') {
+        filtered = filtered.filter((note) => note.createdBy === noteFilter.creatorId);
+      }
+
+      // Tarihe göre sırala
+      if (noteFilter.dateSort === 'newest') {
+        filtered.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      } else {
+        filtered.sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+
+      // Sabitlenmiş notları en başa taşı
+      filtered.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) {
+          return -1;
+        }
+        if (!a.isPinned && b.isPinned) {
+          return 1;
+        }
+        return 0;
+      });
+
+      setFilteredNotes(filtered);
+    } else if (activeTab === 'todos' && todos.length > 0) {
+      let filtered = [...todos];
+
+      // Arama filtresini uygula
+      if (todoSearchQuery.trim()) {
+        filtered = filtered.filter(
+          (todo) =>
+            todo.title.toLowerCase().includes(todoSearchQuery.toLowerCase()) ||
+            todo.description?.toLowerCase().includes(todoSearchQuery.toLowerCase())
+        );
+      }
+
+      // Filtreleri uygula
+      if (todoFilter.creatorId !== 'all') {
+        filtered = filtered.filter((todo) => todo.createdBy === todoFilter.creatorId);
+      }
+
+      // Tarihe göre sırala
+      if (todoFilter.dateSort === 'newest') {
+        filtered.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      } else {
+        filtered.sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      }
+
+      setFilteredTodos(filtered);
+    }
+  }, [activeTab, notes, todos, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter]);
+
   const fetchData = useCallback(async (): Promise<void> => {
     if (!selectedTeam) {
       return;
@@ -122,159 +198,99 @@ export const useRepositories = (
       const take = 6;
       const result = await noteService.getRecentNotes(selectedTeam, take);
       if (result.success) {
-        let filtered = [...result.data];
-
-        // Arama filtresini uygula
-        if (noteSearchQuery.trim()) {
-          filtered = filtered.filter(
-            (note) =>
-              note.title.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-              note.content.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-              note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
-          );
-        }
-
-        // Filtreleri uygula
-        if (noteFilter.creatorId !== 'all') {
-          filtered = filtered.filter((note) => note.createdBy === noteFilter.creatorId);
-        }
-
-        // Tarihe göre sırala
-        if (noteFilter.dateSort === 'newest') {
-          filtered.sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        } else {
-          filtered.sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        }
-
-        // Sabitlenmiş notları en başa taşı
-        filtered.sort((a, b) => {
-          if (a.isPinned && !b.isPinned) {
-            return -1;
-          }
-          if (!a.isPinned && b.isPinned) {
-            return 1;
-          }
-          return 0;
-        });
-
-        setFilteredNotes(filtered);
         setNotes(result.data);
-        // Filtreleme/arama yapıldığında pagination'ı devre dışı bırak
         const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
         setHasMore(!hasFilterOrSearch && result.data.length === take);
         const last = result.data[result.data.length - 1];
-        setLastCreatedAt(last ? last.createdAt : null);
+        setLastNoteCreatedAt(last ? last.createdAt : null);
       }
     } else {
-      const result = await todoService.getTeamTodos(selectedTeam);
+      // İlk 6 todo'yu çek (performans için)
+      const take = 6;
+      const result = await todoService.getRecentTodos(selectedTeam, take);
       if (result.success) {
-        let filtered = [...result.data];
-
-        // Arama filtresini uygula
-        if (todoSearchQuery.trim()) {
-          filtered = filtered.filter(
-            (todo) =>
-              todo.title.toLowerCase().includes(todoSearchQuery.toLowerCase()) ||
-              todo.description?.toLowerCase().includes(todoSearchQuery.toLowerCase())
-          );
-        }
-
-        // Filtreleri uygula
-        if (todoFilter.creatorId !== 'all') {
-          filtered = filtered.filter((todo) => todo.createdBy === todoFilter.creatorId);
-        }
-
-        // Tarihe göre sırala
-        if (todoFilter.dateSort === 'newest') {
-          filtered.sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        } else {
-          filtered.sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        }
-
-        setFilteredTodos(filtered);
         setTodos(result.data);
+        const hasFilterOrSearch = todoSearchQuery.trim() !== '' || todoFilter.creatorId !== 'all';
+        setHasMore(!hasFilterOrSearch && result.data.length === take);
+        const last = result.data[result.data.length - 1];
+        setLastTodoCreatedAt(last ? last.createdAt : null);
       }
     }
     setLoading(false);
-  }, [
-    selectedTeam,
-    activeTab,
-    noteSearchQuery,
-    todoSearchQuery,
-    noteFilter,
-    todoFilter,
-    noteService,
-    todoService,
-  ]);
+  }, [selectedTeam, activeTab, noteService, todoService, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter]);
 
   const loadMore = useCallback(async (): Promise<void> => {
-    // Filtreleme/arama yapıldığında pagination'ı devre dışı bırak
-    const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
-    if (!selectedTeam || !hasMore || activeTab !== 'notes' || hasFilterOrSearch) {
+    if (!selectedTeam || !hasMore) {
       return;
     }
-    setLoading(true);
-    try {
-      // Tüm kalan notları çek
-      const result = await noteService.getTeamNotes(selectedTeam);
-      if (result.success) {
-        // Zaten yüklenmiş notların ID'lerini al
-        const loadedNoteIds = new Set(notes.map((note) => note.id));
-        
-        // Sadece yeni notları filtrele
-        const newNotes = result.data.filter((note) => !loadedNoteIds.has(note.id));
-        
-        // Yeni notları mevcut notlara ekle
-        let allNotes = [...notes, ...newNotes];
 
-        // Tarihe göre sırala
-        if (noteFilter.dateSort === 'newest') {
-          allNotes.sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        } else {
-          allNotes.sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        }
-
-        // Sabitlenmiş notları en başa taşı
-        allNotes.sort((a, b) => {
-          if (a.isPinned && !b.isPinned) {
-            return -1;
-          }
-          if (!a.isPinned && b.isPinned) {
-            return 1;
-          }
-          return 0;
-        });
-
-        setNotes(allNotes);
-        setFilteredNotes(allNotes);
-        setHasMore(false); // Tüm notlar yüklendi
-        setLastCreatedAt(null);
-      } else {
-        setHasMore(false);
+    // Filtreleme/arama yapıldığında pagination'ı devre dışı bırak
+    if (activeTab === 'notes') {
+      const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
+      if (hasFilterOrSearch || !lastNoteCreatedAt) {
+        return;
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedTeam, hasMore, activeTab, notes, noteSearchQuery, noteFilter, noteService]);
 
+      setLoading(true);
+      try {
+        const take = 6;
+        const result = await noteService.getRecentNotesBefore(selectedTeam, lastNoteCreatedAt, take);
+        if (result.success && result.data.length > 0) {
+          setNotes((prev) => {
+            const newNotes = [...prev, ...result.data];
+            setHasMore(result.data.length === take);
+            const last = result.data[result.data.length - 1];
+            setLastNoteCreatedAt(last.createdAt);
+            return newNotes;
+          });
+        } else {
+          setHasMore(false);
+        }
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Todo'lar için pagination
+      const hasFilterOrSearch = todoSearchQuery.trim() !== '' || todoFilter.creatorId !== 'all';
+      if (hasFilterOrSearch || !lastTodoCreatedAt) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const take = 6;
+        const result = await todoService.getRecentTodosBefore(selectedTeam, lastTodoCreatedAt, take);
+        if (result.success && result.data.length > 0) {
+          setTodos((prev) => {
+            const newTodos = [...prev, ...result.data];
+            setHasMore(result.data.length === take);
+            const last = result.data[result.data.length - 1];
+            setLastTodoCreatedAt(last.createdAt);
+            return newTodos;
+          });
+        } else {
+          setHasMore(false);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [selectedTeam, hasMore, activeTab, lastNoteCreatedAt, lastTodoCreatedAt, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter, noteService, todoService]);
+
+  // Sadece team veya tab değiştiğinde veri çek
   useEffect(() => {
     if (selectedTeam) {
       fetchData();
       fetchMembers();
     }
-  }, [selectedTeam, activeTab, noteFilter, todoFilter, noteSearchQuery, todoSearchQuery, fetchData, fetchMembers]);
+  }, [selectedTeam, activeTab, fetchData, fetchMembers]);
+
+  // Veri yüklendikten sonra filtreleri uygula
+  useEffect(() => {
+    if ((activeTab === 'notes' && notes.length > 0) || (activeTab === 'todos' && todos.length > 0)) {
+      applyFilters();
+    }
+  }, [notes, todos, applyFilters, activeTab]);
 
   return {
     notes,

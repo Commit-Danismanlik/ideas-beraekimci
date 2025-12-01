@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { IRole } from '../../models/Role.model';
 
 interface MemberItemProps {
@@ -13,7 +13,11 @@ interface MemberItemProps {
   onRemoveMember: (userId: string) => void;
 }
 
-export const MemberItem = ({
+/**
+ * MemberItem Component
+ * Performance: React.memo ile optimize edildi
+ */
+const MemberItemComponent = ({
   userId,
   email,
   displayName,
@@ -137,4 +141,10 @@ export const MemberItem = ({
     </div>
   );
 };
+
+/**
+ * Memoized MemberItem Component
+ * Performance: Props değişmediğinde re-render'ı önler
+ */
+export const MemberItem = memo(MemberItemComponent);
 

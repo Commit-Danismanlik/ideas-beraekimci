@@ -1,9 +1,14 @@
-import { Login } from '../pages/Login';
-import { Register } from '../pages/Register';
-import { ForgotPassword } from '../pages/ForgotPassword';
-import { ResetPassword } from '../pages/ResetPassword';
-import { Dashboard } from '../pages/Dashboard';
-import { NotFound } from '../pages/NotFound';
+import { lazy } from 'react';
+
+// Lazy loading ile route componentlerini yükle
+// Performance: Code splitting ile initial bundle size'ı azaltır
+// Named export'ları default export'a çevir
+const Login = lazy(() => import('../pages/Login').then((module) => ({ default: module.Login })));
+const Register = lazy(() => import('../pages/Register').then((module) => ({ default: module.Register })));
+const ForgotPassword = lazy(() => import('../pages/ForgotPassword').then((module) => ({ default: module.ForgotPassword })));
+const ResetPassword = lazy(() => import('../pages/ResetPassword').then((module) => ({ default: module.ResetPassword })));
+const Dashboard = lazy(() => import('../pages/Dashboard').then((module) => ({ default: module.Dashboard })));
+const NotFound = lazy(() => import('../pages/NotFound').then((module) => ({ default: module.NotFound })));
 
 /**
  * Route tanımlamaları
@@ -12,7 +17,7 @@ import { NotFound } from '../pages/NotFound';
  */
 export interface IRouteConfig {
   path: string;
-  element: React.ComponentType;
+  element: React.LazyExoticComponent<React.ComponentType> | React.ComponentType;
   name: string;
   breadcrumbLabel?: string;
   isProtected?: boolean;

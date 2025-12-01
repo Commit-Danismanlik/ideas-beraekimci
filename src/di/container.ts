@@ -155,10 +155,10 @@ export class ServiceContainer {
   public getTeamMemberInfoService(): TeamMemberInfoService {
     if (!this.teamMemberInfoServiceInstance) {
       const teamMemberRepository = new TeamMemberRepository(this.firestore);
-      const roleRepository = new RoleRepository(this.firestore);
+      const roleService = this.getRoleService();
       this.teamMemberInfoServiceInstance = new TeamMemberInfoService(
         teamMemberRepository,
-        roleRepository,
+        roleService,
         this.firestore
       );
     }

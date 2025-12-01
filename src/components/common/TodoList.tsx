@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ITeamTodo } from '../../models/TeamRepository.model';
 
 interface TodoListProps {
@@ -14,8 +15,9 @@ interface TodoListProps {
 /**
  * TodoList Component
  * SOLID: Single Responsibility - Sadece todo listesinden sorumlu
+ * Performance: React.memo ile optimize edildi
  */
-export const TodoList = ({
+const TodoListComponent = ({
   todos,
   loading,
   getUserName,
@@ -146,4 +148,10 @@ export const TodoList = ({
     </div>
   );
 };
+
+/**
+ * Memoized TodoList Component
+ * Performance: Props değişmediğinde re-render'ı önler
+ */
+export const TodoList = memo(TodoListComponent);
 

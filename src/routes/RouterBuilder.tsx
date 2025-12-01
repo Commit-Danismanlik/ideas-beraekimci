@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { IRouteConfig } from './RouteConfig';
 import { ProtectedRoute } from '../components/common/ProtectedRoute';
@@ -14,6 +15,19 @@ import { ProtectedRoute } from '../components/common/ProtectedRoute';
  * @param {Array<IRouteConfig>} routes - Route listesi
  * @returns {Array} Çevrilmiş route listesi
  */
+/**
+ * Loading fallback component
+ * Performance: Lazy loading sırasında gösterilir
+ */
+const LoadingFallback = (): JSX.Element => (
+  <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
+      <p className="mt-4 text-indigo-300 font-semibold">Yükleniyor...</p>
+    </div>
+  </div>
+);
+
 const mapRoutesToChildren = (routes: IRouteConfig[]): Array<{
   path: string;
   element: JSX.Element;
@@ -28,9 +42,11 @@ const mapRoutesToChildren = (routes: IRouteConfig[]): Array<{
         return {
           path: route.path === '/' ? '' : route.path,
           element: (
-            <ProtectedRoute>
-              <Component />
-            </ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <ProtectedRoute>
+                <Component />
+              </ProtectedRoute>
+            </Suspense>
           ),
         };
       }
@@ -46,7 +62,11 @@ const mapRoutesToChildren = (routes: IRouteConfig[]): Array<{
       // Normal route
       return {
         path: route.path === '/' ? '' : route.path,
-        element: <Component />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Component />
+          </Suspense>
+        ),
       };
     });
 };
@@ -72,7 +92,9 @@ export const buildRouter = (routeConfig: {
         {
           path: '*',
           element: NotFoundComponent ? (
-            <NotFoundComponent />
+            <Suspense fallback={<LoadingFallback />}>
+              <NotFoundComponent />
+            </Suspense>
           ) : (
             <Navigate to="/dashboard" replace />
           ),

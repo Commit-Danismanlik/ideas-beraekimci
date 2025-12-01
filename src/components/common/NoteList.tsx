@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ITeamNote } from '../../models/TeamRepository.model';
 
 interface NoteListProps {
@@ -16,8 +17,9 @@ interface NoteListProps {
 /**
  * NoteList Component
  * SOLID: Single Responsibility - Sadece not listesinden sorumlu
+ * Performance: React.memo ile optimize edildi
  */
-export const NoteList = ({
+const NoteListComponent = ({
   notes,
   loading,
   getUserName,
@@ -132,4 +134,10 @@ export const NoteList = ({
     </>
   );
 };
+
+/**
+ * Memoized NoteList Component
+ * Performance: Props değişmediğinde re-render'ı önler
+ */
+export const NoteList = memo(NoteListComponent);
 
