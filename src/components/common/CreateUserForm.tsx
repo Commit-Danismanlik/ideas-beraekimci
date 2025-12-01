@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
-import { ICreateUserDto } from '../models/User.model';
-import { useUserService } from '../hooks/useUserService';
+import { ICreateUserDto } from '../../models/User.model';
+import { useUserService } from '../../hooks/useUserService';
 
 interface CreateUserFormProps {
   onSuccess?: () => void;

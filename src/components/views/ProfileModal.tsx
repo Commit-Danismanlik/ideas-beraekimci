@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { getUserService } from '../di/container';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { getUserService } from '../../di/container';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
 

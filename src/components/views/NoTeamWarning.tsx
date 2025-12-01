@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { getTeamService } from '../di/container';
-import { ICreateTeamDto } from '../models/Team.model';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { getTeamService } from '../../di/container';
+import { ICreateTeamDto } from '../../models/Team.model';
 
 interface NoTeamWarningProps {
   onTeamChange: () => void;

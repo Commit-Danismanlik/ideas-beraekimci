@@ -1,16 +1,16 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { usePermissions } from '../hooks/usePermissions';
-import { ITeam } from '../models/Team.model';
-import { ITask } from '../models/Task.model';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { ITeam } from '../../models/Team.model';
+import { ITask } from '../../models/Task.model';
 import { TaskModal } from './TaskModal';
-import { useTasks } from '../hooks/useTasks';
-import { TaskHeader } from './TaskHeader';
-import { TaskSearch } from './TaskSearch';
-import { TaskFilters } from './TaskFilters';
-import { TaskForm } from './TaskForm';
-import { TaskList } from './TaskList';
-import { TaskPermissionWarning } from './TaskPermissionWarning';
+import { useTasks } from '../../hooks/useTasks';
+import { TaskHeader } from '../common/TaskHeader';
+import { TaskSearch } from '../common/TaskSearch';
+import { TaskFilters } from '../common/TaskFilters';
+import { TaskForm } from '../common/TaskForm';
+import { TaskList } from '../common/TaskList';
+import { TaskPermissionWarning } from '../common/TaskPermissionWarning';
 
 interface TasksViewProps {
   userTeams: ITeam[];

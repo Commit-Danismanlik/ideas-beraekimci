@@ -1,12 +1,12 @@
 import { useDashboard } from '../hooks/useDashboard';
-import { DashboardHeader } from '../components/DashboardHeader';
-import { DashboardBackground } from '../components/DashboardBackground';
-import { DashboardNavigation } from '../components/DashboardNavigation';
-import { DashboardViewSwitcher } from '../components/DashboardViewSwitcher';
-import { DashboardLoading } from '../components/DashboardLoading';
-import { DashboardAnimations } from '../components/DashboardAnimations';
-import { ProfileModal } from '../components/ProfileModal';
-import { ChatBot } from '../components/ChatBot';
+import { DashboardHeader } from '../components/views/DashboardHeader';
+import { DashboardBackground } from '../components/common/DashboardBackground';
+import { DashboardNavigation } from '../components/views/DashboardNavigation';
+import { DashboardViewSwitcher } from '../components/common/DashboardViewSwitcher';
+import { DashboardLoading } from '../components/common/DashboardLoading';
+import { DashboardAnimations } from '../components/common/DashboardAnimations';
+import { ProfileModal } from '../components/views/ProfileModal';
+import { ChatBot } from '../components/views/ChatBot';
 
 /**
  * Dashboard Component

@@ -1,14 +1,14 @@
 import { useCallback, useEffect } from 'react';
-import { IChatMessage } from '../interfaces/IChatBotService';
-import { getChatBotService } from '../di/container';
-import { useChatBot } from '../hooks/useChatBot';
-import { useTypingEffect } from '../hooks/useTypingEffect';
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
-import { ChatBotOverlay } from './ChatBotOverlay';
-import { ChatBotHeader } from './ChatBotHeader';
-import { ChatBotMessageList } from './ChatBotMessageList';
-import { ChatBotMessageInput } from './ChatBotMessageInput';
-import { ChatBotAnimations } from './ChatBotAnimations';
+import { IChatMessage } from '../../interfaces/IChatBotService';
+import { getChatBotService } from '../../di/container';
+import { useChatBot } from '../../hooks/useChatBot';
+import { useTypingEffect } from '../../hooks/useTypingEffect';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { ChatBotOverlay } from '../common/ChatBotOverlay';
+import { ChatBotHeader } from '../common/ChatBotHeader';
+import { ChatBotMessageList } from '../common/ChatBotMessageList';
+import { ChatBotMessageInput } from '../common/ChatBotMessageInput';
+import { ChatBotAnimations } from '../common/ChatBotAnimations';
 
 interface ChatBotProps {
   isOpen: boolean;

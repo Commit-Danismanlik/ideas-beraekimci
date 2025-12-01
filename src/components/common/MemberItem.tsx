@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IRole } from '../models/Role.model';
+import { IRole } from '../../models/Role.model';
 
 interface MemberItemProps {
   userId: string;

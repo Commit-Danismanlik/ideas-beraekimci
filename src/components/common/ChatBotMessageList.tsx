@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { IChatMessage } from '../interfaces/IChatBotService';
+import { IChatMessage } from '../../interfaces/IChatBotService';
 
 interface ChatBotMessageListProps {
   messages: IChatMessage[];

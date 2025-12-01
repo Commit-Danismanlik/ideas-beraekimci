@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { getTeamService, getRoleService, getTeamMemberInfoService } from '../di/container';
-import { ITeam } from '../models/Team.model';
-import { IRole, Permission, PERMISSION_DESCRIPTIONS } from '../models/Role.model';
-import { MemberItem } from './MemberItem';
-import { IMemberWithRole } from '../services/TeamMemberInfoService';
-import { MemoizedVirtualizedList } from './VirtualizedList';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { getTeamService, getRoleService, getTeamMemberInfoService } from '../../di/container';
+import { ITeam } from '../../models/Team.model';
+import { IRole, Permission, PERMISSION_DESCRIPTIONS } from '../../models/Role.model';
+import { MemberItem } from '../common/MemberItem';
+import { IMemberWithRole } from '../../services/TeamMemberInfoService';
+import { MemoizedVirtualizedList } from '../common/VirtualizedList';
 
 interface TeamManagementProps {
   userTeams: ITeam[];

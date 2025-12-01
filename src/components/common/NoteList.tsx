@@ -1,4 +1,4 @@
-import { ITeamNote } from '../models/TeamRepository.model';
+import { ITeamNote } from '../../models/TeamRepository.model';
 
 interface NoteListProps {
   notes: ITeamNote[];

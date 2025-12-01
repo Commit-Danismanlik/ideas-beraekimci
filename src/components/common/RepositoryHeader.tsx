@@ -1,4 +1,4 @@
-import { ITeam } from '../models/Team.model';
+import { ITeam } from '../../models/Team.model';
 
 interface RepositoryHeaderProps {
   userTeams: ITeam[];

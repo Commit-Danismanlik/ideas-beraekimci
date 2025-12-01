@@ -1,4 +1,4 @@
-import { ViewType } from '../hooks/useDashboard';
+import { ViewType } from '../../hooks/useDashboard';
 
 interface DashboardNavigationProps {
   activeView: ViewType;

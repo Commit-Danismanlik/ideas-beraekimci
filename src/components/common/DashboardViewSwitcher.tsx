@@ -1,11 +1,11 @@
-import { ViewType } from '../hooks/useDashboard';
-import { ITeam } from '../models/Team.model';
-import { TasksView } from './TasksView';
-import { RepositoriesView } from './RepositoriesView';
-import { PersonalRepositoriesView } from './PersonalRepositoriesView';
-import { TeamManagement } from './TeamManagement';
-import { NoTeamWarning } from './NoTeamWarning';
-import { MyTeam } from './MyTeam';
+import { ViewType } from '../../hooks/useDashboard';
+import { ITeam } from '../../models/Team.model';
+import { TasksView } from '../views/TasksView';
+import { RepositoriesView } from '../views/RepositoriesView';
+import { PersonalRepositoriesView } from '../views/PersonalRepositoriesView';
+import { TeamManagement } from '../views/TeamManagement';
+import { NoTeamWarning } from '../views/NoTeamWarning';
+import { MyTeam } from '../views/MyTeam';
 
 interface DashboardViewSwitcherProps {
   activeView: ViewType;

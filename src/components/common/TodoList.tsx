@@ -1,4 +1,4 @@
-import { ITeamTodo } from '../models/TeamRepository.model';
+import { ITeamTodo } from '../../models/TeamRepository.model';
 
 interface TodoListProps {
   todos: ITeamTodo[];

@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { IRouteConfig } from './RouteConfig';
-import { ProtectedRoute } from '../components/ProtectedRoute';
+import { ProtectedRoute } from '../components/common/ProtectedRoute';
 
 /**
  * Router Builder - Functional Approach

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getWeekRange, getWeekLabel, isDateInWeek } from '../utils/weekUtils';
+import { getWeekRange, getWeekLabel, isDateInWeek } from '../../utils/weekUtils';
 
 interface WeekPickerProps {
   selectedWeek: Date | null;

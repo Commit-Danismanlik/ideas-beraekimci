@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { getTeamService, getTeamMemberInfoService } from '../di/container';
-import { ITeam } from '../models/Team.model';
-import { IMemberWithRole } from '../services/TeamMemberInfoService';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { getTeamService, getTeamMemberInfoService } from '../../di/container';
+import { ITeam } from '../../models/Team.model';
+import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 import { ProfileModal } from './ProfileModal';
 
 export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {

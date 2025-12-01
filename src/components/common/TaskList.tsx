@@ -1,4 +1,4 @@
-import { ITask } from '../models/Task.model';
+import { ITask } from '../../models/Task.model';
 import { MemoizedVirtualizedList } from './VirtualizedList';
 
 interface IMember {

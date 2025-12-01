@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { getPersonalNoteService, getPersonalTodoService } from '../di/container';
-import { IPersonalNote, IPersonalTodo } from '../models/PersonalRepository.model';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { getPersonalNoteService, getPersonalTodoService } from '../../di/container';
+import { IPersonalNote, IPersonalTodo } from '../../models/PersonalRepository.model';
 
 type TabType = 'notes' | 'todos';
 

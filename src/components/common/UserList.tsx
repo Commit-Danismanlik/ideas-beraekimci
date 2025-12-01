@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { IUser } from '../models/User.model';
-import { useUserService } from '../hooks/useUserService';
-import { useDebounce } from '../hooks/useDebounce';
+import { IUser } from '../../models/User.model';
+import { useUserService } from '../../hooks/useUserService';
+import { useDebounce } from '../../hooks/useDebounce';
 import { MemoizedVirtualizedList } from './VirtualizedList';
 
 export const UserList = () => {

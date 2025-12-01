@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { usePermissions } from '../hooks/usePermissions';
-import { ITask } from '../models/Task.model';
-import { IMemberWithRole } from '../services/TeamMemberInfoService';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { usePermissions } from '../../hooks/usePermissions';
+import { ITask } from '../../models/Task.model';
+import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 
 interface TaskModalProps {
   task: ITask;
