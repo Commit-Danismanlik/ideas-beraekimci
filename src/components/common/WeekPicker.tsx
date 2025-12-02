@@ -1,4 +1,4 @@
-import { getWeekRange, getWeekLabel, isDateInWeek } from '../../utils/weekUtils';
+import { getWeekLabel, isDateInWeek } from '../../utils/weekUtils';
 import { useWeekPicker } from '../../hooks/useWeekPicker';
 
 interface WeekPickerProps {

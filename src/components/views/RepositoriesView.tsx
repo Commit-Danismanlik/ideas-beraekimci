@@ -105,7 +105,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
   }, [copyToClipboard]);
 
   const handleCreateNote = useCallback(async (): Promise<void> => {
-    if (!user || !selectedTeam || !noteForm.title.trim()) {
+    if (!user || !selectedTeam || !noteForm.formData.title.trim()) {
       return;
     }
 
@@ -118,7 +118,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
   }, [user, selectedTeam, noteForm, noteService, noteFormModal, fetchData]);
 
   const handleCreateTodo = useCallback(async (): Promise<void> => {
-    if (!user || !selectedTeam || !todoForm.title.trim()) {
+    if (!user || !selectedTeam || !todoForm.formData.title.trim()) {
       return;
     }
 

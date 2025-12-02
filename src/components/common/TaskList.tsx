@@ -11,7 +11,7 @@ interface IMember {
 interface TaskListProps {
   tasks: ITask[];
   filteredTasks: ITask[];
-  membersMap: Map<string, IMember>;
+  membersMap: ReadonlyMap<string, IMember> | Map<string, IMember>;
   loading: boolean;
   canDeleteTask: boolean;
   onTaskClick: (task: ITask) => void;

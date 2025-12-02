@@ -1,6 +1,5 @@
 import { IRoleService } from '../interfaces/IRoleService';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
-import { ITeam } from '../models/Team.model';
 import { IQueryResult } from '../types/base.types';
 import { getLogger } from './Logger';
 

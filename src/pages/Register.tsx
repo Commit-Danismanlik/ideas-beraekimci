@@ -1,11 +1,10 @@
 import { useState, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
 import { IRegisterDto } from '../models/Auth.model';
 import { Calendar } from 'primereact/calendar';
 
 export const Register = () => {
-  const navigate = useNavigate();
   const { register, loading, error } = useAuthContext();
   const [formData, setFormData] = useState<IRegisterDto>({
     email: '',
@@ -187,8 +186,8 @@ export const Register = () => {
                     <div className="custom-calendar">
                       <Calendar
                         value={selectedDate}
-                        onChange={(e: { value: Date | null }) => {
-                          setSelectedDate(e.value);
+                        onChange={(e) => {
+                          setSelectedDate(e.value as Date | null);
                           setShowDatePicker(false);
                         }}
                         inline

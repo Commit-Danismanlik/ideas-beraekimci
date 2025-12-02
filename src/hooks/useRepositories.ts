@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
 import { getTeamNoteService, getTeamTodoService, getTeamMemberInfoService } from '../di/container';
 import { ITeamNote, ITeamTodo } from '../models/TeamRepository.model';
 import { IMemberWithRole } from '../services/TeamMemberInfoService';
@@ -58,7 +57,6 @@ export const useRepositories = (
   selectedTeam: string,
   userTeams: ITeam[]
 ): UseRepositoriesState => {
-  const { user } = useAuthContext();
   const [activeTab, setActiveTab] = useState<TabType>('notes');
   const [notes, setNotes] = useState<ITeamNote[]>([]);
   const [todos, setTodos] = useState<ITeamTodo[]>([]);
