@@ -5,6 +5,9 @@ import { ITeam } from '../../models/Team.model';
 import { getTeamNoteService, getTeamTodoService } from '../../di/container';
 import { ITeamNote, ITeamTodo } from '../../models/TeamRepository.model';
 import { useRepositories } from '../../hooks/useRepositories';
+import { useModal } from '../../hooks/useModal';
+import { useClipboard } from '../../hooks/useClipboard';
+import { useForm } from '../../hooks/useForm';
 import { RepositoryHeader } from '../common/RepositoryHeader';
 import { RepositoryTabs } from '../common/RepositoryTabs';
 import { NoteForm } from '../common/NoteForm';
@@ -55,27 +58,34 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
 
   const [editingNote, setEditingNote] = useState<ITeamNote | null>(null);
   const [editingTodo, setEditingTodo] = useState<ITeamTodo | null>(null);
-  const [editNoteForm, setEditNoteForm] = useState({
+  
+  const editNoteForm = useForm({
     title: '',
     content: '',
     category: '',
     isPinned: false,
   });
-  const [editTodoForm, setEditTodoForm] = useState({
+  const editTodoForm = useForm({
     title: '',
     description: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
     completed: false,
   });
-  const [showNoteForm, setShowNoteForm] = useState<boolean>(false);
-  const [showTodoForm, setShowTodoForm] = useState<boolean>(false);
-  const [noteForm, setNoteForm] = useState({ title: '', content: '', category: '' });
-  const [todoForm, setTodoForm] = useState({
+  
+  const noteFormModal = useModal(false);
+  const todoFormModal = useModal(false);
+  const noteEditModal = useModal(false);
+  const todoEditModal = useModal(false);
+  
+  const noteForm = useForm({ title: '', content: '', category: '' });
+  const todoForm = useForm({
     title: '',
     description: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
     assignedTo: '',
   });
+  
+  const { copy: copyToClipboard } = useClipboard();
 
   const canCreateRepository = hasPermission('CREATE_REPOSITORY');
   const canEditRepository = hasPermission('EDIT_REPOSITORY');
@@ -86,27 +96,26 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
   const todoService = getTeamTodoService();
 
   const handleCopyTeamId = useCallback(async (teamId: string): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(teamId);
+    const success = await copyToClipboard(teamId);
+    if (success) {
       alert('Takım ID kopyalandı!');
-    } catch (err) {
-      console.error('Kopyalama hatası:', err);
+    } else {
       alert('Kopyalama başarısız oldu');
     }
-  }, []);
+  }, [copyToClipboard]);
 
   const handleCreateNote = useCallback(async (): Promise<void> => {
     if (!user || !selectedTeam || !noteForm.title.trim()) {
       return;
     }
 
-    const result = await noteService.createNote(selectedTeam, user.uid, noteForm);
+    const result = await noteService.createNote(selectedTeam, user.uid, noteForm.formData);
     if (result.success) {
-      setNoteForm({ title: '', content: '', category: '' });
-      setShowNoteForm(false);
+      noteForm.reset();
+      noteFormModal.close();
       await fetchData();
     }
-  }, [user, selectedTeam, noteForm, noteService, fetchData]);
+  }, [user, selectedTeam, noteForm, noteService, noteFormModal, fetchData]);
 
   const handleCreateTodo = useCallback(async (): Promise<void> => {
     if (!user || !selectedTeam || !todoForm.title.trim()) {
@@ -114,15 +123,15 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     }
 
     const result = await todoService.createTodo(selectedTeam, user.uid, {
-      ...todoForm,
-      assignedTo: todoForm.assignedTo || undefined,
+      ...todoForm.formData,
+      assignedTo: todoForm.formData.assignedTo || undefined,
     });
     if (result.success) {
-      setTodoForm({ title: '', description: '', priority: 'medium', assignedTo: '' });
-      setShowTodoForm(false);
+      todoForm.reset();
+      todoFormModal.close();
       await fetchData();
     }
-  }, [user, selectedTeam, todoForm, todoService, fetchData]);
+  }, [user, selectedTeam, todoForm, todoService, todoFormModal, fetchData]);
 
   const handleToggleTodo = useCallback(
     async (id: string): Promise<void> => {
@@ -189,18 +198,19 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     }
 
     const result = await noteService.updateNote(selectedTeam, editingNote.id, user.uid, {
-      title: editNoteForm.title,
-      content: editNoteForm.content,
-      category: editNoteForm.category,
-      isPinned: editNoteForm.isPinned,
+      title: editNoteForm.formData.title,
+      content: editNoteForm.formData.content,
+      category: editNoteForm.formData.category,
+      isPinned: editNoteForm.formData.isPinned,
     });
 
     if (result.success) {
       setEditingNote(null);
-      setEditNoteForm({ title: '', content: '', category: '', isPinned: false });
+      editNoteForm.reset();
+      noteEditModal.close();
       await fetchData();
     }
-  }, [user, selectedTeam, editingNote, editNoteForm, noteService, fetchData]);
+  }, [user, selectedTeam, editingNote, editNoteForm, noteService, noteEditModal, fetchData]);
 
   const handleUpdateTodo = useCallback(async (): Promise<void> => {
     if (!user || !selectedTeam || !editingTodo) {
@@ -208,38 +218,41 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     }
 
     const result = await todoService.updateTodo(selectedTeam, editingTodo.id, user.uid, {
-      title: editTodoForm.title,
-      description: editTodoForm.description,
-      priority: editTodoForm.priority,
-      completed: editTodoForm.completed,
+      title: editTodoForm.formData.title,
+      description: editTodoForm.formData.description,
+      priority: editTodoForm.formData.priority,
+      completed: editTodoForm.formData.completed,
     });
 
     if (result.success) {
       setEditingTodo(null);
-      setEditTodoForm({ title: '', description: '', priority: 'medium', completed: false });
+      editTodoForm.reset();
+      todoEditModal.close();
       await fetchData();
     }
-  }, [user, selectedTeam, editingTodo, editTodoForm, todoService, fetchData]);
+  }, [user, selectedTeam, editingTodo, editTodoForm, todoService, todoEditModal, fetchData]);
 
   const startEditNote = useCallback((note: ITeamNote): void => {
     setEditingNote(note);
-    setEditNoteForm({
+    editNoteForm.setInitialData({
       title: note.title,
       content: note.content,
       category: note.category || '',
       isPinned: note.isPinned,
     });
-  }, []);
+    noteEditModal.open();
+  }, [editNoteForm, noteEditModal]);
 
   const startEditTodo = useCallback((todo: ITeamTodo): void => {
     setEditingTodo(todo);
-    setEditTodoForm({
+    editTodoForm.setInitialData({
       title: todo.title,
       description: todo.description || '',
       priority: todo.priority,
       completed: todo.completed,
     });
-  }, []);
+    todoEditModal.open();
+  }, [editTodoForm, todoEditModal]);
 
   const selectedTeamData = userTeams.find((t) => t.id === selectedTeam);
 
@@ -263,14 +276,14 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
 
           {canCreateRepository && (
             <NoteForm
-              showForm={showNoteForm}
-              formData={noteForm}
-              onFormChange={setNoteForm}
-              onShowForm={setShowNoteForm}
+              showForm={noteFormModal.isOpen}
+              formData={noteForm.formData}
+              onFormChange={noteForm.setFormData}
+              onShowForm={noteFormModal.toggle}
               onSubmit={handleCreateNote}
               onCancel={() => {
-                setShowNoteForm(false);
-                setNoteForm({ title: '', content: '', category: '' });
+                noteFormModal.close();
+                noteForm.reset();
               }}
             />
           )}
@@ -305,15 +318,15 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
 
           {canCreateRepository && (
             <TodoForm
-              showForm={showTodoForm}
-              formData={todoForm}
+              showForm={todoFormModal.isOpen}
+              formData={todoForm.formData}
               members={members}
-              onFormChange={setTodoForm}
-              onShowForm={setShowTodoForm}
+              onFormChange={todoForm.setFormData}
+              onShowForm={todoFormModal.toggle}
               onSubmit={handleCreateTodo}
               onCancel={() => {
-                setShowTodoForm(false);
-                setTodoForm({ title: '', description: '', priority: 'medium', assignedTo: '' });
+                todoFormModal.close();
+                todoForm.reset();
               }}
             />
           )}
@@ -333,23 +346,25 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
 
       {/* Edit Modals */}
       <NoteEditModal
-        isOpen={editingNote !== null}
-        formData={editNoteForm}
-        onFormChange={setEditNoteForm}
+        isOpen={noteEditModal.isOpen}
+        formData={editNoteForm.formData}
+        onFormChange={editNoteForm.setFormData}
         onClose={() => {
           setEditingNote(null);
-          setEditNoteForm({ title: '', content: '', category: '', isPinned: false });
+          editNoteForm.reset();
+          noteEditModal.close();
         }}
         onSave={handleUpdateNote}
       />
 
       <TodoEditModal
-        isOpen={editingTodo !== null}
-        formData={editTodoForm}
-        onFormChange={setEditTodoForm}
+        isOpen={todoEditModal.isOpen}
+        formData={editTodoForm.formData}
+        onFormChange={editTodoForm.setFormData}
         onClose={() => {
           setEditingTodo(null);
-          setEditTodoForm({ title: '', description: '', priority: 'medium', completed: false });
+          editTodoForm.reset();
+          todoEditModal.close();
         }}
         onSave={handleUpdateTodo}
       />

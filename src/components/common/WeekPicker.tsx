@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { getWeekRange, getWeekLabel, isDateInWeek } from '../../utils/weekUtils';
+import { useWeekPicker } from '../../hooks/useWeekPicker';
 
 interface WeekPickerProps {
   selectedWeek: Date | null;
@@ -12,37 +12,29 @@ interface WeekPickerProps {
  * SOLID: Single Responsibility - Sadece hafta seçiminden sorumlu
  */
 export const WeekPicker = ({ selectedWeek, onWeekSelect, onClear }: WeekPickerProps): JSX.Element => {
-  const [showCalendar, setShowCalendar] = useState<boolean>(false);
-  const [calendarPreviewWeek, setCalendarPreviewWeek] = useState<Date>(new Date());
+  const weekPicker = useWeekPicker(selectedWeek);
 
   const handleWeekSelect = (date: Date): void => {
+    weekPicker.handleWeekSelect(date);
     onWeekSelect(date);
-    setShowCalendar(false);
   };
 
   const handlePreviousWeek = (): void => {
-    const prev = new Date(calendarPreviewWeek);
-    prev.setDate(prev.getDate() - 7);
-    setCalendarPreviewWeek(prev);
+    weekPicker.handlePreviousWeek();
   };
 
   const handleNextWeek = (): void => {
-    const next = new Date(calendarPreviewWeek);
-    next.setDate(next.getDate() + 7);
-    setCalendarPreviewWeek(next);
+    weekPicker.handleNextWeek();
   };
 
   const handleThisWeek = (): void => {
-    const today = new Date();
-    setCalendarPreviewWeek(today);
-    handleWeekSelect(today);
+    weekPicker.handleThisWeek();
+    onWeekSelect(weekPicker.selectedWeek);
   };
 
   const handleLastWeek = (): void => {
-    const lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() - 7);
-    setCalendarPreviewWeek(lastWeek);
-    handleWeekSelect(lastWeek);
+    weekPicker.handleLastWeek();
+    onWeekSelect(weekPicker.selectedWeek);
   };
 
   return (
@@ -50,14 +42,14 @@ export const WeekPicker = ({ selectedWeek, onWeekSelect, onClear }: WeekPickerPr
       <label className="block text-xs font-medium text-gray-300 mb-1">Haftalık Tarih</label>
       <div className="relative">
         <button
-          onClick={() => setShowCalendar(!showCalendar)}
+          onClick={weekPicker.toggleCalendar}
           className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-sm text-left text-gray-200 hover:bg-gray-800 flex items-center justify-between"
         >
           <span>{selectedWeek ? getWeekLabel(selectedWeek) : '📅 Hafta Seç'}</span>
           <span className="text-gray-400">▼</span>
         </button>
 
-        {showCalendar && (
+        {weekPicker.showCalendar && (
           <div className="absolute z-50 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl p-3 w-80">
             {/* Basit hafta seçici */}
             <div className="grid grid-cols-7 gap-1 mb-3">
@@ -69,9 +61,9 @@ export const WeekPicker = ({ selectedWeek, onWeekSelect, onClear }: WeekPickerPr
               <div className="text-xs font-semibold text-center text-gray-400 p-2">Cmt</div>
               <div className="text-xs font-semibold text-center text-gray-400 p-2">Paz</div>
               {Array.from({ length: 14 }, (_, i) => {
-                const date = new Date(calendarPreviewWeek);
-                date.setDate(calendarPreviewWeek.getDate() - 7 + i);
-                const isSelected = isDateInWeek(date, calendarPreviewWeek);
+                const date = new Date(weekPicker.calendarPreviewWeek);
+                date.setDate(weekPicker.calendarPreviewWeek.getDate() - 7 + i);
+                const isSelected = isDateInWeek(date, weekPicker.calendarPreviewWeek);
 
                 return (
                   <button
@@ -123,7 +115,7 @@ export const WeekPicker = ({ selectedWeek, onWeekSelect, onClear }: WeekPickerPr
 
             {/* Seçili haftanın tarih aralığı */}
             <div className="text-xs text-center text-gray-300 font-semibold">
-              {getWeekLabel(calendarPreviewWeek)}
+              {getWeekLabel(weekPicker.calendarPreviewWeek)}
             </div>
           </div>
         )}

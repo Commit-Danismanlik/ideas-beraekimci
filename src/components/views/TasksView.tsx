@@ -11,6 +11,9 @@ import { TaskFilters } from '../common/TaskFilters';
 import { TaskForm } from '../common/TaskForm';
 import { TaskList } from '../common/TaskList';
 import { TaskPermissionWarning } from '../common/TaskPermissionWarning';
+import { useModal } from '../../hooks/useModal';
+import { useClipboard } from '../../hooks/useClipboard';
+import { useForm } from '../../hooks/useForm';
 
 interface TasksViewProps {
   userTeams: ITeam[];
@@ -45,9 +48,10 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
     deleteTask,
     counts,
   } = useTasks();
-  const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
+  const taskFormModal = useModal(false);
+  const taskModal = useModal(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
-  const [taskForm, setTaskForm] = useState({
+  const taskForm = useForm({
     title: '',
     description: '',
     assignedTo: '',
@@ -55,19 +59,20 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
     status: 'todo' as 'todo' | 'in-progress' | 'done',
   });
 
+  const { copy: copyToClipboard } = useClipboard();
+
   const canCreateTask = hasPermission('CREATE_TASK');
   const canDeleteTask = hasPermission('DELETE_TASK');
   const canViewTeamId = hasPermission('VIEW_TEAM_ID');
 
   const handleCopyTeamId = useCallback(async (teamId: string): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(teamId);
+    const success = await copyToClipboard(teamId);
+    if (success) {
       alert('Takım ID kopyalandı!');
-    } catch (err) {
-      console.error('Kopyalama hatası:', err);
+    } else {
       alert('Kopyalama başarısız oldu');
     }
-  }, []);
+  }, [copyToClipboard]);
 
   useEffect(() => {
     if (selectedTeam) {
@@ -79,27 +84,21 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
   }, [selectedTeam, userTeams, fetchTasks]);
 
   const handleCreateTask = useCallback(async (): Promise<void> => {
-    if (!user || !selectedTeam || !taskForm.title.trim()) {
+    if (!user || !selectedTeam || !taskForm.formData.title.trim()) {
       return;
     }
     const ok = await createTask(selectedTeam, {
-      title: taskForm.title,
-      description: taskForm.description || undefined,
-      assignedTo: taskForm.assignedTo || undefined,
-      priority: taskForm.priority,
-      status: taskForm.status,
+      title: taskForm.formData.title,
+      description: taskForm.formData.description || undefined,
+      assignedTo: taskForm.formData.assignedTo || undefined,
+      priority: taskForm.formData.priority,
+      status: taskForm.formData.status,
     });
     if (ok) {
-      setTaskForm({
-        title: '',
-        description: '',
-        assignedTo: '',
-        priority: 'medium',
-        status: 'todo',
-      });
-      setShowTaskForm(false);
+      taskForm.reset();
+      taskFormModal.close();
     }
-  }, [user, selectedTeam, taskForm, createTask]);
+  }, [user, selectedTeam, taskForm, createTask, taskFormModal]);
 
   const handleDeleteTask = useCallback(
     async (id: string): Promise<void> => {
@@ -157,21 +156,15 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
 
       {canCreateTask && (
         <TaskForm
-          showForm={showTaskForm}
-          formData={taskForm}
+          showForm={taskFormModal.isOpen}
+          formData={taskForm.formData}
           members={members}
-          onFormChange={setTaskForm}
-          onShowForm={setShowTaskForm}
+          onFormChange={taskForm.setFormData}
+          onShowForm={taskFormModal.toggle}
           onSubmit={handleCreateTask}
           onCancel={() => {
-            setShowTaskForm(false);
-            setTaskForm({
-              title: '',
-              description: '',
-              assignedTo: '',
-              priority: 'medium',
-              status: 'todo',
-            });
+            taskFormModal.close();
+            taskForm.reset();
           }}
         />
       )}
@@ -182,7 +175,10 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
         membersMap={membersMap}
         loading={loading}
         canDeleteTask={canDeleteTask}
-        onTaskClick={setSelectedTask}
+        onTaskClick={(task) => {
+          setSelectedTask(task);
+          taskModal.open();
+        }}
         onDeleteTask={handleDeleteTask}
         hasMore={hasMore}
         onLoadMore={() => loadMore(selectedTeam)}
@@ -194,7 +190,10 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
           task={selectedTask}
           teamId={selectedTeam}
           members={members}
-          onClose={() => setSelectedTask(null)}
+          onClose={() => {
+            setSelectedTask(null);
+            taskModal.close();
+          }}
           onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}
         />

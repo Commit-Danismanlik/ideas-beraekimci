@@ -6,6 +6,9 @@ import { IRole, Permission, PERMISSION_DESCRIPTIONS } from '../../models/Role.mo
 import { MemberItem } from '../common/MemberItem';
 import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 import { MemoizedVirtualizedList } from '../common/VirtualizedList';
+import { useModal } from '../../hooks/useModal';
+import { useForm } from '../../hooks/useForm';
+import { useClipboard } from '../../hooks/useClipboard';
 
 interface TeamManagementProps {
   userTeams: ITeam[];
@@ -18,24 +21,43 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   const [members, setMembers] = useState<string[]>([]);
   const [membersWithInfo, setMembersWithInfo] = useState<IMemberWithRole[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showRoleForm, setShowRoleForm] = useState(false);
-  const [showAssignForm, setShowAssignForm] = useState(false);
-  const [showEditTeamForm, setShowEditTeamForm] = useState(false);
+  const roleFormModal = useModal(false);
+  const assignFormModal = useModal(false);
+  const editTeamFormModal = useModal(false);
   const [editingRole, setEditingRole] = useState<IRole | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [roleForm, setRoleForm] = useState({
+  
+  interface IRoleFormData extends Record<string, unknown> {
+    name: string;
+    permissions: Permission[];
+    color: string;
+  }
+  
+  interface IAssignFormData extends Record<string, unknown> {
+    userId: string;
+    roleId: string;
+  }
+  
+  interface ITeamEditFormData extends Record<string, unknown> {
+    name: string;
+    description: string;
+  }
+  
+  const roleForm = useForm<IRoleFormData>({
     name: '',
-    permissions: [] as Permission[],
+    permissions: [],
     color: '#3B82F6', // Varsayılan mavi
   });
-  const [assignForm, setAssignForm] = useState({
+  const assignForm = useForm<IAssignFormData>({
     userId: '',
     roleId: '',
   });
-  const [teamEditForm, setTeamEditForm] = useState({
+  const teamEditForm = useForm<ITeamEditFormData>({
     name: '',
     description: '',
   });
+  
+  const { copy: copyToClipboard } = useClipboard();
 
   const teamService = getTeamService();
   const roleService = getRoleService();
@@ -48,12 +70,10 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   }, [selectedTeam]);
 
   const handleCopyTeamId = async (teamId: string) => {
-    try {
-      await navigator.clipboard.writeText(teamId);
-      // Başarılı bir toast göster (basit alert kullanabilirsiniz)
+    const success = await copyToClipboard(teamId);
+    if (success) {
       alert('Takım ID kopyalandı!');
-    } catch (err) {
-      console.error('Kopyalama hatası:', err);
+    } else {
       alert('Kopyalama başarısız oldu');
     }
   };
@@ -61,7 +81,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   const handleEditTeam = async () => {
     if (!selectedTeam) return;
 
-    if (!teamEditForm.name.trim()) {
+    if (!teamEditForm.formData.name.trim()) {
       setError('Takım adı boş olamaz');
       return;
     }
@@ -71,13 +91,13 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
 
     try {
       const result = await teamService.updateTeam(selectedTeam, {
-        name: teamEditForm.name,
-        description: teamEditForm.description,
+        name: teamEditForm.formData.name,
+        description: teamEditForm.formData.description,
       });
 
       if (result.success) {
-        setShowEditTeamForm(false);
-        setTeamEditForm({ name: '', description: '' });
+        editTeamFormModal.close();
+        teamEditForm.reset();
         fetchData();
       } else {
         setError(result.error || 'Takım güncellenemedi');
@@ -132,12 +152,12 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     }
     
     setEditingRole(role);
-    setRoleForm({
+    roleForm.setInitialData({
       name: role.name,
       permissions: role.permissions,
       color: role.color || '#3B82F6',
     });
-    setShowRoleForm(true);
+    roleFormModal.open();
   };
 
   const handleDeleteRole = async (roleId: string) => {
@@ -154,7 +174,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   };
 
   const handleSaveRole = async () => {
-    if (!user || !selectedTeam || !roleForm.name.trim()) {
+    if (!user || !selectedTeam || !roleForm.formData.name.trim()) {
       setError('Lütfen tüm alanları doldurun');
       return;
     }
@@ -171,9 +191,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           selectedTeam,
           editingRole.id,
           {
-            name: roleForm.name,
-            permissions: roleForm.permissions,
-            color: roleForm.color,
+            name: roleForm.formData.name,
+            permissions: roleForm.formData.permissions,
+            color: roleForm.formData.color,
           },
           user.uid
         );
@@ -183,9 +203,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
         result = await roleService.createRole(
           selectedTeam,
           {
-            name: roleForm.name,
-            permissions: roleForm.permissions,
-            color: roleForm.color,
+            name: roleForm.formData.name,
+            permissions: roleForm.formData.permissions,
+            color: roleForm.formData.color,
           },
           user.uid
         );
@@ -199,7 +219,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           setRoles((prev) => {
             const idx = prev.findIndex((r) => r.id === editingRole.id);
             if (idx === -1) return prev;
-            const updated: IRole = { ...prev[idx], name: roleForm.name, permissions: roleForm.permissions, color: roleForm.color };
+            const updated: IRole = { ...prev[idx], name: roleForm.formData.name, permissions: roleForm.formData.permissions, color: roleForm.formData.color };
             return [...prev.slice(0, idx), updated, ...prev.slice(idx + 1)];
           });
         } else if (result.data) {
@@ -207,8 +227,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           const newRole: IRole = result.data;
           setRoles((prev) => [newRole, ...prev]);
         }
-        setRoleForm({ name: '', permissions: [], color: '#3B82F6' });
-        setShowRoleForm(false);
+        roleForm.reset();
+        roleFormModal.close();
         setEditingRole(null);
         alert(editingRole ? 'Rol başarıyla güncellendi!' : 'Rol başarıyla oluşturuldu!');
       } else {
@@ -252,7 +272,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   };
 
   const handleQuickAssignRole = async () => {
-    if (!user || !selectedTeam || !assignForm.userId || !assignForm.roleId) {
+    if (!user || !selectedTeam || !assignForm.formData.userId || !assignForm.formData.roleId) {
       setError('Lütfen kullanıcı ve rol seçin');
       return;
     }
@@ -261,14 +281,14 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
 
     const result = await teamService.assignUserRole(
       selectedTeam,
-      assignForm.userId,
-      assignForm.roleId,
+      assignForm.formData.userId,
+      assignForm.formData.roleId,
       user.uid
     );
 
     if (result.success) {
-      setAssignForm({ userId: '', roleId: '' });
-      setShowAssignForm(false);
+      assignForm.reset();
+      assignFormModal.close();
       fetchData();
       alert('Rol başarıyla atandı!');
     } else {
@@ -277,16 +297,10 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   };
 
   const togglePermission = (permission: Permission) => {
-    if (roleForm.permissions.includes(permission)) {
-      setRoleForm({
-        ...roleForm,
-        permissions: roleForm.permissions.filter((p) => p !== permission),
-      });
+    if (roleForm.formData.permissions.includes(permission)) {
+      roleForm.updateField('permissions', roleForm.formData.permissions.filter((p) => p !== permission));
     } else {
-      setRoleForm({
-        ...roleForm,
-        permissions: [...roleForm.permissions, permission],
-      });
+      roleForm.updateField('permissions', [...roleForm.formData.permissions, permission]);
     }
   };
 
@@ -363,11 +377,11 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
               )}
               <button
                 onClick={() => {
-                  setTeamEditForm({
+                  teamEditForm.setInitialData({
                     name: selectedTeamData.name,
                     description: selectedTeamData.description || '',
                   });
-                  setShowEditTeamForm(true);
+                  editTeamFormModal.open();
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-1 px-3 rounded"
               >
@@ -385,7 +399,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
       )}
 
       {/* Takım Düzenleme Modal */}
-      {showEditTeamForm && selectedTeamData && (
+      {editTeamFormModal.isOpen && selectedTeamData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gradient-to-b from-indigo-950 to-sky-950 rounded-lg p-6 w-full max-w-md">
             <h3 className="text-xl font-bold text-indigo-100 mb-4">Takımı Düzenle</h3>
@@ -397,8 +411,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 </label>
                 <input
                   type="text"
-                  value={teamEditForm.name}
-                  onChange={(e) => setTeamEditForm({ ...teamEditForm, name: e.target.value })}
+                  value={teamEditForm.formData.name}
+                  onChange={(e) => teamEditForm.updateField('name', e.target.value)}
                   className="w-full px-4 py-2 border border-indigo-800 rounded-lg text-indigo-200 bg-indigo-950 focus:ring-2 focus:ring-indigo-600"
                   placeholder="Takım adını girin"
                 />
@@ -409,8 +423,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                   Açıklama
                 </label>
                 <textarea
-                  value={teamEditForm.description}
-                  onChange={(e) => setTeamEditForm({ ...teamEditForm, description: e.target.value })}
+                  value={teamEditForm.formData.description}
+                  onChange={(e) => teamEditForm.updateField('description', e.target.value)}
                   className="w-full px-4 py-2 border border-indigo-800 rounded-lg text-indigo-200 bg-indigo-950 focus:ring-2 focus:ring-indigo-600 resize-none"
                   rows={3}
                   placeholder="Takım açıklamasını girin"
@@ -427,8 +441,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 </button>
                 <button
                   onClick={() => {
-                    setShowEditTeamForm(false);
-                    setTeamEditForm({ name: '', description: '' });
+                    editTeamFormModal.close();
+                    teamEditForm.reset();
                   }}
                   className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
                 >
@@ -448,8 +462,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
             <button
               onClick={() => {
                 setEditingRole(null);
-                setRoleForm({ name: '', permissions: [], color: '#3B82F6' });
-                setShowRoleForm(!showRoleForm);
+                roleForm.reset();
+                roleFormModal.toggle();
                 setError(null);
               }}
               className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1 px-3 rounded"
@@ -458,7 +472,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
             </button>
           </div>
 
-          {showRoleForm && (
+          {roleFormModal.isOpen && (
             <div className="mb-4 p-3 bg-indigo-950/50 border border-indigo-900 rounded-lg">
               <h4 className="font-semibold text-indigo-100 mb-2">
                 {editingRole ? `Rol Düzenle: ${editingRole.name}` : 'Yeni Custom Rol'}
@@ -466,8 +480,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
               <input
                 type="text"
                 placeholder="Rol Adı (örn: Developer, Designer)"
-                value={roleForm.name}
-                onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
+                value={roleForm.formData.name}
+                onChange={(e) => roleForm.updateField('name', e.target.value)}
                 className="w-full mb-2 px-3 py-2 border rounded text-sm"
               />
                 
@@ -478,14 +492,14 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 <div className="flex gap-2 items-center">
                   <input
                     type="color"
-                    value={roleForm.color}
-                    onChange={(e) => setRoleForm({ ...roleForm, color: e.target.value })}
+                    value={roleForm.formData.color}
+                    onChange={(e) => roleForm.updateField('color', e.target.value)}
                     className="w-12 h-8 border rounded cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={roleForm.color}
-                    onChange={(e) => setRoleForm({ ...roleForm, color: e.target.value })}
+                    value={roleForm.formData.color}
+                    onChange={(e) => roleForm.updateField('color', e.target.value)}
                     className="flex-1 px-3 py-1 border rounded text-sm"
                     placeholder="#3B82F6"
                   />
@@ -498,7 +512,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                   <label key={permission} className="flex items-start gap-2 text-xs p-2 hover:bg-indigo-900/75 transition-all duration-300 rounded cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={roleForm.permissions.includes(permission)}
+                      checked={roleForm.formData.permissions.includes(permission)}
                       onChange={() => togglePermission(permission)}
                       className="mt-0.5"
                     />
@@ -513,16 +527,16 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveRole}
-                  disabled={!roleForm.name.trim()}
+                  disabled={!roleForm.formData.name.trim()}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm py-2 rounded disabled:bg-gray-400"
                 >
                   {editingRole ? 'Güncelle' : 'Oluştur'}
                 </button>
                 <button
                   onClick={() => {
-                    setShowRoleForm(false);
+                    roleFormModal.close();
                     setEditingRole(null);
-                    setRoleForm({ name: '', permissions: [], color: '#3B82F6' });
+                    roleForm.reset();
                     setError(null);
                   }}
                   className="px-4 bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 rounded"
@@ -587,14 +601,14 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-indigo-100">Rol Atama</h3>
             <button
-              onClick={() => setShowAssignForm(!showAssignForm)}
+              onClick={assignFormModal.toggle}
               className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-1 px-3 rounded"
             >
               Rol Ata
             </button>
           </div>
 
-          {showAssignForm && (
+          {assignFormModal.isOpen && (
             <div className="mb-4 p-3 bg-indigo-950/50 border border-indigo-900 rounded-lg">
               <h4 className="font-semibold text-gray-100 mb-2">Kullanıcıya Rol Ata</h4>
               
@@ -602,8 +616,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 Kullanıcı Seçin
               </label>
               <select
-                value={assignForm.userId}
-                onChange={(e) => setAssignForm({ ...assignForm, userId: e.target.value })}
+                value={assignForm.formData.userId}
+                onChange={(e) => assignForm.updateField('userId', e.target.value)}
                 className="w-full mb-2 px-3 py-2 border rounded text-sm"
               >
                 <option value="">Kullanıcı Seçin</option>
@@ -619,8 +633,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                 Rol Seçin
               </label>
               <select
-                value={assignForm.roleId}
-                onChange={(e) => setAssignForm({ ...assignForm, roleId: e.target.value })}
+                value={assignForm.formData.roleId}
+                onChange={(e) => assignForm.updateField('roleId', e.target.value)}
                 className="w-full mb-2 px-3 py-2 border rounded text-sm"
               >
                 <option value="">Rol Seçin</option>
@@ -636,15 +650,15 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={handleQuickAssignRole}
-                  disabled={!assignForm.userId || !assignForm.roleId}
+                  disabled={!assignForm.formData.userId || !assignForm.formData.roleId}
                   className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2 rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Ata
                 </button>
                 <button
                   onClick={() => {
-                    setShowAssignForm(false);
-                    setAssignForm({ userId: '', roleId: '' });
+                    assignFormModal.close();
+                    assignForm.reset();
                     setError(null);
                   }}
                   className="px-4 bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 rounded"

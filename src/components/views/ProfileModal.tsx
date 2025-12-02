@@ -3,18 +3,28 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { getUserService } from '../../di/container';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
+import { useForm } from '../../hooks/useForm';
 
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface IProfileFormData extends Record<string, unknown> {
+  name: string;
+  email: string;
+  birthDate: Date | undefined;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const { user } = useAuthContext();
-  const [profileForm, setProfileForm] = useState({ 
+  const profileForm = useForm<IProfileFormData>({ 
     name: '', 
     email: '', 
-    birthDate: undefined as Date | undefined,
+    birthDate: undefined,
     currentPassword: '', 
     newPassword: '', 
     confirmPassword: '' 
@@ -29,7 +39,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       if (user?.uid) {
         const userResult = await userService.getUserById(user.uid);
         if (userResult.success && userResult.data) {
-          setProfileForm({
+          profileForm.setInitialData({
             name: userResult.data.name || '',
             email: userResult.data.email || '',
             birthDate: userResult.data.birthDate,
@@ -41,7 +51,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       }
     };
     fetchUserData();
-  }, [user, userService]);
+  }, [user, userService, profileForm]);
 
   const handleUpdateProfile = async () => {
     setError(null);
@@ -49,20 +59,20 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
     try {
       // Yeni şifre girildiyse mevcut şifre kontrolü yap
-      if (profileForm.newPassword) {
-        if (!profileForm.currentPassword) {
+      if (profileForm.formData.newPassword) {
+        if (!profileForm.formData.currentPassword) {
           setError('Şifre değiştirmek için mevcut şifrenizi girin');
           setLoading(false);
           return;
         }
 
-        if (profileForm.newPassword.length < 6) {
+        if (profileForm.formData.newPassword.length < 6) {
           setError('Yeni şifre en az 6 karakter olmalıdır');
           setLoading(false);
           return;
         }
 
-        if (profileForm.newPassword !== profileForm.confirmPassword) {
+        if (profileForm.formData.newPassword !== profileForm.formData.confirmPassword) {
           setError('Yeni şifreler eşleşmiyor');
           setLoading(false);
           return;
@@ -73,20 +83,20 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           const auth = getAuth();
           const credential = EmailAuthProvider.credential(
             user.email,
-            profileForm.currentPassword
+            profileForm.formData.currentPassword
           );
 
           // Re-authenticate
           await reauthenticateWithCredential(auth.currentUser!, credential);
           // Update password
-          await updatePassword(auth.currentUser!, profileForm.newPassword);
+          await updatePassword(auth.currentUser!, profileForm.formData.newPassword);
         }
       }
 
       // Profil bilgilerini güncelle
       if (user?.uid) {
         const updateResult = await userService.updateUser(user.uid, {
-          name: profileForm.name
+          name: profileForm.formData.name
         });
 
         if (updateResult.success) {
@@ -131,8 +141,8 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">İsim</label>
             <input
               type="text"
-              value={profileForm.name}
-              onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+              value={profileForm.formData.name}
+              onChange={(e) => profileForm.updateField('name', e.target.value)}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all text-sm sm:text-base"
             />
           </div>
@@ -141,7 +151,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Email</label>
             <input
               type="email"
-              value={profileForm.email}
+              value={profileForm.formData.email}
               disabled
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-300/50 backdrop-blur-sm cursor-not-allowed bg-slate-800/30 text-sm sm:text-base"
             />
@@ -152,7 +162,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Doğum Tarihi</label>
             <input
               type="text"
-              value={profileForm.birthDate ? new Date(profileForm.birthDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
+              value={profileForm.formData.birthDate ? new Date(profileForm.formData.birthDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
               disabled
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-300/50 backdrop-blur-sm cursor-not-allowed bg-slate-800/30 text-sm sm:text-base"
             />
@@ -165,8 +175,8 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             </label>
             <input
               type="password"
-              value={profileForm.currentPassword}
-              onChange={(e) => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
+              value={profileForm.formData.currentPassword}
+              onChange={(e) => profileForm.updateField('currentPassword', e.target.value)}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
               placeholder="Şifre değiştirmek için mevcut şifrenizi girin"
             />
@@ -179,8 +189,8 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Yeni Şifre</label>
             <input
               type="password"
-              value={profileForm.newPassword}
-              onChange={(e) => setProfileForm({ ...profileForm, newPassword: e.target.value })}
+              value={profileForm.formData.newPassword}
+              onChange={(e) => profileForm.updateField('newPassword', e.target.value)}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
               placeholder="En az 6 karakter"
             />
@@ -190,8 +200,8 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             <label className="block text-xs sm:text-sm font-bold text-indigo-200 mb-2">Yeni Şifre Tekrar</label>
             <input
               type="password"
-              value={profileForm.confirmPassword}
-              onChange={(e) => setProfileForm({ ...profileForm, confirmPassword: e.target.value })}
+              value={profileForm.formData.confirmPassword}
+              onChange={(e) => profileForm.updateField('confirmPassword', e.target.value)}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
               placeholder="Yeni şifrenizi tekrar girin"
             />

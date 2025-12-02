@@ -4,6 +4,8 @@ import { getTeamService, getTeamMemberInfoService } from '../../di/container';
 import { ITeam } from '../../models/Team.model';
 import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 import { ProfileModal } from './ProfileModal';
+import { useModal } from '../../hooks/useModal';
+import { useForm } from '../../hooks/useForm';
 
 export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
   const { user } = useAuthContext();
@@ -12,12 +14,12 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
   const [members, setMembers] = useState<IMemberWithRole[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
-  const [confirmTeamName, setConfirmTeamName] = useState('');
-  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const leaveConfirmModal = useModal(false);
+  const profileEditModal = useModal(false);
+  const confirmTeamNameForm = useForm({ teamName: '' });
 
   const openProfileEdit = () => {
-    setShowProfileEdit(true);
+    profileEditModal.open();
   };
 
   const teamService = getTeamService();
@@ -75,7 +77,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
 
     // Owner ise confirm iste
     if (isOwner) {
-      if (confirmTeamName !== selectedTeam.name) {
+      if (confirmTeamNameForm.formData.teamName !== selectedTeam.name) {
         alert('Takım adı eşleşmiyor');
         return;
       }
@@ -96,8 +98,8 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       alert('Bir hata oluştu');
     } finally {
       setLoading(false);
-      setShowLeaveConfirm(false);
-      setConfirmTeamName('');
+      leaveConfirmModal.close();
+      confirmTeamNameForm.reset();
     }
   };
 
@@ -251,7 +253,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
           {/* Takımdan Ayrıl Butonu */}
           <div className="flex justify-end mt-4 sm:mt-0">
             <button
-              onClick={() => setShowLeaveConfirm(true)}
+              onClick={leaveConfirmModal.open}
               className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-2.5 sm:py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:scale-105 text-sm sm:text-base"
             >
               🚪 Takımdan Ayrıl
@@ -261,7 +263,7 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
       )}
 
       {/* Takımdan Ayrıl Confirm Modal */}
-      {showLeaveConfirm && (
+      {leaveConfirmModal.isOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-scale p-4">
           <div className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-glow-lg border border-indigo-500/20 animate-fade-in-up max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent mb-4 sm:mb-6">
@@ -275,8 +277,8 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
                 <p className="text-xs sm:text-sm text-yellow-200/70 mb-3">Onaylamak için takım adını girin:</p>
                 <input
                   type="text"
-                  value={confirmTeamName}
-                  onChange={(e) => setConfirmTeamName(e.target.value)}
+                  value={confirmTeamNameForm.formData.teamName}
+                  onChange={(e) => confirmTeamNameForm.updateField('teamName', e.target.value)}
                   placeholder={selectedTeam?.name}
                   className="w-full px-3 sm:px-4 py-2 sm:py-2.5 glass border border-yellow-500/30 rounded-xl text-yellow-200 backdrop-blur-sm placeholder-yellow-300/50 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-400 transition-all text-sm sm:text-base"
                 />
@@ -290,15 +292,15 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={handleLeaveTeam}
-                disabled={isOwner && confirmTeamName !== selectedTeam?.name}
+                disabled={isOwner && confirmTeamNameForm.formData.teamName !== selectedTeam?.name}
                 className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-2.5 sm:py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:scale-105 disabled:transform-none text-sm sm:text-base"
               >
                 Evet, Ayrıl
               </button>
               <button
                 onClick={() => {
-                  setShowLeaveConfirm(false);
-                  setConfirmTeamName('');
+                  leaveConfirmModal.close();
+                  confirmTeamNameForm.reset();
                 }}
                 className="w-full sm:w-auto px-6 bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30 text-sm sm:text-base"
               >
@@ -311,8 +313,8 @@ export const MyTeam = ({ onTeamChange }: { onTeamChange: () => void }) => {
 
       {/* Profil Düzenleme Modal */}
       <ProfileModal
-        isOpen={showProfileEdit}
-        onClose={() => setShowProfileEdit(false)}
+        isOpen={profileEditModal.isOpen}
+        onClose={profileEditModal.close}
       />
     </div>
   );
