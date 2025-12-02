@@ -2,7 +2,7 @@ import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Firestore } from 'firebase/firestore';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
-import { RoleRepository } from '../repositories/RoleRepository';
+import { IRoleService } from '../interfaces/IRoleService';
 
 export interface IMemberWithRole {
   userId: string;
@@ -13,94 +13,198 @@ export interface IMemberWithRole {
   roleName: string;
 }
 
+interface UserInfo {
+  email: string;
+  displayName?: string;
+  birthDate?: Date;
+}
+
+interface MemberInfo {
+  roleId: string;
+}
+
+interface RoleInfo {
+  name: string;
+}
+
 export class TeamMemberInfoService {
   private teamMemberRepository: TeamMemberRepository;
-  private roleRepository: RoleRepository;
+  private roleService: IRoleService;
   private db: Firestore;
+  private cache = new Map<string, { data: IMemberWithRole[]; timestamp: number }>();
+  private readonly CACHE_TTL = 2 * 60 * 1000; // 2 dakika
 
   constructor(
     teamMemberRepository: TeamMemberRepository,
-    roleRepository: RoleRepository,
+    roleService: IRoleService,
     firestore: Firestore
   ) {
     this.teamMemberRepository = teamMemberRepository;
-    this.roleRepository = roleRepository;
+    this.roleService = roleService;
     this.db = firestore;
   }
 
-  // Takım üyelerinin detaylı bilgilerini getir
+  // ✅ OPTİMİZE EDİLMİŞ: Batch query ile tüm verileri tek seferde çek
   public async getMembersWithInfo(teamId: string, memberIds: string[]): Promise<IMemberWithRole[]> {
-    const membersData: IMemberWithRole[] = [];
+    if (!memberIds || memberIds.length === 0) {
+      return [];
+    }
+
+    // Cache kontrolü
+    const cacheKey = `${teamId}:${memberIds.sort().join(',')}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.data;
+    }
+
+    const auth = getAuth();
+    const currentUserId = auth.currentUser?.uid;
+
+    try {
+      // 1. TÜM KULLANICILARI TEK SEFERDE ÇEK (Batch)
+      const usersMap = await this.getUsersBatch(memberIds, currentUserId);
+
+      // 2. TÜM MEMBER'LARI TEK SEFERDE ÇEK
+      const membersMap = await this.getMembersBatch(teamId, memberIds);
+
+      // 3. TÜM ROLLERİ TEK SEFERDE ÇEK
+      const rolesMap = await this.getRolesBatch(teamId, membersMap);
+
+      // 4. VERİLERİ BİRLEŞTİR
+      const membersData: IMemberWithRole[] = memberIds.map((memberId) => {
+        const userInfo = usersMap.get(memberId);
+        const memberInfo = membersMap.get(memberId);
+        const roleInfo = rolesMap.get(memberInfo?.roleId || '');
+
+        return {
+          userId: memberId,
+          email: userInfo?.email || memberId,
+          displayName: userInfo?.displayName,
+          birthDate: userInfo?.birthDate,
+          roleId: memberInfo?.roleId || '',
+          roleName: roleInfo?.name || 'Member',
+        };
+      });
+
+      // Cache'e kaydet
+      this.cache.set(cacheKey, { data: membersData, timestamp: Date.now() });
+
+      return membersData;
+    } catch (error) {
+      console.error('Üye bilgileri alınamadı:', error);
+      return [];
+    }
+  }
+
+  // Tüm kullanıcıları tek query ile çek (paralel batch)
+  private async getUsersBatch(
+    memberIds: string[],
+    currentUserId: string | undefined
+  ): Promise<Map<string, UserInfo>> {
+    const usersMap = new Map<string, UserInfo>();
     const auth = getAuth();
 
-    for (const memberId of memberIds) {
-      try {
-        // Email bilgisini al
-        let email = memberId;
-        let displayName: string | undefined = undefined;
-        let birthDate: Date | undefined = undefined;
-
-        // Mevcut kullanıcı mı?
-        if (auth.currentUser?.uid === memberId) {
-          email = auth.currentUser.email || memberId;
-          displayName = auth.currentUser.displayName || undefined;
-        } else {
-          // Önce Firestore users collection'dan dene
-          try {
-            const userDoc = await getDoc(doc(this.db, 'users', memberId));
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              email = userData.email || memberId;
-              displayName = userData.name || userData.displayName;
-              if (userData.birthDate) {
-                birthDate = userData.birthDate.toDate();
-              }
-              console.log(`Firestore'dan kullanıcı bilgisi alındı: ${displayName} (${email})`);
-            } else {
-              console.log(`Firestore users collection'da bulunamadı: ${memberId}`);
-              // Firestore'da yoksa, email'in sonuna @email.com ekleme yerine ID'yi kullan
-              // Çünkü gerçek email bilgisini Firebase Authentication'dan alamıyoruz
-              email = `${memberId}@example.com`; // Geçici placeholder
-              displayName = memberId.substring(0, 8); // İlk 8 karakteri göster
-            }
-          } catch (error) {
-            console.error('Users collection hatası:', memberId, error);
-            // Hata durumunda placeholder kullan
-            email = `${memberId}@example.com`;
-            displayName = memberId.substring(0, 8);
-          }
-        }
-
-        // Kullanıcının rolünü getir
-        const memberResult = await this.teamMemberRepository.getMemberByUserId(teamId, memberId);
-        let roleId = '';
-        let roleName = 'Member';
-
-        if (memberResult.success && memberResult.data.length > 0) {
-          const member = memberResult.data[0];
-          roleId = member.roleId;
-          
-          // Rol adını getir
-          const roleResult = await this.roleRepository.getById(teamId, member.roleId);
-          if (roleResult.success && roleResult.data) {
-            roleName = roleResult.data.name;
-          }
-        }
-
-        membersData.push({
-          userId: memberId,
-          email,
-          displayName,
-          birthDate,
-          roleId,
-          roleName,
+    // Mevcut kullanıcıyı direkt ekle
+    if (currentUserId && memberIds.includes(currentUserId)) {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        usersMap.set(currentUserId, {
+          email: currentUser.email || currentUserId,
+          displayName: currentUser.displayName || undefined,
         });
-      } catch (error) {
-        console.error('Üye bilgisi alınamadı:', memberId, error);
       }
     }
 
-    return membersData;
+    // Diğer kullanıcılar için batch query
+    const otherUserIds = memberIds.filter((id) => id !== currentUserId);
+    if (otherUserIds.length === 0) {
+      return usersMap;
+    }
+
+    // Firestore'da her kullanıcı için paralel query (getDoc paralel çalışır)
+    // 10'dan fazla varsa chunk'lara böl (Firestore limit'i yok ama performans için)
+    const chunks: string[][] = [];
+    for (let i = 0; i < otherUserIds.length; i += 10) {
+      chunks.push(otherUserIds.slice(i, i + 10));
+    }
+
+    // Her chunk için paralel query
+    const userPromises = chunks.map(async (chunk) => {
+      const userDocs = await Promise.all(
+        chunk.map((userId) => getDoc(doc(this.db, 'users', userId)))
+      );
+
+      userDocs.forEach((userDoc, index) => {
+        const userId = chunk[index];
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          usersMap.set(userId, {
+            email: userData.email || userId,
+            displayName: userData.name || userData.displayName,
+            birthDate: userData.birthDate?.toDate(),
+          });
+        } else {
+          // Kullanıcı bulunamadıysa placeholder
+          usersMap.set(userId, {
+            email: userId,
+            displayName: userId.substring(0, 8),
+          });
+        }
+      });
+    });
+
+    await Promise.all(userPromises);
+    return usersMap;
+  }
+
+  // ✅ Tüm member'ları tek query ile çek
+  private async getMembersBatch(
+    teamId: string,
+    memberIds: string[]
+  ): Promise<Map<string, MemberInfo>> {
+    const membersMap = new Map<string, MemberInfo>();
+
+    // TeamMemberRepository'den tüm member'ları tek seferde çek
+    const allMembersResult = await this.teamMemberRepository.getAll(teamId);
+    
+    if (allMembersResult.success) {
+      // Sadece istenen member'ları filtrele
+      allMembersResult.data
+        .filter((member) => memberIds.includes(member.userId))
+        .forEach((member) => {
+          membersMap.set(member.userId, { roleId: member.roleId });
+        });
+    }
+
+    return membersMap;
+  }
+
+  // ✅ Tüm rolleri tek query ile çek
+  private async getRolesBatch(
+    teamId: string,
+    _membersMap: Map<string, MemberInfo>
+  ): Promise<Map<string, RoleInfo>> {
+    const rolesMap = new Map<string, RoleInfo>();
+
+    // Tüm rolleri tek seferde çek
+    const allRolesResult = await this.roleService.getTeamRoles(teamId);
+    
+    if (allRolesResult.success) {
+      allRolesResult.data.forEach((role) => {
+        rolesMap.set(role.id, { name: role.name });
+      });
+    }
+
+    return rolesMap;
+  }
+
+  // Cache'i temizle
+  public invalidateCache(teamId: string): void {
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(teamId)) {
+        this.cache.delete(key);
+      }
+    }
   }
 }
 

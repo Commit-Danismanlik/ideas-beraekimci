@@ -111,3 +111,21 @@ body {
     linear-gradient(45deg, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
 }
 
+/* Dropdown (select) styling - Theme consistent */
+select {
+  background-color: rgba(30, 41, 59, 0.5) !important;
+  color: #c7d2fe !important;
+}
+
+select option {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #c7d2fe !important;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: rgba(99, 102, 241, 0.3) !important;
+  color: #e0e7ff !important;
+}
+

@@ -87,6 +87,22 @@ export class TeamTodoService implements ITeamTodoService {
     return this.todoRepository.getAll(teamId);
   }
 
+  // Performans: yakın tarihli todo'ları getir (limitli)
+  public async getRecentTodos(teamId: string, take: number): Promise<IListQueryResult<ITeamTodo>> {
+    if (!teamId || teamId.trim() === '' || take <= 0) {
+      return { success: false, data: [], error: 'Geçersiz parametre', total: 0 };
+    }
+    return this.todoRepository.getRecent(teamId, take);
+  }
+
+  // Performans: belirli tarihten önceki todo'ları getir (limitli)
+  public async getRecentTodosBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITeamTodo>> {
+    if (!teamId || teamId.trim() === '' || take <= 0) {
+      return { success: false, data: [], error: 'Geçersiz parametre', total: 0 };
+    }
+    return this.todoRepository.getRecentBefore(teamId, before, take);
+  }
+
   // Update Todo
   public async updateTodo(
     teamId: string,

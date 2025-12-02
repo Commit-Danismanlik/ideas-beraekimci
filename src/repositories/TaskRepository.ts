@@ -105,5 +105,20 @@ export class TaskRepository extends SubcollectionRepository<ITask> {
       return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
     }
   }
+
+  // Priority'ye göre taskları getir
+  public async getTasksByPriority(
+    teamId: string,
+    priority: 'low' | 'medium' | 'high'
+  ): Promise<IListQueryResult<ITask>> {
+    const filters: IFilter[] = [
+      {
+        field: 'priority',
+        operator: '==',
+        value: priority,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
 }
 

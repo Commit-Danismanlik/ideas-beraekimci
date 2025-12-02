@@ -1,11 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { IAuthService } from '../interfaces/IAuthService';
-import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult } from '../models/Auth.model';
+import { IAuthUser, IRegisterDto, ILoginDto, IAuthResult, IPasswordResetDto, IConfirmPasswordResetDto } from '../models/Auth.model';
 import { getAuthService, getUserService } from '../di/container';
 
 export const useAuth = () => {
-  const [authService] = useState<IAuthService>(() => getAuthService());
-  const [userService] = useState(() => getUserService());
+  const [authService] = useState<IAuthService>(() => {
+    try {
+      return getAuthService();
+    } catch (error) {
+      console.error('AuthService initialization error:', error);
+      throw error;
+    }
+  });
+  const [userService] = useState(() => {
+    try {
+      return getUserService();
+    } catch (error) {
+      console.error('UserService initialization error:', error);
+      throw error;
+    }
+  });
   const [user, setUser] = useState<IAuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,13 +27,19 @@ export const useAuth = () => {
 
   // Auth state observer
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChanged((authUser) => {
-      setUser(authUser);
-      setIsAuthenticated(!!authUser);
-      setLoading(false);
-    });
+    try {
+      const unsubscribe = authService.onAuthStateChanged((authUser) => {
+        setUser(authUser);
+        setIsAuthenticated(!!authUser);
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (err) {
+      console.error('Auth state observer error:', err);
+      setError('Auth initialization failed');
+      setLoading(false);
+    }
   }, [authService]);
 
   // Register
@@ -32,19 +52,12 @@ export const useAuth = () => {
         if (result.success && result.user) {
           // Firebase Authentication'dan sonra Firestore'a kaydet
           try {
-            // Authentication UID ile aynı ID'yi kullanarak kaydet
-            const { setDoc, doc } = await import('firebase/firestore');
-            const { getFirestore } = await import('firebase/firestore');
-            const db = getFirestore();
-            await setDoc(doc(db, 'users', result.user.uid), {
-              id: result.user.uid,
-              name: dto.displayName || '',
-              email: dto.email,
-              birthDate: dto.birthDate || null,
-              isActive: true,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            });
+            await userService.createOrUpdateUserFromAuth(
+              result.user.uid,
+              result.user.email,
+              dto.displayName,
+              dto.birthDate
+            );
             console.log('Kullanıcı Firestore\'a kaydedildi:', result.user.uid);
           } catch (dbError) {
             console.error('Firestore kayıt hatası:', dbError);
@@ -74,26 +87,14 @@ export const useAuth = () => {
       try {
         const result = await authService.login(dto);
         if (result.success && result.user) {
-          // Kullanıcının Firestore'da olup olmadığını kontrol et
+          // Kullanıcının Firestore'da olup olmadığını kontrol et ve yoksa ekle
           try {
-            const userResult = await userService.getUserById(result.user.uid);
-            if (!userResult.success || !userResult.data) {
-              // Kullanıcı Firestore'da yok, ekle
-              console.log('Kullanıcı Firestore\'da yok, ekleniyor...');
-              const { setDoc, doc } = await import('firebase/firestore');
-              const { getFirestore } = await import('firebase/firestore');
-              const db = getFirestore();
-              await setDoc(doc(db, 'users', result.user.uid), {
-                id: result.user.uid,
-                name: result.user.displayName || '',
-                email: result.user.email || dto.email,
-                birthDate: null,
-                isActive: true,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              });
-              console.log('Kullanıcı Firestore\'a eklendi:', result.user.uid);
-            }
+            await userService.createOrUpdateUserFromAuth(
+              result.user.uid,
+              result.user.email,
+              result.user.displayName
+            );
+            console.log('Kullanıcı Firestore\'da kontrol edildi/güncellendi:', result.user.uid);
           } catch (dbError) {
             console.error('Firestore kontrol hatası:', dbError);
             // Hata olsa bile authentication başarılı olduğu için devam et
@@ -133,6 +134,72 @@ export const useAuth = () => {
     }
   }, [authService]);
 
+  // Send Password Reset Email
+  const sendPasswordResetEmail = useCallback(
+    async (dto: IPasswordResetDto): Promise<IAuthResult> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await authService.sendPasswordResetEmail(dto);
+        if (!result.success) {
+          setError(result.error || 'Şifre sıfırlama emaili gönderilemedi');
+        }
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authService]
+  );
+
+  // Confirm Password Reset
+  const confirmPasswordReset = useCallback(
+    async (dto: IConfirmPasswordResetDto): Promise<IAuthResult> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await authService.confirmPasswordReset(dto);
+        if (!result.success) {
+          setError(result.error || 'Şifre sıfırlama başarısız');
+        }
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authService]
+  );
+
+  // Send Email Verification
+  const sendEmailVerification = useCallback(
+    async (): Promise<IAuthResult> => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await authService.sendEmailVerification();
+        if (!result.success) {
+          setError(result.error || 'Email doğrulama maili gönderilemedi');
+        }
+        return result;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authService]
+  );
+
   // Clear Error
   const clearError = useCallback(() => {
     setError(null);
@@ -149,6 +216,9 @@ export const useAuth = () => {
     register,
     login,
     logout,
+    sendPasswordResetEmail,
+    confirmPasswordReset,
+    sendEmailVerification,
     clearError,
 
     // Service

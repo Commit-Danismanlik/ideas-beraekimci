@@ -2,6 +2,7 @@ import { IUserService } from '../interfaces/IUserService';
 import { UserRepository } from '../repositories/UserRepository';
 import { IUser, ICreateUserDto, IUpdateUserDto } from '../models/User.model';
 import { IQueryResult, IListQueryResult, IPagination, IOrderBy } from '../types/base.types';
+import { EmailValidator } from '../validators/EmailValidator';
 
 // SOLID: Dependency Inversion Principle - Interface'e bağımlı
 export class UserService implements IUserService {
@@ -15,10 +16,11 @@ export class UserService implements IUserService {
   // Create User
   public async createUser(dto: ICreateUserDto): Promise<IQueryResult<IUser>> {
     // Email validasyonu
-    if (!this.isValidEmail(dto.email)) {
+    const emailValidation = EmailValidator.validate(dto.email);
+    if (!emailValidation.valid) {
       return {
         success: false,
-        error: 'Geçersiz email adresi',
+        error: emailValidation.error || 'Geçersiz email adresi',
       };
     }
 
@@ -84,10 +86,11 @@ export class UserService implements IUserService {
 
     // Email değiştiriliyorsa validasyon
     if (dto.email) {
-      if (!this.isValidEmail(dto.email)) {
+      const emailValidation = EmailValidator.validate(dto.email);
+      if (!emailValidation.valid) {
         return {
           success: false,
-          error: 'Geçersiz email adresi',
+          error: emailValidation.error || 'Geçersiz email adresi',
         };
       }
 
@@ -131,10 +134,11 @@ export class UserService implements IUserService {
 
   // Get User By Email
   public async getUserByEmail(email: string): Promise<IQueryResult<IUser>> {
-    if (!this.isValidEmail(email)) {
+    const emailValidation = EmailValidator.validate(email);
+    if (!emailValidation.valid) {
       return {
         success: false,
-        error: 'Geçersiz email adresi',
+        error: emailValidation.error || 'Geçersiz email adresi',
       };
     }
 
@@ -213,10 +217,32 @@ export class UserService implements IUserService {
     return result.success && result.data.length > 0;
   }
 
-  // Private helper metodları
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  // Create or Update User from Auth
+  public async createOrUpdateUserFromAuth(
+    uid: string,
+    email: string,
+    displayName?: string,
+    birthDate?: Date
+  ): Promise<IQueryResult<IUser>> {
+    const existingUserResult = await this.userRepository.getById(uid);
+    
+    if (existingUserResult.success && existingUserResult.data) {
+      // Kullanıcı varsa güncelle
+      return this.updateUser(uid, {
+        name: displayName || existingUserResult.data.name,
+        email,
+        birthDate,
+      });
+    } else {
+      // Kullanıcı yoksa oluştur
+      return this.createUser({
+        name: displayName || '',
+        email,
+        birthDate,
+        isActive: true,
+      });
+    }
   }
+
 }
 

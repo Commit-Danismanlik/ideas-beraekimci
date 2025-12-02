@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { IRole } from '../models/Role.model';
+import { useState, memo } from 'react';
+import { IRole } from '../../models/Role.model';
 
 interface MemberItemProps {
   userId: string;
@@ -13,7 +13,11 @@ interface MemberItemProps {
   onRemoveMember: (userId: string) => void;
 }
 
-export const MemberItem = ({
+/**
+ * MemberItem Component
+ * Performance: React.memo ile optimize edildi
+ */
+const MemberItemComponent = ({
   userId,
   email,
   displayName,
@@ -105,7 +109,7 @@ export const MemberItem = ({
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full mb-2 px-3 py-2 border border-indigo-800 rounded text-sm text-indigo-200"
+                className="w-full mb-2 px-3 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all text-sm"
               >
                 {roles.map((role) => (
                   <option key={role.id} value={role.id}>
@@ -137,4 +141,10 @@ export const MemberItem = ({
     </div>
   );
 };
+
+/**
+ * Memoized MemberItem Component
+ * Performance: Props değişmediğinde re-render'ı önler
+ */
+export const MemberItem = memo(MemberItemComponent);
 

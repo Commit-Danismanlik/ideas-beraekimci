@@ -20,6 +20,7 @@ import { RoleService } from '../services/RoleService';
 import { TeamNoteService } from '../services/TeamNoteService';
 import { TeamTodoService } from '../services/TeamTodoService';
 import { TeamMemberInfoService } from '../services/TeamMemberInfoService';
+import { ChatBotService } from '../services/ChatBotService';
 import { IUserService } from '../interfaces/IUserService';
 import { IAuthService } from '../interfaces/IAuthService';
 import { ITeamService } from '../interfaces/ITeamService';
@@ -27,6 +28,7 @@ import { ITaskService } from '../interfaces/ITaskService';
 import { IPersonalNoteService, IPersonalTodoService } from '../interfaces/IPersonalRepositoryService';
 import { ITeamNoteService, ITeamTodoService } from '../interfaces/ITeamRepositoryService';
 import { IRoleService } from '../interfaces/IRoleService';
+import { IChatBotService } from '../interfaces/IChatBotService';
 
 // SOLID: Dependency Inversion Principle - Manuel DI Container
 // @injectable kullanmadan, new ile instance oluşturma
@@ -46,6 +48,7 @@ export class ServiceContainer {
   private teamNoteServiceInstance: ITeamNoteService | null = null;
   private teamTodoServiceInstance: ITeamTodoService | null = null;
   private teamMemberInfoServiceInstance: TeamMemberInfoService | null = null;
+  private chatBotServiceInstance: IChatBotService | null = null;
 
   private constructor() {
     this.firestore = getFirestoreDb();
@@ -71,7 +74,8 @@ export class ServiceContainer {
   // Auth Service - Lazy initialization
   public getAuthService(): IAuthService {
     if (!this.authServiceInstance) {
-      this.authServiceInstance = new AuthService(this.auth);
+      const userService = this.getUserService();
+      this.authServiceInstance = new AuthService(this.auth, userService);
     }
     return this.authServiceInstance;
   }
@@ -151,14 +155,22 @@ export class ServiceContainer {
   public getTeamMemberInfoService(): TeamMemberInfoService {
     if (!this.teamMemberInfoServiceInstance) {
       const teamMemberRepository = new TeamMemberRepository(this.firestore);
-      const roleRepository = new RoleRepository(this.firestore);
+      const roleService = this.getRoleService();
       this.teamMemberInfoServiceInstance = new TeamMemberInfoService(
         teamMemberRepository,
-        roleRepository,
+        roleService,
         this.firestore
       );
     }
     return this.teamMemberInfoServiceInstance;
+  }
+
+  // ChatBot Service - Lazy initialization
+  public getChatBotService(): IChatBotService {
+    if (!this.chatBotServiceInstance) {
+      this.chatBotServiceInstance = new ChatBotService();
+    }
+    return this.chatBotServiceInstance;
   }
 }
 
@@ -201,5 +213,9 @@ export const getTeamTodoService = (): ITeamTodoService => {
 
 export const getTeamMemberInfoService = (): TeamMemberInfoService => {
   return ServiceContainer.getInstance().getTeamMemberInfoService();
+};
+
+export const getChatBotService = (): IChatBotService => {
+  return ServiceContainer.getInstance().getChatBotService();
 };
 

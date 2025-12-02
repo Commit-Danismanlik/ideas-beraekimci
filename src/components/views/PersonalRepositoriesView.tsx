@@ -1,180 +1,33 @@
-import { useState, useEffect } from 'react';
-import { useAuthContext } from '../contexts/AuthContext';
-import { getPersonalNoteService, getPersonalTodoService } from '../di/container';
-import { IPersonalNote, IPersonalTodo } from '../models/PersonalRepository.model';
-
-type TabType = 'notes' | 'todos';
+import { usePersonalRepositories } from '../../hooks/usePersonalRepositories';
 
 export const PersonalRepositoriesView = () => {
-  const { user } = useAuthContext();
-  const [activeTab, setActiveTab] = useState<TabType>('notes');
-  const [notes, setNotes] = useState<IPersonalNote[]>([]);
-  const [filteredNotes, setFilteredNotes] = useState<IPersonalNote[]>([]);
-  const [todos, setTodos] = useState<IPersonalTodo[]>([]);
-  const [filteredTodos, setFilteredTodos] = useState<IPersonalTodo[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Arama
-  const [noteSearchQuery, setNoteSearchQuery] = useState('');
-  const [todoSearchQuery, setTodoSearchQuery] = useState('');
-
-  // Form states
-  const [showNoteForm, setShowNoteForm] = useState(false);
-  const [showTodoForm, setShowTodoForm] = useState(false);
-  const [noteForm, setNoteForm] = useState({ title: '', content: '', category: '' });
-  const [todoForm, setTodoForm] = useState({ title: '', description: '', priority: 'medium' as 'low' | 'medium' | 'high' });
-
-  const noteService = getPersonalNoteService();
-  const todoService = getPersonalTodoService();
-
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user, activeTab]);
-
-  // Tab değiştiğinde search query'i temizle
-  useEffect(() => {
-    setNoteSearchQuery('');
-    setTodoSearchQuery('');
-  }, [activeTab]);
-
-  const fetchData = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    if (activeTab === 'notes') {
-      const result = await noteService.getUserNotes(user.uid);
-      if (result.success) {
-        setNotes(result.data);
-
-        // Arama filtresini uygula
-        let filtered = [...result.data];
-        if (noteSearchQuery.trim()) {
-          filtered = filtered.filter(note =>
-            note.title.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-            note.content.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-            note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
-          );
-        }
-
-        // Sabitlenmiş notları en başa taşı
-        filtered.sort((a, b) => {
-          if (a.isPinned && !b.isPinned) return -1;
-          if (!a.isPinned && b.isPinned) return 1;
-          return 0;
-        });
-
-        setFilteredNotes(filtered);
-      }
-    } else {
-      const result = await todoService.getUserTodos(user.uid);
-      if (result.success) {
-        setTodos(result.data);
-
-        // Arama filtresini uygula
-        let filtered = [...result.data];
-        if (todoSearchQuery.trim()) {
-          filtered = filtered.filter(todo =>
-            todo.title.toLowerCase().includes(todoSearchQuery.toLowerCase()) ||
-            todo.description?.toLowerCase().includes(todoSearchQuery.toLowerCase())
-          );
-        }
-        setFilteredTodos(filtered);
-      }
-    }
-    setLoading(false);
-  };
-
-  // Arama değiştiğinde filtreleri tekrar uygula
-  useEffect(() => {
-    if (activeTab === 'notes') {
-      let filtered = [...notes];
-      if (noteSearchQuery.trim()) {
-        filtered = filtered.filter(note =>
-          note.title.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-          note.content.toLowerCase().includes(noteSearchQuery.toLowerCase()) ||
-          note.category?.toLowerCase().includes(noteSearchQuery.toLowerCase())
-        );
-      }
-
-      // Sabitlenmiş notları en başa taşı
-      filtered.sort((a, b) => {
-        if (a.isPinned && !b.isPinned) return -1;
-        if (!a.isPinned && b.isPinned) return 1;
-        return 0;
-      });
-
-      setFilteredNotes(filtered);
-    } else {
-      let filtered = [...todos];
-      if (todoSearchQuery.trim()) {
-        filtered = filtered.filter(todo =>
-          todo.title.toLowerCase().includes(todoSearchQuery.toLowerCase()) ||
-          todo.description?.toLowerCase().includes(todoSearchQuery.toLowerCase())
-        );
-      }
-      setFilteredTodos(filtered);
-    }
-  }, [noteSearchQuery, todoSearchQuery, activeTab, notes]);
-
-  const handleCreateNote = async () => {
-    if (!user || !noteForm.title.trim()) return;
-
-    const result = await noteService.createNote(user.uid, noteForm);
-    if (result.success) {
-      setNoteForm({ title: '', content: '', category: '' });
-      setShowNoteForm(false);
-      fetchData();
-    }
-  };
-
-  const handleCreateTodo = async () => {
-    if (!user || !todoForm.title.trim()) return;
-
-    const result = await todoService.createTodo(user.uid, todoForm);
-    if (result.success) {
-      setTodoForm({ title: '', description: '', priority: 'medium' });
-      setShowTodoForm(false);
-      fetchData();
-    }
-  };
-
-  const handleToggleTodo = async (id: string) => {
-    await todoService.toggleComplete(id);
-    fetchData();
-  };
-
-  const handleDeleteNote = async (id: string) => {
-    if (window.confirm('Bu notu silmek istediğinize emin misiniz?')) {
-      await noteService.deleteNote(id);
-      fetchData();
-    }
-  };
-
-  const handleDeleteTodo = async (id: string) => {
-    if (window.confirm('Bu todo\'yu silmek istediğinize emin misiniz?')) {
-      await todoService.deleteTodo(id);
-      fetchData();
-    }
-  };
-
-  const handleTogglePin = async (id: string) => {
-    // Mevcut sabitlenmiş notları say
-    const pinnedCount = notes.filter(note => note.isPinned).length;
-    const noteToToggle = notes.find(note => note.id === id);
-
-    // Sabitlemek istiyorsa ve 3'ten fazla sabitli not varsa uyarı ver
-    if (!noteToToggle?.isPinned && pinnedCount >= 3) {
-      alert('En fazla 3 not sabitlenebilir. Lütfen önce bir sabitlenmiş notu çözün.');
-      return;
-    }
-
-    await noteService.togglePin(id);
-
-    // Verileri yeniden yükle ve sırala
-    fetchData();
-  };
+  const {
+    activeTab,
+    setActiveTab,
+    filteredNotes,
+    noteSearchQuery,
+    setNoteSearchQuery,
+    showNoteForm,
+    noteForm,
+    setNoteForm,
+    openNoteForm,
+    closeNoteForm,
+    filteredTodos,
+    todoSearchQuery,
+    setTodoSearchQuery,
+    showTodoForm,
+    todoForm,
+    setTodoForm,
+    openTodoForm,
+    closeTodoForm,
+    loading,
+    handleCreateNote,
+    handleCreateTodo,
+    handleToggleTodo,
+    handleDeleteNote,
+    handleDeleteTodo,
+    handleTogglePin,
+  } = usePersonalRepositories();
 
   return (
     <div>
@@ -212,7 +65,7 @@ export const PersonalRepositoriesView = () => {
           <div className="mb-4">
             {!showNoteForm ? (
               <button
-                onClick={() => setShowNoteForm(true)}
+                onClick={openNoteForm}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
               >
                 + Yeni Not
@@ -248,10 +101,7 @@ export const PersonalRepositoriesView = () => {
                     Kaydet
                   </button>
                   <button
-                    onClick={() => {
-                      setShowNoteForm(false);
-                      setNoteForm({ title: '', content: '', category: '' });
-                    }}
+                    onClick={closeNoteForm}
                     className="bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30"
                   >
                     İptal
@@ -339,7 +189,7 @@ export const PersonalRepositoriesView = () => {
           <div className="mb-4">
             {!showTodoForm ? (
               <button
-                onClick={() => setShowTodoForm(true)}
+                onClick={openTodoForm}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
               >
                 + Yeni To-Do
@@ -377,10 +227,7 @@ export const PersonalRepositoriesView = () => {
                     Kaydet
                   </button>
                   <button
-                    onClick={() => {
-                      setShowTodoForm(false);
-                      setTodoForm({ title: '', description: '', priority: 'medium' });
-                    }}
+                    onClick={closeTodoForm}
                     className="bg-gray-500/20 hover:bg-gray-600/20 text-white font-bold py-2 px-4 rounded-xl transition-all duration-300 transform hover:scale-105 border border-gray-500/30"
                   >
                     İptal

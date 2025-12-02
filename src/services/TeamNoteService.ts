@@ -86,6 +86,22 @@ export class TeamNoteService implements ITeamNoteService {
     return this.noteRepository.getAll(teamId);
   }
 
+  // Performans: yakın tarihli notları getir (limitli)
+  public async getRecentNotes(teamId: string, take: number): Promise<IListQueryResult<ITeamNote>> {
+    if (!teamId || teamId.trim() === '' || take <= 0) {
+      return { success: false, data: [], error: 'Geçersiz parametre', total: 0 };
+    }
+    return this.noteRepository.getRecent(teamId, take);
+  }
+
+  // Performans: belirli tarihten önceki notları getir (limitli)
+  public async getRecentNotesBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITeamNote>> {
+    if (!teamId || teamId.trim() === '' || take <= 0) {
+      return { success: false, data: [], error: 'Geçersiz parametre', total: 0 };
+    }
+    return this.noteRepository.getRecentBefore(teamId, before, take);
+  }
+
   // Update Note
   public async updateNote(
     teamId: string,

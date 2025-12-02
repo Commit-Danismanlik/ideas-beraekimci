@@ -17,6 +17,8 @@ export interface ITeamNoteService {
   ): Promise<IQueryResult<ITeamNote>>;
   getNoteById(teamId: string, id: string): Promise<IQueryResult<ITeamNote>>;
   getTeamNotes(teamId: string): Promise<IListQueryResult<ITeamNote>>;
+  getRecentNotes(teamId: string, take: number): Promise<IListQueryResult<ITeamNote>>;
+  getRecentNotesBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITeamNote>>;
   updateNote(
     teamId: string,
     id: string,
@@ -36,6 +38,8 @@ export interface ITeamTodoService {
   ): Promise<IQueryResult<ITeamTodo>>;
   getTodoById(teamId: string, id: string): Promise<IQueryResult<ITeamTodo>>;
   getTeamTodos(teamId: string): Promise<IListQueryResult<ITeamTodo>>;
+  getRecentTodos(teamId: string, take: number): Promise<IListQueryResult<ITeamTodo>>;
+  getRecentTodosBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITeamTodo>>;
   updateTodo(
     teamId: string,
     id: string,

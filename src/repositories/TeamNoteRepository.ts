@@ -1,4 +1,4 @@
-import { DocumentData, Firestore, Timestamp } from 'firebase/firestore';
+import { DocumentData, Firestore, Timestamp, collection, query, orderBy, limit as fbLimit, getDocs, where } from 'firebase/firestore';
 import { SubcollectionRepository } from './SubcollectionRepository';
 import { ITeamNote } from '../models/TeamRepository.model';
 import { IFilter, IListQueryResult } from '../types/base.types';
@@ -51,6 +51,72 @@ export class TeamNoteRepository extends SubcollectionRepository<ITeamNote> {
       },
     ];
     return this.getByFilter(teamId, filters);
+  }
+
+  // Oluşturan kişiye göre notları getir
+  public async getNotesByCreator(
+    teamId: string,
+    userId: string
+  ): Promise<IListQueryResult<ITeamNote>> {
+    const filters: IFilter[] = [
+      {
+        field: 'createdBy',
+        operator: '==',
+        value: userId,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Kategoriye göre notları getir
+  public async getNotesByCategory(
+    teamId: string,
+    category: string
+  ): Promise<IListQueryResult<ITeamNote>> {
+    const filters: IFilter[] = [
+      {
+        field: 'category',
+        operator: '==',
+        value: category,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Son oluşturulan notları getir (createdAt desc, limit)
+  public async getRecent(teamId: string, take: number): Promise<IListQueryResult<ITeamNote>> {
+    try {
+      const subRef = collection(this.db, 'teams', teamId, 'notes');
+      const q = query(subRef, orderBy('createdAt', 'desc'), fbLimit(take));
+      const snap = await getDocs(q);
+      const data: ITeamNote[] = [];
+      snap.forEach((doc) => {
+        data.push(
+          this.fromFirestore({ id: doc.id, ...doc.data() })
+        );
+      });
+      return { success: true, data, total: data.length };
+    } catch (error) {
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
+    }
+  }
+
+  // Belirli bir tarihten önceki notları getir (createdAt < before, desc, limit)
+  public async getRecentBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITeamNote>> {
+    try {
+      const subRef = collection(this.db, 'teams', teamId, 'notes');
+      const q = query(subRef, where('createdAt', '<', Timestamp.fromDate(before)), orderBy('createdAt', 'desc'), fbLimit(take));
+      const snap = await getDocs(q);
+      const data: ITeamNote[] = [];
+      snap.forEach((doc) => {
+        data.push(
+          this.fromFirestore({ id: doc.id, ...doc.data() })
+        );
+      });
+      return { success: true, data, total: data.length };
+    } catch (error) {
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
+    }
   }
 }
 

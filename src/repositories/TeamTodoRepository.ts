@@ -1,4 +1,4 @@
-import { DocumentData, Firestore, Timestamp } from 'firebase/firestore';
+import { DocumentData, Firestore, Timestamp, collection, query, orderBy, limit as fbLimit, getDocs, where } from 'firebase/firestore';
 import { SubcollectionRepository } from './SubcollectionRepository';
 import { ITeamTodo } from '../models/TeamRepository.model';
 import { IFilter, IListQueryResult } from '../types/base.types';
@@ -58,6 +58,87 @@ export class TeamTodoRepository extends SubcollectionRepository<ITeamTodo> {
       },
     ];
     return this.getByFilter(teamId, filters);
+  }
+
+  // Tamamlanma durumuna göre todo'ları getir
+  public async getTodosByCompleted(
+    teamId: string,
+    completed: boolean
+  ): Promise<IListQueryResult<ITeamTodo>> {
+    const filters: IFilter[] = [
+      {
+        field: 'completed',
+        operator: '==',
+        value: completed,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Priority'ye göre todo'ları getir
+  public async getTodosByPriority(
+    teamId: string,
+    priority: 'low' | 'medium' | 'high'
+  ): Promise<IListQueryResult<ITeamTodo>> {
+    const filters: IFilter[] = [
+      {
+        field: 'priority',
+        operator: '==',
+        value: priority,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Oluşturan kişiye göre todo'ları getir
+  public async getTodosByCreator(
+    teamId: string,
+    userId: string
+  ): Promise<IListQueryResult<ITeamTodo>> {
+    const filters: IFilter[] = [
+      {
+        field: 'createdBy',
+        operator: '==',
+        value: userId,
+      },
+    ];
+    return this.getByFilter(teamId, filters);
+  }
+
+  // Son oluşturulan todo'ları getir (createdAt desc, limit)
+  public async getRecent(teamId: string, take: number): Promise<IListQueryResult<ITeamTodo>> {
+    try {
+      const subRef = collection(this.db, 'teams', teamId, 'todos');
+      const q = query(subRef, orderBy('createdAt', 'desc'), fbLimit(take));
+      const snap = await getDocs(q);
+      const data: ITeamTodo[] = [];
+      snap.forEach((doc) => {
+        data.push(
+          this.fromFirestore({ id: doc.id, ...doc.data() })
+        );
+      });
+      return { success: true, data, total: data.length };
+    } catch (error) {
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
+    }
+  }
+
+  // Belirli bir tarihten önceki todo'ları getir (createdAt < before, desc, limit)
+  public async getRecentBefore(teamId: string, before: Date, take: number): Promise<IListQueryResult<ITeamTodo>> {
+    try {
+      const subRef = collection(this.db, 'teams', teamId, 'todos');
+      const q = query(subRef, where('createdAt', '<', Timestamp.fromDate(before)), orderBy('createdAt', 'desc'), fbLimit(take));
+      const snap = await getDocs(q);
+      const data: ITeamTodo[] = [];
+      snap.forEach((doc) => {
+        data.push(
+          this.fromFirestore({ id: doc.id, ...doc.data() })
+        );
+      });
+      return { success: true, data, total: data.length };
+    } catch (error) {
+      return { success: false, data: [], error: error instanceof Error ? error.message : 'Bilinmeyen hata', total: 0 };
+    }
   }
 }
 
