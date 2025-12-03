@@ -7,12 +7,16 @@ export class ChatBotService implements IChatBotService {
   private readonly apiKey: string;
 
   constructor() {
+    // Environment değişkenini oku - hem string hem de undefined kontrolü yap
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
+    const apiKeyString = typeof apiKey === 'string' ? apiKey.trim() : '';
+    
+    if (!apiKeyString) {
       console.error('GEMINI_API_KEY bulunamadı. .env dosyasında VITE_GEMINI_API_KEY tanımlı olmalı.');
+      console.error('Mevcut değer:', import.meta.env.VITE_GEMINI_API_KEY);
       this.apiKey = '';
     } else {
-      this.apiKey = apiKey;
+      this.apiKey = apiKeyString;
       this.genAI = new GoogleGenerativeAI(this.apiKey);
     }
   }
