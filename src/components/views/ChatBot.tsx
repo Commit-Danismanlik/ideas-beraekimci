@@ -9,25 +9,13 @@ import { ChatBotHeader } from '../common/ChatBotHeader';
 import { ChatBotMessageList } from '../common/ChatBotMessageList';
 import { ChatBotMessageInput } from '../common/ChatBotMessageInput';
 import { ChatBotAnimations } from '../common/ChatBotAnimations';
-import { ChatBotMaintenanceModal } from '../common/ChatBotMaintenanceModal';
 
 interface ChatBotProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Bakım modu kontrolü - environment variable veya config ile kontrol edilebilir
-const isMaintenanceMode = (): boolean => {
-  const maintenanceFlag = import.meta.env.VITE_CHATBOT_MAINTENANCE_MODE;
-  // Eğer 'false' olarak açıkça set edilmemişse bakım modu aktif
-  return maintenanceFlag !== 'false';
-};
-
 export const ChatBot = ({ isOpen, onClose }: ChatBotProps): JSX.Element | null => {
-  // Bakım modu aktifse sadece bakım modalını göster
-  if (isMaintenanceMode()) {
-    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} />;
-  }
   const chatBotService = getChatBotService();
   const {
     messages,
