@@ -64,7 +64,7 @@ export const useTasks = (): UseTasksState => {
   const [loading, setLoading] = useState<boolean>(false);
   const [filters, setFilters] = useState<TaskFilters>({ status: 'all', priority: 'all', assignedTo: 'all' });
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedWeek, setSelectedWeek] = useState<Date | null>(null);
+  const [selectedWeek, setSelectedWeek] = useState<Date | null>(new Date()); // Default olarak bu hafta
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [lastCreatedAt, setLastCreatedAt] = useState<Date | null>(null);
 

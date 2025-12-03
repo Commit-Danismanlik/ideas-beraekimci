@@ -14,16 +14,20 @@ import { ChatBotMaintenanceModal } from '../common/ChatBotMaintenanceModal';
 interface ChatBotProps {
   isOpen: boolean;
   onClose: () => void;
+  hasTeam: boolean;
 }
 
 // Bakım modu kontrolü - environment variable veya config ile kontrol edilebilir
 const isMaintenanceMode = (): boolean => {
-  const maintenanceFlag = import.meta.env.VITE_CHATBOT_MAINTENANCE_MODE;
-  // Eğer 'false' olarak açıkça set edilmemişse bakım modu aktif
-  return maintenanceFlag !== 'false';
+  return false;
 };
 
-export const ChatBot = ({ isOpen, onClose }: ChatBotProps): JSX.Element | null => {
+export const ChatBot = ({ isOpen, onClose, hasTeam }: ChatBotProps): JSX.Element | null => {
+  // Kullanıcı takımda değilse takım gerekli modalını göster
+  if (!hasTeam) {
+    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} requiresTeam={true} />;
+  }
+
   // Bakım modu aktifse sadece bakım modalını göster
   if (isMaintenanceMode()) {
     return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} />;
@@ -54,7 +58,7 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps): JSX.Element | null =
     [addMessage]
   );
 
-  const { typingMessage: typingEffectMessage, startTyping } = useTypingEffect(handleTypingComplete);
+  const { typingMessage: typingEffectMessage, startTyping, stop: stopTyping } = useTypingEffect(handleTypingComplete);
 
   const handleSendMessage = useCallback(async (): Promise<void> => {
     if (!inputMessage.trim() || isLoading) {
@@ -133,6 +137,16 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps): JSX.Element | null =
     [handleSendMessage]
   );
 
+  const handleStopTyping = useCallback((): void => {
+    const stoppedMessage = stopTyping();
+    if (stoppedMessage) {
+      // Mesaj zaten handleTypingComplete içinde kaydedildi
+      // State'i temizle
+      setIsTyping(false);
+      setTypingMessage('');
+    }
+  }, [stopTyping, setIsTyping, setTypingMessage]);
+
   if (!isOpen) {
     return null;
   }
@@ -155,8 +169,10 @@ export const ChatBot = ({ isOpen, onClose }: ChatBotProps): JSX.Element | null =
           <ChatBotMessageInput
             inputMessage={inputMessage}
             isLoading={isLoading}
+            isTyping={isTyping}
             onInputChange={setInputMessage}
             onSend={handleSendMessage}
+            onStop={handleStopTyping}
             onKeyPress={handleKeyPress}
           />
         </div>

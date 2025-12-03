@@ -1,9 +1,10 @@
 interface ChatBotMaintenanceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  requiresTeam?: boolean;
 }
 
-export const ChatBotMaintenanceModal = ({ isOpen, onClose }: ChatBotMaintenanceModalProps): JSX.Element | null => {
+export const ChatBotMaintenanceModal = ({ isOpen, onClose, requiresTeam = false }: ChatBotMaintenanceModalProps): JSX.Element | null => {
   if (!isOpen) {
     return null;
   }
@@ -65,11 +66,13 @@ export const ChatBotMaintenanceModal = ({ isOpen, onClose }: ChatBotMaintenanceM
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-bold text-indigo-200 mb-4">
-              Şu Anlık Bakımda
+              {requiresTeam ? 'Takım Gerekli' : 'Şu Anlık Bakımda'}
             </h2>
 
             <p className="text-indigo-300/80 text-sm sm:text-base leading-relaxed max-w-sm">
-              ChatBot şu anda bakım modunda. Yakında tekrar hizmetinizde olacağız.
+              {requiresTeam
+                ? 'Chatbot kullanmak için bir takıma girmelisiniz.'
+                : 'ChatBot şu anda bakım modunda. Yakında tekrar hizmetinizde olacağız.'}
             </p>
 
             <button
