@@ -212,6 +212,38 @@ export class RoleService implements IRoleService {
       };
     }
 
+    // Owner rolünün permission'larını DEFAULT_PERMISSIONS.OWNER ile tamamen senkronize et
+    const requiredPermissions = DEFAULT_PERMISSIONS.OWNER;
+    const currentPermissions = ownerRole.permissions || [];
+    
+    // Permission'ları sıralayarak karşılaştır (sıra farklı olabilir)
+    const currentSorted = [...currentPermissions].sort();
+    const requiredSorted = [...requiredPermissions].sort();
+    const permissionsMatch = 
+      currentSorted.length === requiredSorted.length &&
+      currentSorted.every((perm, index) => perm === requiredSorted[index]);
+
+    if (!permissionsMatch) {
+      // Permission'lar eşleşmiyor, runtime'da DEFAULT_PERMISSIONS.OWNER ile güncellenmiş rol döndür
+      // Not: Veritabanı güncellemesi Firebase Security Rules nedeniyle başarısız olabilir
+      // (sadece ownerId olan kullanıcılar roles subcollection'ına yazabilir)
+      // Ancak runtime'da zaten doğru permission'lar kullanıldığı için bu kritik değil
+      this.logger.debug('Owner rolü permission\'ları eşleşmiyor - runtime\'da güncellenmiş rol döndürülüyor', {
+        teamId,
+        roleId: ownerRole.id,
+        currentPermissions,
+        requiredPermissions,
+      });
+      return {
+        success: true,
+        data: {
+          ...ownerRole,
+          permissions: requiredPermissions,
+          updatedAt: new Date(),
+        },
+      };
+    }
+
     return {
       success: true,
       data: ownerRole,
@@ -271,6 +303,18 @@ export class RoleService implements IRoleService {
 
       const role = roleResult.data;
 
+      // Owner rolü için özel kontrol: DEFAULT_PERMISSIONS.OWNER'daki tüm permission'ları otomatik ver
+      if (role.name === 'Owner' && role.isDefault) {
+        // Önce Owner rolünü güncelle (eksik permission'lar varsa)
+        const ownerRoleResult = await this.getOwnerRole(teamId);
+        if (ownerRoleResult.success && ownerRoleResult.data) {
+          // Güncellenmiş Owner rolündeki permission'ları kontrol et
+          return ownerRoleResult.data.permissions.includes(permission);
+        }
+        // Güncelleme başarısız olsa bile DEFAULT_PERMISSIONS.OWNER'dan kontrol et
+        return DEFAULT_PERMISSIONS.OWNER.includes(permission);
+      }
+
       // Permission kontrolü
       return role.permissions.includes(permission);
     } catch (error) {
@@ -296,7 +340,20 @@ export class RoleService implements IRoleService {
         return [];
       }
 
-      return roleResult.data.permissions;
+      const role = roleResult.data;
+
+      // Owner rolü için özel kontrol: DEFAULT_PERMISSIONS.OWNER'daki tüm permission'ları otomatik ver
+      if (role.name === 'Owner' && role.isDefault) {
+        // Önce Owner rolünü güncelle (eksik permission'lar varsa)
+        const ownerRoleResult = await this.getOwnerRole(teamId);
+        if (ownerRoleResult.success && ownerRoleResult.data) {
+          return ownerRoleResult.data.permissions;
+        }
+        // Güncelleme başarısız olsa bile DEFAULT_PERMISSIONS.OWNER döndür
+        return DEFAULT_PERMISSIONS.OWNER;
+      }
+
+      return role.permissions;
     } catch (error) {
       return [];
     }

@@ -321,6 +321,8 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     'EDIT_TEAM',
     'DELETE_TEAM',
     'VIEW_TEAM_ID',
+    'EDIT_CHAT_CONVERSATION',
+    'DELETE_CHAT_CONVERSATION',
   ];
 
   return (

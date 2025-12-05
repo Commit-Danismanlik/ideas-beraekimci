@@ -17,7 +17,7 @@ export interface UseChatConversationsReturn {
   updateConversation: (
     teamId: string,
     conversationId: string,
-    messages: IChatConversation['messages']
+    dto: { title?: string; messages?: IChatConversation['messages'] }
   ) => Promise<IQueryResult<IChatConversation>>;
   deleteConversation: (
     teamId: string,
@@ -131,11 +131,11 @@ export const useChatConversations = (): UseChatConversationsReturn => {
     async (
       teamId: string,
       conversationId: string,
-      messages: IChatConversation['messages']
+      dto: { title?: string; messages?: IChatConversation['messages'] }
     ): Promise<IQueryResult<IChatConversation>> => {
       setError(null);
       try {
-        const result = await conversationService.updateConversation(teamId, conversationId, { messages });
+        const result = await conversationService.updateConversation(teamId, conversationId, dto);
         if (result.success && result.data) {
           // Güncellenmiş konuşmayı listede güncelle
           setConversations((prev) =>
