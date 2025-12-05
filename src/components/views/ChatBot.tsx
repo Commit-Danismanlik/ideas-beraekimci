@@ -137,7 +137,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
           conversationId: currentConversation.id,
           messageCount: messagesWithUserId.length,
         });
-        const result = await updateConversationInList(selectedTeamId, currentConversation.id, messagesWithUserId);
+        const result = await updateConversationInList(selectedTeamId, currentConversation.id, { messages: messagesWithUserId });
         if (result.success && result.data) {
           console.log('saveConversation: Conversation başarıyla güncellendi', {
             conversationId: result.data.id,
@@ -233,6 +233,11 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
       setIsSidebarOpen(false);
     }
   }, [isOpen]);
+
+  // Conversation güncellendiğinde veya silindiğinde sidebar'ı yenile
+  const handleConversationUpdated = useCallback((): void => {
+    setSidebarRefreshKey((prev) => prev + 1);
+  }, []);
 
   const handleSendMessage = useCallback(async (): Promise<void> => {
     if (!inputMessage.trim() || isLoading || !selectedTeamId || !user) {
@@ -370,6 +375,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
                   onSelectConversation={handleSelectConversation}
                   onNewConversation={handleNewConversation}
                   refreshKey={sidebarRefreshKey}
+                  onConversationUpdated={handleConversationUpdated}
                 />
               </div>
             </>

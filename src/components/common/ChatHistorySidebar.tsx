@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useChatConversations } from '../../hooks/useChatConversations';
 import { IChatConversation } from '../../models/ChatConversation.model';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface ChatHistorySidebarProps {
   teamId: string | null;
@@ -9,6 +10,7 @@ interface ChatHistorySidebarProps {
   onSelectConversation: (conversation: IChatConversation | null) => void;
   onNewConversation: () => void;
   refreshKey?: number;
+  onConversationUpdated?: () => void;
 }
 
 export const ChatHistorySidebar = ({
@@ -18,8 +20,21 @@ export const ChatHistorySidebar = ({
   onSelectConversation,
   onNewConversation,
   refreshKey,
+  onConversationUpdated,
 }: ChatHistorySidebarProps): JSX.Element | null => {
-  const { conversations, loading, loadConversations } = useChatConversations();
+  const { conversations, loading, loadConversations, updateConversation, deleteConversation } = useChatConversations();
+  const { hasPermission } = usePermissions(teamId);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState<string>('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Kullanıcının chat conversation düzenleme/silme yetkisi var mı?
+  const canEditConversation = hasPermission('EDIT_CHAT_CONVERSATION');
+  const canDeleteConversation = hasPermission('DELETE_CHAT_CONVERSATION');
+  const canManageConversation = canEditConversation || canDeleteConversation;
 
   useEffect(() => {
     if (teamId) {
@@ -27,6 +42,31 @@ export const ChatHistorySidebar = ({
       loadConversations(teamId);
     }
   }, [teamId, loadConversations, refreshKey]);
+
+  // Dışarı tıklandığında menüyü kapat
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    if (openMenuId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
+
+  // Edit input'a focus ver
+  useEffect(() => {
+    if (editingId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingId]);
 
   if (!teamId) {
     return null;
@@ -46,6 +86,70 @@ export const ChatHistorySidebar = ({
     } else {
       return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
     }
+  };
+
+  const handleMenuToggle = (e: React.MouseEvent, conversationId: string): void => {
+    e.stopPropagation();
+    setOpenMenuId(openMenuId === conversationId ? null : conversationId);
+  };
+
+  const handleEditClick = (e: React.MouseEvent, conversation: IChatConversation): void => {
+    e.stopPropagation();
+    setOpenMenuId(null);
+    setEditingId(conversation.id);
+    setEditTitle(conversation.title);
+  };
+
+  const handleEditSave = async (e: React.FormEvent, conversationId: string): Promise<void> => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!teamId || !editTitle.trim()) {
+      return;
+    }
+
+    const result = await updateConversation(teamId, conversationId, { title: editTitle.trim() });
+    if (result.success) {
+      // Düzenleme modunu kapat
+      setEditingId(null);
+      setEditTitle('');
+      if (onConversationUpdated) {
+        onConversationUpdated();
+      }
+    }
+  };
+
+  const handleEditCancel = (): void => {
+    setEditingId(null);
+    setEditTitle('');
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, conversationId: string): void => {
+    e.stopPropagation();
+    setOpenMenuId(null);
+    setDeletingId(conversationId);
+  };
+
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!teamId || !deletingId) {
+      setDeletingId(null);
+      return;
+    }
+
+    const result = await deleteConversation(teamId, deletingId);
+    if (result.success) {
+      // Eğer silinen conversation seçiliyse, seçimi temizle
+      if (selectedConversationId === deletingId) {
+        onSelectConversation(null);
+      }
+      setDeletingId(null);
+      if (onConversationUpdated) {
+        onConversationUpdated();
+      }
+    }
+  };
+
+  const handleDeleteCancel = (): void => {
+    setDeletingId(null);
   };
 
   return (
@@ -83,33 +187,141 @@ export const ChatHistorySidebar = ({
         ) : (
           <div className="space-y-2">
             {conversations.map((conversation) => (
-              <button
+              <div
                 key={conversation.id}
-                onClick={() => onSelectConversation(conversation)}
-                className={`w-full text-left p-3 rounded-xl transition-all ${
+                className={`relative group w-full p-3 rounded-xl transition-all ${
                   selectedConversationId === conversation.id
                     ? 'bg-gradient-to-r from-indigo-600/50 to-purple-600/50 border border-indigo-500/50'
                     : 'glass hover:bg-indigo-500/20 border border-transparent hover:border-indigo-500/30'
                 }`}
               >
-                <div className="flex flex-col gap-1">
-                  <h4 className="text-sm font-semibold text-indigo-200 line-clamp-2">
-                    {conversation.title}
-                  </h4>
-                  <p className="text-xs text-indigo-300/70">
-                    {formatDate(conversation.updatedAt)}
-                  </p>
-                  {conversation.messages.length > 0 && (
-                    <p className="text-xs text-indigo-400/60 line-clamp-1 mt-1">
-                      {conversation.messages.length} mesaj
-                    </p>
-                  )}
-                </div>
-              </button>
+                {editingId === conversation.id ? (
+                  // Edit Mode
+                  <form
+                    onSubmit={(e) => handleEditSave(e, conversation.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex flex-col gap-2"
+                  >
+                    <input
+                      ref={editInputRef}
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                          handleEditCancel();
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-slate-800/50 border border-indigo-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="Başlık"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all"
+                      >
+                        Kaydet
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleEditCancel}
+                        className="flex-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg transition-all"
+                      >
+                        İptal
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div
+                      onClick={() => onSelectConversation(conversation)}
+                      className="w-full text-left flex flex-col gap-1 cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="text-sm font-semibold text-indigo-200 line-clamp-2 flex-1">
+                          {conversation.title}
+                        </h4>
+                        {/* Üç Nokta Menü - Sadece yetkisi olanlar görebilir */}
+                        {canManageConversation && (
+                          <button
+                            onClick={(e) => handleMenuToggle(e, conversation.id)}
+                            className="p-1 text-indigo-300/70 hover:text-indigo-200 hover:bg-indigo-500/20 rounded transition-all flex-shrink-0"
+                            title="Menü"
+                          >
+                            <span className="text-lg">⋯</span>
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-indigo-300/70">
+                        {formatDate(conversation.updatedAt)}
+                      </p>
+                      {conversation.messages.length > 0 && (
+                        <p className="text-xs text-indigo-400/60 line-clamp-1 mt-1">
+                          {conversation.messages.length} mesaj
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Dropdown Menu */}
+                    {openMenuId === conversation.id && canManageConversation && (
+                      <div
+                        ref={menuRef}
+                        className="absolute top-10 right-2 z-50 bg-slate-800 border border-indigo-500/30 rounded-lg shadow-lg overflow-hidden min-w-[140px]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {canEditConversation && (
+                          <button
+                            onClick={(e) => handleEditClick(e, conversation)}
+                            className="w-full px-4 py-2 text-left text-sm text-indigo-200 hover:bg-indigo-500/20 flex items-center gap-2 transition-all"
+                          >
+                            <span className="text-indigo-400">✏️</span>
+                            <span>Düzenle</span>
+                          </button>
+                        )}
+                        {canDeleteConversation && (
+                          <button
+                            onClick={(e) => handleDeleteClick(e, conversation.id)}
+                            className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/20 flex items-center gap-2 transition-all"
+                          >
+                            <span className="text-red-500">🗑️</span>
+                            <span>Sil</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-slate-800 border border-indigo-500/30 rounded-xl p-6 max-w-sm w-full mx-4 shadow-glow">
+            <h3 className="text-lg font-bold text-indigo-200 mb-4">Sohbeti Sil</h3>
+            <p className="text-sm text-indigo-300/70 mb-6">
+              Bu sohbeti silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDeleteConfirm}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg transition-all"
+              >
+                Sil
+              </button>
+              <button
+                onClick={handleDeleteCancel}
+                className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all"
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
