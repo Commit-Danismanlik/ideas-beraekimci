@@ -4,6 +4,7 @@ export interface IChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  userId?: string; // Kullanıcı mesajları için userId
 }
 
 export interface ISendMessageDto {

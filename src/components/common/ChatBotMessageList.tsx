@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { IChatMessage } from '../../interfaces/IChatBotService';
+import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 
 interface ChatBotMessageListProps {
   messages: IChatMessage[];
   isTyping: boolean;
   typingMessage: string;
   isLoading: boolean;
+  teamMembers: IMemberWithRole[];
 }
 
 export const ChatBotMessageList = ({
@@ -13,11 +15,20 @@ export const ChatBotMessageList = ({
   isTyping,
   typingMessage,
   isLoading,
+  teamMembers,
 }: ChatBotMessageListProps): JSX.Element => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
   const previousMessagesLengthRef = useRef<number>(0);
+
+  const getUserName = (userId?: string): string => {
+    if (!userId) {
+      return 'Kullanıcı';
+    }
+    const member = teamMembers.find((m) => m.userId === userId);
+    return member?.displayName || member?.email || 'Kullanıcı';
+  };
 
   // Kullanıcının scroll pozisyonunu kontrol et
   const checkIfUserIsAtBottom = (): boolean => {
@@ -98,8 +109,13 @@ export const ChatBotMessageList = ({
       {messages.map((message, index) => (
         <div
           key={index}
-          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
         >
+          {message.role === 'user' && message.userId && (
+            <span className="text-xs text-indigo-300/70 mb-1 px-2">
+              {getUserName(message.userId)}
+            </span>
+          )}
           <div
             className={`max-w-[80%] sm:max-w-[70%] rounded-2xl p-3 sm:p-4 ${
               message.role === 'user'

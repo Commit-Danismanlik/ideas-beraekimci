@@ -61,7 +61,7 @@ export const useTypingEffect = (
       return currentMessage;
     }
     return null;
-  }, [typingMessage, onComplete]);
+  }, [onComplete]);
 
   const reset = useCallback((): void => {
     if (typingIntervalRef.current) {

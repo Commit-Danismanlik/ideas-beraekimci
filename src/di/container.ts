@@ -3,12 +3,14 @@ import { Firestore } from 'firebase/firestore';
 import { getFirebaseAuth, getFirestoreDb } from '../config/firebase.config';
 import { IAuthService } from '../interfaces/IAuthService';
 import { IChatBotService } from '../interfaces/IChatBotService';
+import { IChatConversationService } from '../interfaces/IChatConversationService';
 import { IPersonalNoteService, IPersonalTodoService } from '../interfaces/IPersonalRepositoryService';
 import { IRoleService } from '../interfaces/IRoleService';
 import { ITaskService } from '../interfaces/ITaskService';
 import { ITeamNoteService, ITeamTodoService } from '../interfaces/ITeamRepositoryService';
 import { ITeamService } from '../interfaces/ITeamService';
 import { IUserService } from '../interfaces/IUserService';
+import { ChatConversationRepository } from '../repositories/ChatConversationRepository';
 import { PersonalNoteRepository } from '../repositories/PersonalNoteRepository';
 import { PersonalTodoRepository } from '../repositories/PersonalTodoRepository';
 import { RoleRepository } from '../repositories/RoleRepository';
@@ -20,6 +22,7 @@ import { TeamTodoRepository } from '../repositories/TeamTodoRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { AuthService } from '../services/AuthService';
 import { ChatBotService } from '../services/ChatBotService';
+import { ChatConversationService } from '../services/ChatConversationService';
 import { PersonalNoteService } from '../services/PersonalNoteService';
 import { PersonalTodoService } from '../services/PersonalTodoService';
 import { RoleService } from '../services/RoleService';
@@ -49,6 +52,7 @@ export class ServiceContainer {
   private teamTodoServiceInstance: ITeamTodoService | null = null;
   private teamMemberInfoServiceInstance: TeamMemberInfoService | null = null;
   private chatBotServiceInstance: IChatBotService | null = null;
+  private chatConversationServiceInstance: IChatConversationService | null = null;
 
   private constructor() {
     this.firestore = getFirestoreDb();
@@ -174,6 +178,16 @@ export class ServiceContainer {
     }
     return this.chatBotServiceInstance;
   }
+
+  // ChatConversation Service - Lazy initialization
+  public getChatConversationService(): IChatConversationService {
+    if (!this.chatConversationServiceInstance) {
+      const conversationRepository = new ChatConversationRepository(this.firestore);
+      const roleService = this.getRoleService();
+      this.chatConversationServiceInstance = new ChatConversationService(conversationRepository, roleService);
+    }
+    return this.chatConversationServiceInstance;
+  }
 }
 
 // Helper fonksiyonlar - Kolay erişim için (alfabetik sırada)
@@ -183,6 +197,10 @@ export const getAuthService = (): IAuthService => {
 
 export const getChatBotService = (): IChatBotService => {
   return ServiceContainer.getInstance().getChatBotService();
+};
+
+export const getChatConversationService = (): IChatConversationService => {
+  return ServiceContainer.getInstance().getChatConversationService();
 };
 
 export const getPersonalNoteService = (): IPersonalNoteService => {
