@@ -9,6 +9,7 @@ export interface UseChatBotReturn {
   typingMessage: string;
   setInputMessage: (message: string) => void;
   addMessage: (message: IChatMessage) => void;
+  setMessages: (messages: IChatMessage[]) => void;
   setTypingMessage: (message: string) => void;
   setIsTyping: (isTyping: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
@@ -25,6 +26,10 @@ export const useChatBot = (): UseChatBotReturn => {
     setMessages((prev) => [...prev, message]);
   }, []);
 
+  const setMessagesCallback = useCallback((newMessages: IChatMessage[]): void => {
+    setMessages(newMessages);
+  }, []);
+
   return {
     messages,
     inputMessage,
@@ -33,6 +38,7 @@ export const useChatBot = (): UseChatBotReturn => {
     typingMessage,
     setInputMessage,
     addMessage,
+    setMessages: setMessagesCallback,
     setTypingMessage,
     setIsTyping,
     setIsLoading,

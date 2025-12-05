@@ -23,6 +23,7 @@ export const Dashboard = (): JSX.Element => {
     isMobileMenuOpen,
     canManageTeam,
     hasTeam,
+    selectedTeamId,
     setActiveView,
     setShowProfileModal,
     setShowChatBot,
@@ -77,6 +78,7 @@ export const Dashboard = (): JSX.Element => {
         isOpen={showChatBot}
         onClose={() => setShowChatBot(false)}
         hasTeam={hasTeam}
+        selectedTeamId={selectedTeamId}
       />
 
       <DashboardAnimations />

@@ -1,11 +1,23 @@
 export interface ChatBotHeaderProps {
   onClose: () => void;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
 }
 
-export const ChatBotHeader = ({ onClose }: ChatBotHeaderProps): JSX.Element => {
+export const ChatBotHeader = ({ onClose, onToggleSidebar, isSidebarOpen }: ChatBotHeaderProps): JSX.Element => {
   return (
     <div className="flex justify-between items-center p-4 sm:p-6 border-b border-indigo-500/20">
       <div className="flex items-center gap-3">
+        {/* Hamburger Menu - Sadece mobilde görünür */}
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            className="md:hidden p-2 text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+            aria-label="Menüyü aç/kapat"
+          >
+            {isSidebarOpen ? '✕' : '☰'}
+          </button>
+        )}
         <img
           src="/gemini-color.svg"
           alt="Gemini"
@@ -18,6 +30,7 @@ export const ChatBotHeader = ({ onClose }: ChatBotHeaderProps): JSX.Element => {
       <button
         onClick={onClose}
         className="p-2 text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+        aria-label="Kapat"
       >
         ✕
       </button>
