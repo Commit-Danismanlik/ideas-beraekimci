@@ -1,4 +1,4 @@
-interface ChatBotHeaderProps {
+export interface ChatBotHeaderProps {
   onClose: () => void;
 }
 
@@ -24,4 +24,3 @@ export const ChatBotHeader = ({ onClose }: ChatBotHeaderProps): JSX.Element => {
     </div>
   );
 };
-

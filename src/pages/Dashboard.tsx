@@ -76,6 +76,7 @@ export const Dashboard = (): JSX.Element => {
       <ChatBot
         isOpen={showChatBot}
         onClose={() => setShowChatBot(false)}
+        hasTeam={hasTeam}
       />
 
       <DashboardAnimations />

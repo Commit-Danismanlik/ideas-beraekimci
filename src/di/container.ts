@@ -1,34 +1,34 @@
-import { Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
-import { getFirestoreDb, getFirebaseAuth } from '../config/firebase.config';
-import { UserRepository } from '../repositories/UserRepository';
-import { TeamRepository } from '../repositories/TeamRepository';
-import { TaskRepository } from '../repositories/TaskRepository';
+import { Firestore } from 'firebase/firestore';
+import { getFirebaseAuth, getFirestoreDb } from '../config/firebase.config';
+import { IAuthService } from '../interfaces/IAuthService';
+import { IChatBotService } from '../interfaces/IChatBotService';
+import { IPersonalNoteService, IPersonalTodoService } from '../interfaces/IPersonalRepositoryService';
+import { IRoleService } from '../interfaces/IRoleService';
+import { ITaskService } from '../interfaces/ITaskService';
+import { ITeamNoteService, ITeamTodoService } from '../interfaces/ITeamRepositoryService';
+import { ITeamService } from '../interfaces/ITeamService';
+import { IUserService } from '../interfaces/IUserService';
 import { PersonalNoteRepository } from '../repositories/PersonalNoteRepository';
 import { PersonalTodoRepository } from '../repositories/PersonalTodoRepository';
 import { RoleRepository } from '../repositories/RoleRepository';
+import { TaskRepository } from '../repositories/TaskRepository';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
 import { TeamNoteRepository } from '../repositories/TeamNoteRepository';
+import { TeamRepository } from '../repositories/TeamRepository';
 import { TeamTodoRepository } from '../repositories/TeamTodoRepository';
-import { UserService } from '../services/UserService';
+import { UserRepository } from '../repositories/UserRepository';
 import { AuthService } from '../services/AuthService';
-import { TeamService } from '../services/TeamService';
-import { TaskService } from '../services/TaskService';
+import { ChatBotService } from '../services/ChatBotService';
 import { PersonalNoteService } from '../services/PersonalNoteService';
 import { PersonalTodoService } from '../services/PersonalTodoService';
 import { RoleService } from '../services/RoleService';
-import { TeamNoteService } from '../services/TeamNoteService';
-import { TeamTodoService } from '../services/TeamTodoService';
+import { TaskService } from '../services/TaskService';
 import { TeamMemberInfoService } from '../services/TeamMemberInfoService';
-import { ChatBotService } from '../services/ChatBotService';
-import { IUserService } from '../interfaces/IUserService';
-import { IAuthService } from '../interfaces/IAuthService';
-import { ITeamService } from '../interfaces/ITeamService';
-import { ITaskService } from '../interfaces/ITaskService';
-import { IPersonalNoteService, IPersonalTodoService } from '../interfaces/IPersonalRepositoryService';
-import { ITeamNoteService, ITeamTodoService } from '../interfaces/ITeamRepositoryService';
-import { IRoleService } from '../interfaces/IRoleService';
-import { IChatBotService } from '../interfaces/IChatBotService';
+import { TeamNoteService } from '../services/TeamNoteService';
+import { TeamService } from '../services/TeamService';
+import { TeamTodoService } from '../services/TeamTodoService';
+import { UserService } from '../services/UserService';
 
 // SOLID: Dependency Inversion Principle - Manuel DI Container
 // @injectable kullanmadan, new ile instance oluşturma
@@ -156,9 +156,11 @@ export class ServiceContainer {
     if (!this.teamMemberInfoServiceInstance) {
       const teamMemberRepository = new TeamMemberRepository(this.firestore);
       const roleService = this.getRoleService();
+      const userService = this.getUserService();
       this.teamMemberInfoServiceInstance = new TeamMemberInfoService(
         teamMemberRepository,
         roleService,
+        userService,
         this.firestore
       );
     }
@@ -174,21 +176,13 @@ export class ServiceContainer {
   }
 }
 
-// Helper fonksiyonlar - Kolay erişim için
-export const getUserService = (): IUserService => {
-  return ServiceContainer.getInstance().getUserService();
-};
-
+// Helper fonksiyonlar - Kolay erişim için (alfabetik sırada)
 export const getAuthService = (): IAuthService => {
   return ServiceContainer.getInstance().getAuthService();
 };
 
-export const getTeamService = (): ITeamService => {
-  return ServiceContainer.getInstance().getTeamService();
-};
-
-export const getTaskService = (): ITaskService => {
-  return ServiceContainer.getInstance().getTaskService();
+export const getChatBotService = (): IChatBotService => {
+  return ServiceContainer.getInstance().getChatBotService();
 };
 
 export const getPersonalNoteService = (): IPersonalNoteService => {
@@ -203,19 +197,27 @@ export const getRoleService = (): IRoleService => {
   return ServiceContainer.getInstance().getRoleService();
 };
 
-export const getTeamNoteService = (): ITeamNoteService => {
-  return ServiceContainer.getInstance().getTeamNoteService();
-};
-
-export const getTeamTodoService = (): ITeamTodoService => {
-  return ServiceContainer.getInstance().getTeamTodoService();
+export const getTaskService = (): ITaskService => {
+  return ServiceContainer.getInstance().getTaskService();
 };
 
 export const getTeamMemberInfoService = (): TeamMemberInfoService => {
   return ServiceContainer.getInstance().getTeamMemberInfoService();
 };
 
-export const getChatBotService = (): IChatBotService => {
-  return ServiceContainer.getInstance().getChatBotService();
+export const getTeamNoteService = (): ITeamNoteService => {
+  return ServiceContainer.getInstance().getTeamNoteService();
+};
+
+export const getTeamService = (): ITeamService => {
+  return ServiceContainer.getInstance().getTeamService();
+};
+
+export const getTeamTodoService = (): ITeamTodoService => {
+  return ServiceContainer.getInstance().getTeamTodoService();
+};
+
+export const getUserService = (): IUserService => {
+  return ServiceContainer.getInstance().getUserService();
 };
 

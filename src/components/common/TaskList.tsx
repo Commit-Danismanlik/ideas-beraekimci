@@ -1,6 +1,7 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState, useMemo, useEffect } from 'react';
 import { ITask } from '../../models/Task.model';
 import { MemoizedVirtualizedList } from './VirtualizedList';
+import ReactPaginate from 'react-paginate';
 
 interface IMember {
   userId: string;
@@ -36,6 +37,30 @@ const TaskListComponent = ({
   hasMore,
   onLoadMore,
 }: TaskListProps): JSX.Element => {
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const itemsPerPage = 5;
+
+  // Pagination için görevleri hesapla
+  const paginatedTasks = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredTasks.slice(startIndex, endIndex);
+  }, [filteredTasks, currentPage, itemsPerPage]);
+
+  const pageCount = Math.ceil(filteredTasks.length / itemsPerPage);
+
+  // Sayfa değiştiğinde
+  const handlePageClick = useCallback((event: { selected: number }): void => {
+    setCurrentPage(event.selected);
+  }, []);
+
+  // filteredTasks değiştiğinde sayfayı sıfırla
+  useEffect(() => {
+    if (currentPage >= pageCount && pageCount > 0) {
+      setCurrentPage(0);
+    }
+  }, [filteredTasks.length, currentPage, pageCount]);
+
   const renderTaskItem = useCallback(
     (task: ITask) => {
       const assignedMember = task.assignedTo ? membersMap.get(task.assignedTo) : undefined;
@@ -127,23 +152,38 @@ const TaskListComponent = ({
   return (
     <>
       <MemoizedVirtualizedList
-        items={filteredTasks}
+        items={paginatedTasks}
         itemKey={(t) => t.id}
         itemHeight={120}
-        height={Math.min(600, Math.max(320, filteredTasks.length * 120))}
+        height={Math.min(600, Math.max(320, paginatedTasks.length * 120))}
         className=""
         renderItem={renderTaskItem}
       />
 
-      {/* Daha Fazla Yükle */}
-      {!loading && hasMore && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={onLoadMore}
-            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700"
-          >
-            Daha Fazla Yükle
-          </button>
+      {/* Pagination */}
+      {pageCount > 1 && (
+        <div className="flex justify-center mt-6">
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="Sonraki >"
+            onPageChange={handlePageClick}
+            pageRangeDisplayed={3}
+            marginPagesDisplayed={2}
+            pageCount={pageCount}
+            previousLabel="< Önceki"
+            renderOnZeroPageCount={null}
+            containerClassName="flex items-center gap-2"
+            pageClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors select-none"
+            pageLinkClassName="block px-3 py-2 w-full h-full"
+            previousClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+            previousLinkClassName="block px-3 py-2 w-full h-full"
+            nextClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+            nextLinkClassName="block px-3 py-2 w-full h-full"
+            breakClassName="px-3 py-2 text-gray-400 select-none"
+            activeClassName="bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-700"
+            disabledClassName="opacity-50 cursor-not-allowed"
+            forcePage={currentPage}
+          />
         </div>
       )}
     </>
