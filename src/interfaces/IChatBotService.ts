@@ -9,6 +9,7 @@ export interface IChatMessage {
 
 export interface ISendMessageDto {
   message: string;
+  teamId?: string;
   conversationHistory?: IChatMessage[];
 }
 

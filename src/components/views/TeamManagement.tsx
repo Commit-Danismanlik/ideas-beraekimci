@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { getTeamService, getRoleService, getTeamMemberInfoService } from '../../di/container';
-import { ITeam } from '../../models/Team.model';
+import { ITeam, DEFAULT_CHATBOT_RULES } from '../../models/Team.model';
 import { IRole, Permission, PERMISSION_DESCRIPTIONS } from '../../models/Role.model';
 import { MemberItem } from '../common/MemberItem';
 import { IMemberWithRole } from '../../services/TeamMemberInfoService';
@@ -9,6 +9,7 @@ import { MemoizedVirtualizedList } from '../common/VirtualizedList';
 import { useModal } from '../../hooks/useModal';
 import { useForm } from '../../hooks/useForm';
 import { useClipboard } from '../../hooks/useClipboard';
+import { usePermissions } from '../../hooks/usePermissions';
 
 interface TeamManagementProps {
   userTeams: ITeam[];
@@ -24,8 +25,11 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   const roleFormModal = useModal(false);
   const assignFormModal = useModal(false);
   const editTeamFormModal = useModal(false);
+  const chatbotRulesModal = useModal(false);
+  const apiKeyModal = useModal(false);
   const [editingRole, setEditingRole] = useState<IRole | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { hasPermission } = usePermissions(selectedTeam);
   
   interface IRoleFormData extends Record<string, unknown> {
     name: string;
@@ -42,6 +46,14 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     name: string;
     description: string;
   }
+
+  interface IChatbotRulesFormData extends Record<string, unknown> {
+    rules: string;
+  }
+
+  interface IApiKeyFormData extends Record<string, unknown> {
+    apiKey: string;
+  }
   
   const roleForm = useForm<IRoleFormData>({
     name: '',
@@ -55,6 +67,12 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   const teamEditForm = useForm<ITeamEditFormData>({
     name: '',
     description: '',
+  });
+  const chatbotRulesForm = useForm<IChatbotRulesFormData>({
+    rules: '',
+  });
+  const apiKeyForm = useForm<IApiKeyFormData>({
+    apiKey: '',
   });
   
   const { copy: copyToClipboard } = useClipboard();
@@ -304,7 +322,75 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     }
   };
 
+  const handleEditChatbotRules = async () => {
+    if (!selectedTeam) return;
+    
+    // Güncel takım verilerini çek
+    const teamResult = await teamService.getTeamById(selectedTeam);
+    if (!teamResult.success || !teamResult.data) {
+      setError('Takım bilgileri yüklenemedi');
+      return;
+    }
+
+    const team = teamResult.data;
+    const rules = team.chatbotRules || DEFAULT_CHATBOT_RULES;
+    chatbotRulesForm.setInitialData({
+      rules: rules.join('\n'),
+    });
+    chatbotRulesModal.open();
+  };
+
+  const handleSaveChatbotRules = async () => {
+    if (!selectedTeam) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Textarea'dan gelen string'i satırlara böl
+      const rulesArray = chatbotRulesForm.formData.rules
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      if (rulesArray.length === 0) {
+        setError('ChatBot kuralları boş olamaz');
+        setLoading(false);
+        return;
+      }
+
+      const result = await teamService.updateTeam(selectedTeam, {
+        chatbotRules: rulesArray,
+      });
+
+      if (result.success) {
+        chatbotRulesModal.close();
+        chatbotRulesForm.reset();
+        setError(null);
+        // Parent component'in userTeams'i güncellemesi için sayfayı yenile
+        fetchData();
+        alert('ChatBot kuralları başarıyla güncellendi!');
+      } else {
+        setError(result.error || 'ChatBot kuralları güncellenemedi');
+      }
+    } catch (err) {
+      setError('Bilinmeyen bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetChatbotRules = () => {
+    if (!window.confirm('ChatBot kurallarını varsayılan değerlere sıfırlamak istediğinize emin misiniz?')) {
+      return;
+    }
+    chatbotRulesForm.setInitialData({
+      rules: DEFAULT_CHATBOT_RULES.join('\n'),
+    });
+  };
+
   const selectedTeamData = userTeams.find((t) => t.id === selectedTeam);
+  const canEditTeam = hasPermission('EDIT_TEAM');
 
   const allPermissions: Permission[] = [
     'CREATE_TASK',
@@ -389,6 +475,33 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
               >
                 ✏️ Takımı Düzenle
               </button>
+              {canEditTeam && (
+                <>
+                  <button
+                    onClick={handleEditChatbotRules}
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-1 px-3 rounded mt-2"
+                    title="ChatBot Kurallarını Düzenle"
+                  >
+                    🤖 ChatBot Kuralları
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!selectedTeam) return;
+                      const teamResult = await teamService.getTeamById(selectedTeam);
+                      if (teamResult.success && teamResult.data) {
+                        apiKeyForm.setInitialData({
+                          apiKey: teamResult.data.geminiApiKey || '',
+                        });
+                        apiKeyModal.open();
+                      }
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-1 px-3 rounded mt-2"
+                    title="Gemini API Key Yapılandırması"
+                  >
+                    🔑 Gemini API Key
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -445,6 +558,144 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                   onClick={() => {
                     editTeamFormModal.close();
                     teamEditForm.reset();
+                  }}
+                  className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* API Key Yapılandırma Modal */}
+      {apiKeyModal.isOpen && selectedTeamData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-b from-indigo-950 to-sky-950 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-indigo-100 mb-4">Gemini API Key Yapılandırması</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-indigo-200 mb-1">
+                  Gemini API Key
+                </label>
+                <input
+                  type="password"
+                  value={apiKeyForm.formData.apiKey}
+                  onChange={(e) => apiKeyForm.updateField('apiKey', e.target.value)}
+                  className="w-full px-4 py-2 border border-indigo-800 rounded-lg text-indigo-200 bg-indigo-950 focus:ring-2 focus:ring-indigo-600"
+                  placeholder="AIza..."
+                />
+                <p className="text-xs text-indigo-400 mt-2">
+                  💡 API key'inizi <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-300">Google AI Studio</a>'dan alabilirsiniz.
+                </p>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    if (!selectedTeam) return;
+
+                    setLoading(true);
+                    setError(null);
+
+                    try {
+                      const result = await teamService.updateTeam(selectedTeam, {
+                        geminiApiKey: apiKeyForm.formData.apiKey.trim(),
+                      });
+
+                      if (result.success) {
+                        apiKeyModal.close();
+                        apiKeyForm.reset();
+                        alert('API Key başarıyla kaydedildi!');
+                      } else {
+                        setError(result.error || 'API Key kaydedilemedi');
+                      }
+                    } catch (err) {
+                      setError('Bilinmeyen bir hata oluştu');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg disabled:bg-gray-400"
+                >
+                  {loading ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+                <button
+                  onClick={() => {
+                    apiKeyModal.close();
+                    apiKeyForm.reset();
+                    setError(null);
+                  }}
+                  className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ChatBot Kuralları Düzenleme Modal */}
+      {chatbotRulesModal.isOpen && selectedTeamData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-b from-indigo-950 to-sky-950 rounded-lg p-6 w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <h3 className="text-xl font-bold text-indigo-100 mb-4">ChatBot Kuralları Düzenle</h3>
+            
+            <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+              <div className="flex-1 flex flex-col">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-sm font-medium text-indigo-200">
+                    ChatBot Kuralları (Her satır bir kural satırıdır)
+                  </label>
+                  <button
+                    onClick={handleResetChatbotRules}
+                    className="text-xs bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-1 px-2 rounded"
+                    title="Varsayılan kurallara sıfırla"
+                  >
+                    🔄 Varsayılana Sıfırla
+                  </button>
+                </div>
+                <textarea
+                  value={chatbotRulesForm.formData.rules}
+                  onChange={(e) => chatbotRulesForm.updateField('rules', e.target.value)}
+                  className="flex-1 w-full px-4 py-2 border border-indigo-800 rounded-lg text-indigo-200 bg-indigo-950 focus:ring-2 focus:ring-indigo-600 resize-none font-mono text-sm"
+                  placeholder="ChatBot kurallarını girin..."
+                  style={{ minHeight: '400px' }}
+                />
+                <p className="text-xs text-indigo-400 mt-2">
+                  💡 Her satır bir kural satırı olarak kaydedilecektir. Boş satırlar otomatik olarak temizlenir.
+                </p>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveChatbotRules}
+                  disabled={loading}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-lg disabled:bg-gray-400"
+                >
+                  {loading ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+                <button
+                  onClick={() => {
+                    chatbotRulesModal.close();
+                    chatbotRulesForm.reset();
+                    setError(null);
                   }}
                   className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
                 >

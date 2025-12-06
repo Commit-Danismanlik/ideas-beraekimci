@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { IChatMessage } from '../../interfaces/IChatBotService';
 import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 
@@ -17,10 +17,37 @@ export const ChatBotMessageList = ({
   isLoading,
   teamMembers,
 }: ChatBotMessageListProps): JSX.Element => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState<boolean>(true);
+  const hasScrolledToBottomRef = useRef<boolean>(false);
   const previousMessagesLengthRef = useRef<number>(0);
+
+  const scrollToBottom = (): void => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  };
+
+  // Sohbet açıldığında (mesajlar ilk yüklendiğinde) sadece 1 kere en alta kaydır
+  useEffect(() => {
+    const currentMessagesLength = messages.length;
+    const previousMessagesLength = previousMessagesLengthRef.current;
+
+    // Eğer mesajlar boştan doluya geçtiyse veya conversation değiştiyse (mesaj sayısı sıfırlandı ve tekrar yüklendiyse)
+    if (currentMessagesLength > 0 && previousMessagesLength === 0 && !hasScrolledToBottomRef.current) {
+      // İlk yükleme - sohbet açıldığında sadece 1 kere en alta kaydır
+      setTimeout(() => {
+        scrollToBottom();
+        hasScrolledToBottomRef.current = true;
+      }, 100);
+    }
+
+    // Eğer mesajlar sıfırlandıysa (yeni conversation başlatıldı), scroll flag'ini sıfırla
+    if (currentMessagesLength === 0 && previousMessagesLength > 0) {
+      hasScrolledToBottomRef.current = false;
+    }
+
+    previousMessagesLengthRef.current = currentMessagesLength;
+  }, [messages.length]);
 
   const getUserName = (userId?: string): string => {
     if (!userId) {
@@ -30,76 +57,8 @@ export const ChatBotMessageList = ({
     return member?.displayName || member?.email || 'Kullanıcı';
   };
 
-  // Kullanıcının scroll pozisyonunu kontrol et
-  const checkIfUserIsAtBottom = (): boolean => {
-    if (!scrollContainerRef.current) {
-      return false;
-    }
-    const container = scrollContainerRef.current;
-    const threshold = 100; // 100px threshold - kullanıcı en alta yakınsa otomatik scroll yap
-    const isNearBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
-    return isNearBottom;
-  };
-
-  // Scroll event handler - kullanıcı scroll yaptığında kontrol et
-  const handleScroll = (): void => {
-    if (scrollContainerRef.current) {
-      const isAtBottom = checkIfUserIsAtBottom();
-      setShouldAutoScroll(isAtBottom);
-    }
-  };
-
-  // Sadece yeni mesaj eklendiğinde ve kullanıcı en alttaysa scroll yap
-  useEffect(() => {
-    const currentMessagesLength = messages.length;
-    const previousMessagesLength = previousMessagesLengthRef.current;
-
-    // Yeni mesaj eklendi mi kontrol et
-    if (currentMessagesLength > previousMessagesLength) {
-      // Kullanıcı en alttaysa veya ilk mesajsa otomatik scroll yap
-      if (shouldAutoScroll || currentMessagesLength === 1) {
-        setTimeout(() => {
-          if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      }
-      previousMessagesLengthRef.current = currentMessagesLength;
-    }
-  }, [messages.length, shouldAutoScroll]);
-
-  // İlk yüklemede veya typing başladığında scroll kontrolü
-  useEffect(() => {
-    if (isTyping && shouldAutoScroll) {
-      // Typing başladığında, eğer kullanıcı en alttaysa scroll yap
-      setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    }
-  }, [isTyping, shouldAutoScroll]);
-
-  // Typing animasyonu sırasında (typingMessage değiştiğinde) scroll kontrolü
-  // Sadece kullanıcı en alttaysa scroll yap
-  useEffect(() => {
-    if (isTyping && typingMessage && shouldAutoScroll) {
-      // Kullanıcı en alttaysa, typingMessage değiştiğinde scroll'u güncelle
-      setTimeout(() => {
-        if (messagesEndRef.current) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 50);
-    }
-  }, [typingMessage, isTyping, shouldAutoScroll]);
-
   return (
-    <div
-      ref={scrollContainerRef}
-      onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4"
-    >
+    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
       {messages.length === 0 && !isTyping && (
         <div className="text-center text-indigo-300/70 py-8">
           <p className="text-lg">Merhaba! Size nasıl yardımcı olabilirim?</p>
@@ -153,7 +112,6 @@ export const ChatBotMessageList = ({
         </div>
       )}
 
-      <div ref={messagesEndRef} />
     </div>
   );
 };

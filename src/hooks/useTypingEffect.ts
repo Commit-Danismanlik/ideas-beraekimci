@@ -13,6 +13,7 @@ export const useTypingEffect = (
   const [typingMessage, setTypingMessage] = useState<string>('');
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fullMessageRef = useRef<string>('');
+  const currentIndexRef = useRef<number>(0);
 
   const startTyping = useCallback(
     (fullMessage: string): Promise<void> => {
@@ -23,13 +24,14 @@ export const useTypingEffect = (
         }
 
         fullMessageRef.current = fullMessage;
-        let currentIndex = 0;
+        currentIndexRef.current = 0;
         const typingSpeed = 20;
 
         typingIntervalRef.current = setInterval(() => {
-          if (currentIndex < fullMessage.length) {
-            setTypingMessage(fullMessage.substring(0, currentIndex + 1));
-            currentIndex++;
+          if (currentIndexRef.current < fullMessage.length) {
+            const newMessage = fullMessage.substring(0, currentIndexRef.current + 1);
+            setTypingMessage(newMessage);
+            currentIndexRef.current++;
           } else {
             if (typingIntervalRef.current) {
               clearInterval(typingIntervalRef.current);
@@ -38,6 +40,7 @@ export const useTypingEffect = (
             onComplete(fullMessage);
             setTypingMessage('');
             fullMessageRef.current = '';
+            currentIndexRef.current = 0;
             resolve();
           }
         }, typingSpeed);
@@ -52,12 +55,14 @@ export const useTypingEffect = (
       typingIntervalRef.current = null;
     }
 
-    const currentMessage = typingMessage;
-    if (currentMessage) {
-      // Mevcut mesajı kaydet
+    // currentIndexRef kullanarak o anki mesajı al (daha güvenilir)
+    const currentMessage = fullMessageRef.current.substring(0, currentIndexRef.current);
+    if (currentMessage && currentMessage.length > 0) {
+      // Mevcut yarım mesajı kaydet
       onComplete(currentMessage);
       setTypingMessage('');
       fullMessageRef.current = '';
+      currentIndexRef.current = 0;
       return currentMessage;
     }
     return null;

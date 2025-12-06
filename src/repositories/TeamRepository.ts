@@ -20,6 +20,8 @@ export class TeamRepository extends BaseRepository<ITeam> {
     if (data.taskIds !== undefined) firestoreData.taskIds = data.taskIds;
     if (data.noteIds !== undefined) firestoreData.noteIds = data.noteIds;
     if (data.todoIds !== undefined) firestoreData.todoIds = data.todoIds;
+    if (data.chatbotRules !== undefined) firestoreData.chatbotRules = data.chatbotRules;
+    if (data.geminiApiKey !== undefined) firestoreData.geminiApiKey = data.geminiApiKey;
     if (data.createdAt !== undefined) {
       firestoreData.createdAt = Timestamp.fromDate(data.createdAt);
     }
@@ -42,6 +44,8 @@ export class TeamRepository extends BaseRepository<ITeam> {
       taskIds: (data.taskIds as string[]) || [],
       noteIds: (data.noteIds as string[]) || [],
       todoIds: (data.todoIds as string[]) || [],
+      chatbotRules: (data.chatbotRules as string[] | undefined),
+      geminiApiKey: (data.geminiApiKey as string | undefined),
       createdAt: (data.createdAt as Timestamp).toDate(),
       updatedAt: (data.updatedAt as Timestamp).toDate(),
     };

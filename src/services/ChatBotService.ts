@@ -1,34 +1,17 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { IChatBotService, IChatMessage, ISendMessageDto } from '../interfaces/IChatBotService';
 import { IQueryResult } from '../types/base.types';
+import { ITeamService } from '../interfaces/ITeamService';
+import { DEFAULT_CHATBOT_RULES } from '../models/Team.model';
 
 export class ChatBotService implements IChatBotService {
-  private genAI: GoogleGenerativeAI | null = null;
-  private readonly apiKey: string;
+  private teamService: ITeamService;
 
-  constructor() {
-    // Environment değişkenini oku - hem string hem de undefined kontrolü yap
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const apiKeyString = typeof apiKey === 'string' ? apiKey.trim() : '';
-    
-    if (!apiKeyString) {
-      console.error('GEMINI_API_KEY bulunamadı. .env dosyasında VITE_GEMINI_API_KEY tanımlı olmalı.');
-      console.error('Mevcut değer:', import.meta.env.VITE_GEMINI_API_KEY);
-      this.apiKey = '';
-    } else {
-      this.apiKey = apiKeyString;
-      this.genAI = new GoogleGenerativeAI(this.apiKey);
-    }
+  constructor(teamService: ITeamService) {
+    this.teamService = teamService;
   }
 
   public async sendMessage(dto: ISendMessageDto): Promise<IQueryResult<string>> {
-    if (!this.genAI) {
-      return {
-        success: false,
-        error: 'Gemini API anahtarı yapılandırılmamış. Lütfen .env dosyasında VITE_GEMINI_API_KEY tanımlayın.',
-      };
-    }
-
     if (!dto.message || dto.message.trim() === '') {
       return {
         success: false,
@@ -36,8 +19,48 @@ export class ChatBotService implements IChatBotService {
       };
     }
 
+    if (!dto.teamId) {
+      return {
+        success: false,
+        error: 'Takım ID gerekli',
+      };
+    }
+
     try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-pro-latest' });
+      // Team'den API key ve kuralları al
+      const teamResult = await this.teamService.getTeamById(dto.teamId);
+      if (!teamResult.success || !teamResult.data) {
+        return {
+          success: false,
+          error: 'Takım bulunamadı',
+        };
+      }
+
+      const team = teamResult.data;
+      const apiKey = team.geminiApiKey;
+
+      if (!apiKey || apiKey.trim() === '') {
+        return {
+          success: false,
+          error: 'API_KEY_NOT_CONFIGURED',
+        };
+      }
+
+      // ChatBot kurallarını al
+      let chatbotRules: string[] = DEFAULT_CHATBOT_RULES;
+      if (team.chatbotRules) {
+        chatbotRules = team.chatbotRules;
+      }
+
+      // System prompt olarak kuralları hazırla
+      const systemInstruction = this.buildSystemInstruction(chatbotRules);
+
+      // API key ile genAI instance'ı oluştur
+      const genAI = new GoogleGenerativeAI(apiKey.trim());
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-pro-latest',
+        systemInstruction: systemInstruction,
+      });
 
       // Konuşma geçmişini formatla
       const history = this.formatHistory(dto.conversationHistory || []);
@@ -62,6 +85,16 @@ export class ChatBotService implements IChatBotService {
         error: `Gemini API hatası: ${errorMessage}`,
       };
     }
+  }
+
+  private buildSystemInstruction(rules: string[]): string {
+    if (rules.length === 0) {
+      return '';
+    }
+
+    // Kurallar zaten formatlanmış şekilde array'de saklanıyor, direkt birleştir
+    const rulesText = rules.join('\n');
+    return rulesText;
   }
 
   private formatHistory(history: IChatMessage[]): Array<{ role: string; parts: Array<{ text: string }> }> {

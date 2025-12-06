@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDashboard } from '../hooks/useDashboard';
 import { DashboardHeader } from '../components/views/DashboardHeader';
 import { DashboardBackground } from '../components/common/DashboardBackground';
@@ -31,6 +32,19 @@ export const Dashboard = (): JSX.Element => {
     handleLogout,
     handleTeamChange,
   } = useDashboard();
+
+  // TeamManagement sayfasına yönlendirme event listener
+  useEffect(() => {
+    const handleNavigateToTeamManagement = (): void => {
+      setActiveView('management');
+      setShowChatBot(false);
+    };
+
+    window.addEventListener('navigateToTeamManagement', handleNavigateToTeamManagement);
+    return () => {
+      window.removeEventListener('navigateToTeamManagement', handleNavigateToTeamManagement);
+    };
+  }, [setActiveView, setShowChatBot]);
 
   if (loading) {
     return <DashboardLoading />;
