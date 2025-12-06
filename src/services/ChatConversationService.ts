@@ -1,5 +1,4 @@
 import { IChatConversationService } from '../interfaces/IChatConversationService';
-import { IRoleService } from '../interfaces/IRoleService';
 import { ChatConversationRepository } from '../repositories/ChatConversationRepository';
 import {
   IChatConversation,
@@ -10,20 +9,15 @@ import { IQueryResult, IListQueryResult } from '../types/base.types';
 
 export class ChatConversationService implements IChatConversationService {
   private conversationRepository: ChatConversationRepository;
-  private roleService: IRoleService;
 
-  constructor(
-    conversationRepository: ChatConversationRepository,
-    roleService: IRoleService
-  ) {
+  constructor(conversationRepository: ChatConversationRepository) {
     this.conversationRepository = conversationRepository;
-    this.roleService = roleService;
   }
 
   // Create Conversation
   public async createConversation(
     teamId: string,
-    userId: string,
+    _userId: string,
     dto: ICreateChatConversationDto
   ): Promise<IQueryResult<IChatConversation>> {
     // Validation kontrolleri
@@ -41,7 +35,7 @@ export class ChatConversationService implements IChatConversationService {
       };
     }
 
-    const conversationData: Partial<IChatConversation> = {
+    const conversationData: Omit<IChatConversation, 'id'> = {
       title: dto.title,
       messages: dto.messages,
       teamId: teamId,

@@ -184,8 +184,7 @@ export class ServiceContainer {
   public getChatConversationService(): IChatConversationService {
     if (!this.chatConversationServiceInstance) {
       const conversationRepository = new ChatConversationRepository(this.firestore);
-      const roleService = this.getRoleService();
-      this.chatConversationServiceInstance = new ChatConversationService(conversationRepository, roleService);
+      this.chatConversationServiceInstance = new ChatConversationService(conversationRepository);
     }
     return this.chatConversationServiceInstance;
   }

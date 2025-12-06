@@ -17,8 +17,6 @@ interface TaskListProps {
   canDeleteTask: boolean;
   onTaskClick: (task: ITask) => void;
   onDeleteTask: (taskId: string) => void;
-  hasMore: boolean;
-  onLoadMore: () => void;
 }
 
 /**
@@ -34,8 +32,6 @@ const TaskListComponent = ({
   canDeleteTask,
   onTaskClick,
   onDeleteTask,
-  hasMore,
-  onLoadMore,
 }: TaskListProps): JSX.Element => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const itemsPerPage = 5;
