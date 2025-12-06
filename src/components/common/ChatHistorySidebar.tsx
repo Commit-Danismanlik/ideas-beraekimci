@@ -5,7 +5,6 @@ import { usePermissions } from '../../hooks/usePermissions';
 
 interface ChatHistorySidebarProps {
   teamId: string | null;
-  isOpen: boolean;
   selectedConversationId: string | null;
   onSelectConversation: (conversation: IChatConversation | null) => void;
   onNewConversation: () => void;
@@ -15,7 +14,6 @@ interface ChatHistorySidebarProps {
 
 export const ChatHistorySidebar = ({
   teamId,
-  isOpen,
   selectedConversationId,
   onSelectConversation,
   onNewConversation,

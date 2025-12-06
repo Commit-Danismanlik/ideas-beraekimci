@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { getChatConversationService } from '../di/container';
 import { IChatConversation, ICreateChatConversationDto } from '../models/ChatConversation.model';
 import { IQueryResult, IListQueryResult } from '../types/base.types';

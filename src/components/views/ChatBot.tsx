@@ -364,7 +364,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
 
   const handleStopTyping = useCallback((): void => {
     // Typing animasyonunu durdur - bu handleTypingComplete'i çağıracak ve yarım mesajı kaydedecek
-    const stoppedMessage = stopTyping();
+    stopTyping();
     
     // State'leri temizle - input'u aktif hale getir
     setIsTyping(false);
@@ -428,7 +428,6 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
               >
                 <ChatHistorySidebar
                   teamId={selectedTeamId}
-                  isOpen={isOpen}
                   selectedConversationId={currentConversation?.id || null}
                   onSelectConversation={handleSelectConversation}
                   onNewConversation={handleNewConversation}
