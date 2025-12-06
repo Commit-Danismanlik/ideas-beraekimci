@@ -6,7 +6,7 @@ export interface ITeamService {
   getTeamById(id: string): Promise<IQueryResult<ITeam>>;
   getAllTeams(): Promise<IListQueryResult<ITeam>>;
   updateTeam(id: string, dto: IUpdateTeamDto): Promise<IQueryResult<ITeam>>;
-  deleteTeam(id: string): Promise<IQueryResult<boolean>>;
+  deleteTeam(id: string, userId: string): Promise<IQueryResult<boolean>>;
   
   // Takım işlemleri
   getUserTeams(userId: string): Promise<IListQueryResult<ITeam>>;

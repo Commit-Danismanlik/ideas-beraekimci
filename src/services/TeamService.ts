@@ -109,8 +109,8 @@ export class TeamService implements ITeamService {
     return this.teamRepository.update(id, dto);
   }
 
-  // Delete Team
-  public async deleteTeam(id: string): Promise<IQueryResult<boolean>> {
+  // Delete Team - Sadece owner silebilir
+  public async deleteTeam(id: string, userId: string): Promise<IQueryResult<boolean>> {
     if (!id || id.trim() === '') {
       return {
         success: false,
@@ -119,8 +119,17 @@ export class TeamService implements ITeamService {
       };
     }
 
-    const exists = await this.teamRepository.exists(id);
-    if (!exists) {
+    if (!userId || userId.trim() === '') {
+      return {
+        success: false,
+        data: false,
+        error: 'Geçersiz kullanıcı ID',
+      };
+    }
+
+    // Takımı getir
+    const teamResult = await this.teamRepository.getById(id);
+    if (!teamResult.success || !teamResult.data) {
       return {
         success: false,
         data: false,
@@ -128,7 +137,27 @@ export class TeamService implements ITeamService {
       };
     }
 
-    return this.teamRepository.delete(id);
+    const team = teamResult.data;
+
+    // Sadece owner silebilir
+    if (team.ownerId !== userId) {
+      return {
+        success: false,
+        data: false,
+        error: 'Sadece takım sahibi takımı silebilir',
+      };
+    }
+
+    // Takımı sil (subcollection'lar Firestore'da otomatik silinmez ama 
+    // parent document silindiğinde erişilemez hale gelir)
+    // Not: Subcollection'ları manuel silmek için Cloud Functions kullanılabilir
+    const deleteResult = await this.teamRepository.delete(id);
+    
+    if (deleteResult.success) {
+      this.logger.info('Takım silindi', { teamId: id, deletedBy: userId });
+    }
+
+    return deleteResult;
   }
 
   // Get User Teams
@@ -269,7 +298,7 @@ export class TeamService implements ITeamService {
     }
   }
 
-  // Leave Team
+  // Leave Team - Owner da çıkabilir
   public async leaveTeam(teamId: string, userId: string): Promise<IQueryResult<ITeam>> {
     if (!teamId || !userId) {
       return {
@@ -288,14 +317,6 @@ export class TeamService implements ITeamService {
 
     const team = teamResult.data;
 
-    // Owner takımdan ayrılamaz
-    if (team.ownerId === userId) {
-      return {
-        success: false,
-        error: 'Takım sahibi takımdan ayrılamaz',
-      };
-    }
-
     // Üye mi kontrol et
     if (!team.members.includes(userId)) {
       return {
@@ -304,7 +325,7 @@ export class TeamService implements ITeamService {
       };
     }
 
-    // Üyeliği subcollection'dan getir
+    // Üyeliği subcollection'dan getir ve sil
     const memberResult = await this.teamMemberRepository.getMemberByUserId(teamId, userId);
     if (memberResult.success && memberResult.data.length > 0) {
       const member = memberResult.data[0];
@@ -317,6 +338,10 @@ export class TeamService implements ITeamService {
       members: updatedMembers,
       memberCount: Math.max(0, team.memberCount - 1),
     });
+
+    if (updatedTeam.success) {
+      this.logger.info('Kullanıcı takımdan ayrıldı', { teamId, userId, isOwner: team.ownerId === userId });
+    }
 
     return updatedTeam;
   }
