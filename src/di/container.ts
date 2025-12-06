@@ -174,7 +174,8 @@ export class ServiceContainer {
   // ChatBot Service - Lazy initialization
   public getChatBotService(): IChatBotService {
     if (!this.chatBotServiceInstance) {
-      this.chatBotServiceInstance = new ChatBotService();
+      const teamService = this.getTeamService();
+      this.chatBotServiceInstance = new ChatBotService(teamService);
     }
     return this.chatBotServiceInstance;
   }

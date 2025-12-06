@@ -2,7 +2,7 @@ import { ITeamService } from '../interfaces/ITeamService';
 import { IRoleService } from '../interfaces/IRoleService';
 import { TeamRepository } from '../repositories/TeamRepository';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
-import { ITeam, ICreateTeamDto, IUpdateTeamDto } from '../models/Team.model';
+import { ITeam, ICreateTeamDto, IUpdateTeamDto, DEFAULT_CHATBOT_RULES } from '../models/Team.model';
 import { IQueryResult, IListQueryResult } from '../types/base.types';
 import { TeamSetupService } from './TeamSetupService';
 import { getLogger } from './Logger';
@@ -44,6 +44,7 @@ export class TeamService implements ITeamService {
       taskIds: [],
       noteIds: [],
       todoIds: [],
+      chatbotRules: [...DEFAULT_CHATBOT_RULES], // Default chatbot kurallarını kopyala
       createdAt: new Date(),
       updatedAt: new Date(),
     };

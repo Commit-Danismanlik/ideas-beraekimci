@@ -35,27 +35,59 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
   const [teamMembers, setTeamMembers] = useState<IMemberWithRole[]>([]);
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState<number>(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [apiKeyConfigured, setApiKeyConfigured] = useState<boolean | null>(null);
   const { updateConversation: updateConversationInList, createConversation: createConversationInList } = useChatConversations();
   const messagesRef = useRef<IChatMessage[]>([]);
-
-  // Kullanıcı takımda değilse takım gerekli modalını göster
-  if (!hasTeam) {
-    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} requiresTeam={true} />;
-  }
-
-  // Bakım modu aktifse sadece bakım modalını göster
-  if (isMaintenanceMode()) {
-    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} />;
-  }
 
   const chatBotService = getChatBotService();
   const teamService = getTeamService();
   const memberInfoService = getTeamMemberInfoService();
 
+  const {
+    messages,
+    inputMessage,
+    isLoading,
+    isTyping,
+    typingMessage,
+    setInputMessage,
+    addMessage,
+    setMessages,
+    setTypingMessage,
+    setIsTyping,
+    setIsLoading,
+  } = useChatBot();
+
+  // API key kontrolü
+  useEffect(() => {
+    const checkApiKey = async (): Promise<void> => {
+      if (!selectedTeamId || !isOpen || !hasTeam) {
+        setApiKeyConfigured(null);
+        return;
+      }
+
+      try {
+        const teamResult = await teamService.getTeamById(selectedTeamId);
+        if (teamResult.success && teamResult.data) {
+          const hasApiKey = !!(teamResult.data.geminiApiKey && teamResult.data.geminiApiKey.trim() !== '');
+          setApiKeyConfigured(hasApiKey);
+        } else {
+          setApiKeyConfigured(false);
+        }
+      } catch (error) {
+        console.error('API key kontrolü başarısız:', error);
+        setApiKeyConfigured(false);
+      }
+    };
+
+    if (isOpen && selectedTeamId && hasTeam) {
+      checkApiKey();
+    }
+  }, [isOpen, selectedTeamId, hasTeam, teamService]);
+
   // Takım üyelerini yükle
   useEffect(() => {
     const loadTeamMembers = async (): Promise<void> => {
-      if (!selectedTeamId) {
+      if (!selectedTeamId || !hasTeam) {
         setTeamMembers([]);
         return;
       }
@@ -74,21 +106,10 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
       }
     };
 
-    loadTeamMembers();
-  }, [selectedTeamId, teamService, memberInfoService]);
-  const {
-    messages,
-    inputMessage,
-    isLoading,
-    isTyping,
-    typingMessage,
-    setInputMessage,
-    addMessage,
-    setMessages,
-    setTypingMessage,
-    setIsTyping,
-    setIsLoading,
-  } = useChatBot();
+    if (hasTeam && selectedTeamId) {
+      loadTeamMembers();
+    }
+  }, [selectedTeamId, hasTeam, teamService, memberInfoService]);
 
   // messages değiştiğinde ref'i güncelle
   useEffect(() => {
@@ -254,6 +275,10 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
     const updatedMessages = [...messages, userMessage];
     addMessage(userMessage);
     setInputMessage('');
+    
+    // Kullanıcı mesajını hemen veritabanına kaydet (chatbot yanıtını beklemeden)
+    await saveConversation(updatedMessages);
+    
     setIsLoading(true);
     setIsTyping(false);
     setTypingMessage('');
@@ -261,6 +286,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
     try {
       const result = await chatBotService.sendMessage({
         message: userMessage.content,
+        teamId: selectedTeamId || undefined,
         conversationHistory: messages,
       });
 
@@ -325,17 +351,37 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
   );
 
   const handleStopTyping = useCallback((): void => {
+    // Typing animasyonunu durdur - bu handleTypingComplete'i çağıracak ve yarım mesajı kaydedecek
     const stoppedMessage = stopTyping();
-    if (stoppedMessage) {
-      // Mesaj zaten handleTypingComplete içinde kaydedildi
-      // State'i temizle
-      setIsTyping(false);
-      setTypingMessage('');
-    }
-  }, [stopTyping, setIsTyping, setTypingMessage]);
+    
+    // State'leri temizle - input'u aktif hale getir
+    setIsTyping(false);
+    setTypingMessage('');
+    setIsLoading(false);
+    
+    // Mesaj handleTypingComplete içinde kaydedilecek
+    // stopTyping() zaten onComplete callback'ini çağırdı, bu da handleTypingComplete'i tetikledi
+    // handleTypingComplete içinde yarım mesaj kaydedilecek
+  }, [stopTyping, setIsTyping, setTypingMessage, setIsLoading]);
 
+  // Koşullu render - tüm hook'lar çağrıldıktan sonra
   if (!isOpen) {
     return null;
+  }
+
+  // Kullanıcı takımda değilse takım gerekli modalını göster
+  if (!hasTeam) {
+    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} requiresTeam={true} />;
+  }
+
+  // Bakım modu aktifse sadece bakım modalını göster
+  if (isMaintenanceMode()) {
+    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} />;
+  }
+
+  // API key yoksa modal göster
+  if (selectedTeamId && apiKeyConfigured === false) {
+    return <ChatBotMaintenanceModal isOpen={isOpen} onClose={onClose} requiresApiKey={true} />;
   }
 
   return (

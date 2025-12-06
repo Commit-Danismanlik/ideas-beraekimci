@@ -2,9 +2,10 @@ interface ChatBotMaintenanceModalProps {
   isOpen: boolean;
   onClose: () => void;
   requiresTeam?: boolean;
+  requiresApiKey?: boolean;
 }
 
-export const ChatBotMaintenanceModal = ({ isOpen, onClose, requiresTeam = false }: ChatBotMaintenanceModalProps): JSX.Element | null => {
+export const ChatBotMaintenanceModal = ({ isOpen, onClose, requiresTeam = false, requiresApiKey = false }: ChatBotMaintenanceModalProps): JSX.Element | null => {
   if (!isOpen) {
     return null;
   }
@@ -66,21 +67,48 @@ export const ChatBotMaintenanceModal = ({ isOpen, onClose, requiresTeam = false 
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-bold text-indigo-200 mb-4">
-              {requiresTeam ? 'Takım Gerekli' : 'Şu Anlık Bakımda'}
+              {requiresApiKey 
+                ? 'API Key Yapılandırılmamış' 
+                : requiresTeam 
+                  ? 'Takım Gerekli' 
+                  : 'Şu Anlık Bakımda'}
             </h2>
 
             <p className="text-indigo-300/80 text-sm sm:text-base leading-relaxed max-w-sm">
-              {requiresTeam
-                ? 'Chatbot kullanmak için bir takıma girmelisiniz.'
-                : 'ChatBot şu anda bakım modunda. Yakında tekrar hizmetinizde olacağız.'}
+              {requiresApiKey
+                ? 'ChatBot kullanmak için takım yönetim sayfasından Gemini API Key yapılandırmanız gerekmektedir.'
+                : requiresTeam
+                  ? 'Chatbot kullanmak için bir takıma girmelisiniz.'
+                  : 'ChatBot şu anda bakım modunda. Yakında tekrar hizmetinizde olacağız.'}
             </p>
 
-            <button
-              onClick={onClose}
-              className="mt-8 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-indigo-500/50"
-            >
-              Tamam
-            </button>
+            {requiresApiKey ? (
+              <div className="mt-6 space-y-3">
+                <button
+                  onClick={() => {
+                    onClose();
+                    // TeamManagement sayfasına yönlendir
+                    window.dispatchEvent(new CustomEvent('navigateToTeamManagement'));
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/50"
+                >
+                  Yönetim Sayfasına Git
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-semibold rounded-lg transition-all duration-300"
+                >
+                  Kapat
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onClose}
+                className="mt-8 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-indigo-500/50"
+              >
+                Tamam
+              </button>
+            )}
           </div>
         </div>
       </div>
