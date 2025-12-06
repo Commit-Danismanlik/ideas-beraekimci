@@ -27,6 +27,7 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
   const editTeamFormModal = useModal(false);
   const chatbotRulesModal = useModal(false);
   const apiKeyModal = useModal(false);
+  const deleteTeamModal = useModal(false);
   const [editingRole, setEditingRole] = useState<IRole | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { hasPermission } = usePermissions(selectedTeam);
@@ -502,6 +503,16 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                   </button>
                 </>
               )}
+              {/* Owner ise takım silme butonu */}
+              {selectedTeamData && selectedTeamData.ownerId === user?.uid && (
+                <button
+                  onClick={() => deleteTeamModal.open()}
+                  className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-1 px-3 rounded mt-2"
+                  title="Takımı Sil"
+                >
+                  🗑️ Takımı Sil
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -633,6 +644,101 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
                   onClick={() => {
                     apiKeyModal.close();
                     apiKeyForm.reset();
+                    setError(null);
+                  }}
+                  className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Takım Silme Onay Modal */}
+      {deleteTeamModal.isOpen && selectedTeamData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-b from-indigo-950 to-sky-950 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-red-400 mb-4">⚠️ Takımı Sil</h3>
+            
+            <div className="space-y-4">
+              <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+                <p className="text-red-200 text-sm font-semibold mb-2">
+                  Bu işlem geri alınamaz!
+                </p>
+                <p className="text-indigo-300 text-sm">
+                  <strong>{selectedTeamData.name}</strong> takımı ve tüm verileri kalıcı olarak silinecektir:
+                </p>
+                <ul className="text-indigo-400 text-xs mt-2 list-disc list-inside space-y-1">
+                  <li>Tüm görevler (Tasks)</li>
+                  <li>Tüm notlar (Notes)</li>
+                  <li>Tüm yapılacaklar (Todos)</li>
+                  <li>Tüm roller (Roles)</li>
+                  <li>Tüm üye bilgileri</li>
+                  <li>Tüm sohbet geçmişi</li>
+                </ul>
+                <p className="text-red-300 text-xs mt-3 font-semibold">
+                  Tüm takım üyeleri takımsız kalacaktır.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="confirmDelete"
+                  className="w-4 h-4 text-red-600 border-red-300 rounded focus:ring-red-500"
+                />
+                <label htmlFor="confirmDelete" className="text-sm text-indigo-200">
+                  Bu işlemin geri alınamaz olduğunu anladım ve onaylıyorum
+                </label>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    const checkbox = document.getElementById('confirmDelete') as HTMLInputElement;
+                    if (!checkbox?.checked) {
+                      setError('Lütfen onay kutusunu işaretleyin');
+                      return;
+                    }
+
+                    if (!selectedTeam || !user) return;
+
+                    setLoading(true);
+                    setError(null);
+
+                    try {
+                      const result = await teamService.deleteTeam(selectedTeam, user.uid);
+
+                      if (result.success) {
+                        deleteTeamModal.close();
+                        alert('Takım başarıyla silindi!');
+                        // Sayfayı yenile veya takım listesini güncelle
+                        window.location.reload();
+                      } else {
+                        setError(result.error || 'Takım silinemedi');
+                      }
+                    } catch (err) {
+                      setError('Bilinmeyen bir hata oluştu');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg disabled:bg-gray-400"
+                >
+                  {loading ? 'Siliniyor...' : 'Evet, Sil'}
+                </button>
+                <button
+                  onClick={() => {
+                    deleteTeamModal.close();
                     setError(null);
                   }}
                   className="px-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-lg"

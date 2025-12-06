@@ -142,6 +142,14 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
         return;
       }
 
+      // Sadece user mesajı varsa (assistant yanıtı yoksa) conversation oluşturma
+      // Bu sayede 2 ayrı conversation oluşması engellenecek
+      const hasAssistantMessage = allMessages.some((msg) => msg.role === 'assistant');
+      if (!hasAssistantMessage && !currentConversation) {
+        console.log('saveConversation: Sadece user mesajı var, assistant yanıtı bekleniyor. Conversation oluşturulmadı.');
+        return;
+      }
+
       const title = generateChatTitle(firstUserMessage.content);
 
       // User mesajlarına userId ekle
@@ -170,7 +178,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
           console.error('saveConversation: Conversation güncellenemedi', result.error);
         }
       } else {
-        // Yeni conversation oluştur
+        // Yeni conversation oluştur (sadece assistant mesajı varsa)
         console.log('saveConversation: Yeni conversation oluşturuluyor...', {
           title,
           messageCount: messagesWithUserId.length,
@@ -276,8 +284,8 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
     addMessage(userMessage);
     setInputMessage('');
     
-    // Kullanıcı mesajını hemen veritabanına kaydet (chatbot yanıtını beklemeden)
-    await saveConversation(updatedMessages);
+    // Conversation kaydetmeyi kaldırdık - sadece assistant yanıtı geldiğinde kaydedilecek
+    // Bu sayede 2 ayrı conversation oluşması engellenecek
     
     setIsLoading(true);
     setIsTyping(false);
@@ -303,7 +311,9 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
           timestamp: new Date(),
         };
         addMessage(errorMessage);
-        await saveConversation([...updatedMessages, errorMessage]);
+        // Hata durumunda da conversation'ı kaydet (user mesajı + error mesajı)
+        const allMessagesWithError = [...updatedMessages, errorMessage];
+        await saveConversation(allMessagesWithError);
       }
     } catch (error) {
       setIsLoading(false);
@@ -313,7 +323,9 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
         timestamp: new Date(),
       };
       addMessage(errorMessage);
-      await saveConversation([...updatedMessages, errorMessage]);
+      // Hata durumunda da conversation'ı kaydet (user mesajı + error mesajı)
+      const allMessagesWithError = [...updatedMessages, errorMessage];
+      await saveConversation(allMessagesWithError);
     } finally {
       setIsTyping(false);
       setTypingMessage('');
@@ -441,6 +453,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
               typingMessage={typingMessage}
               isLoading={isLoading}
               teamMembers={teamMembers}
+              conversationId={currentConversation?.id}
             />
 
             <ChatBotMessageInput
