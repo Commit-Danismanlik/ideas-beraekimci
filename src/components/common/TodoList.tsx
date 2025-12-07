@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ITeamTodo } from '../../models/TeamRepository.model';
 
 interface TodoListProps {
@@ -94,7 +95,32 @@ const TodoListComponent = ({
               {todo.title}
             </h3>
             {todo.description && (
-              <p className="text-sm text-indigo-200/70 mt-1">{todo.description}</p>
+              <div className="text-sm text-indigo-200/70 mt-1 prose prose-invert prose-indigo max-w-none prose-sm">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold text-indigo-100">{children}</strong>,
+                    em: ({ children }) => <em className="italic text-indigo-200">{children}</em>,
+                    code: ({ children, className }) => {
+                      const isInline = !className;
+                      return isInline ? (
+                        <code className="bg-indigo-900/50 px-1 py-0.5 rounded text-indigo-200 text-xs">{children}</code>
+                      ) : (
+                        <code className={className}>{children}</code>
+                      );
+                    },
+                    pre: ({ children }) => (
+                      <pre className="bg-indigo-900/50 p-2 rounded-lg overflow-x-auto mb-1 text-xs">
+                        {children}
+                      </pre>
+                    ),
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-1 space-y-0.5 text-xs">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-1 space-y-0.5 text-xs">{children}</ol>,
+                  }}
+                >
+                  {todo.description}
+                </ReactMarkdown>
+              </div>
             )}
             {todo.assignedTo && (
               <p className="text-xs text-blue-400 mt-1 font-semibold">

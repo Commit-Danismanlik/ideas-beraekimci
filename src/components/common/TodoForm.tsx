@@ -58,7 +58,7 @@ export const TodoForm = ({
           className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
         />
         <textarea
-          placeholder="Açıklama (opsiyonel)"
+          placeholder="Açıklama (opsiyonel) - Markdown desteği: **kalın**, _italik_"
           value={formData.description}
           onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
           className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"

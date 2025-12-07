@@ -58,7 +58,7 @@ export class ChatBotService implements IChatBotService {
       // API key ile genAI instance'ı oluştur
       const genAI = new GoogleGenerativeAI(apiKey.trim());
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-pro-latest',
+        model: 'gemini-flash-latest',
         systemInstruction: systemInstruction,
       });
 

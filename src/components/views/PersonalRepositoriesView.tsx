@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { usePersonalRepositories } from '../../hooks/usePersonalRepositories';
 
 export const PersonalRepositoriesView = () => {
@@ -204,7 +205,7 @@ export const PersonalRepositoriesView = () => {
                   className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
                 />
                 <textarea
-                  placeholder="Açıklama (opsiyonel)"
+                  placeholder="Açıklama (opsiyonel) - Markdown desteği: **kalın**, _italik_"
                   value={todoForm.description}
                   onChange={(e) => setTodoForm({ ...todoForm, description: e.target.value })}
                   className="w-full mb-3 px-4 py-2 border border-indigo-500/30 rounded-xl bg-slate-800/50 text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50"
@@ -288,7 +289,32 @@ export const PersonalRepositoriesView = () => {
                       {todo.title}
                     </h3>
                     {todo.description && (
-                      <p className="text-sm text-indigo-200/70 mt-1">{todo.description}</p>
+                      <div className="text-sm text-indigo-200/70 mt-1 prose prose-invert prose-indigo max-w-none prose-sm">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                            strong: ({ children }) => <strong className="font-bold text-indigo-100">{children}</strong>,
+                            em: ({ children }) => <em className="italic text-indigo-200">{children}</em>,
+                            code: ({ children, className }) => {
+                              const isInline = !className;
+                              return isInline ? (
+                                <code className="bg-indigo-900/50 px-1 py-0.5 rounded text-indigo-200 text-xs">{children}</code>
+                              ) : (
+                                <code className={className}>{children}</code>
+                              );
+                            },
+                            pre: ({ children }) => (
+                              <pre className="bg-indigo-900/50 p-2 rounded-lg overflow-x-auto mb-1 text-xs">
+                                {children}
+                              </pre>
+                            ),
+                            ul: ({ children }) => <ul className="list-disc list-inside mb-1 space-y-0.5 text-xs">{children}</ul>,
+                            ol: ({ children }) => <ol className="list-decimal list-inside mb-1 space-y-0.5 text-xs">{children}</ol>,
+                          }}
+                        >
+                          {todo.description}
+                        </ReactMarkdown>
+                      </div>
                     )}
                     <div className="mt-2">
                       <span

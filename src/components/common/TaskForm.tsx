@@ -54,7 +54,7 @@ export const TaskForm = ({
           className="w-full mb-2 px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500"
         />
         <textarea
-          placeholder="Açıklama (opsiyonel)"
+          placeholder="Açıklama (opsiyonel) - Markdown desteği: **kalın**, _italik_"
           value={formData.description}
           onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
           className="w-full mb-2 px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500"

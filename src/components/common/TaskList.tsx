@@ -1,4 +1,5 @@
 import { memo, useCallback, useState, useMemo, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { ITask } from '../../models/Task.model';
 import { MemoizedVirtualizedList } from './VirtualizedList';
 import ReactPaginate from 'react-paginate';
@@ -76,9 +77,20 @@ const TaskListComponent = ({
             <div className="flex-1">
               <h3 className="text-base font-semibold text-gray-100">{task.title}</h3>
               {task.description && (
-                <p className="text-gray-400 mt-0.5 line-clamp-1 text-sm">
-                  {task.description}
-                </p>
+                <div className="text-gray-400 mt-0.5 line-clamp-1 text-sm prose prose-invert prose-gray max-w-none prose-sm">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-0 inline">{children}</p>,
+                      strong: ({ children }) => <strong className="font-bold text-gray-300">{children}</strong>,
+                      em: ({ children }) => <em className="italic text-gray-400">{children}</em>,
+                      code: ({ children }) => (
+                        <code className="bg-gray-900/50 px-1 py-0.5 rounded text-gray-300 text-xs">{children}</code>
+                      ),
+                    }}
+                  >
+                    {task.description}
+                  </ReactMarkdown>
+                </div>
               )}
               {assignedMember && (
                 <p className="text-xs text-blue-400 mt-0.5">

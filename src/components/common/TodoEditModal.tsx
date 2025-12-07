@@ -60,7 +60,7 @@ export const TodoEditModal = ({
               onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
               rows={4}
-              placeholder="Açıklama"
+              placeholder="Açıklama - Markdown desteği: **kalın**, _italik_"
             />
           </div>
           <div>

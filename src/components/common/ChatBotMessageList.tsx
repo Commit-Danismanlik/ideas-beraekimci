@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { IChatMessage } from '../../interfaces/IChatBotService';
 import { IMemberWithRole } from '../../services/TeamMemberInfoService';
 
@@ -134,9 +136,74 @@ export const ChatBotMessageList = ({
                 : 'glass text-indigo-200 border border-indigo-500/30'
             }`}
           >
-            <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
-              {message.content}
-            </p>
+            {message.role === 'assistant' ? (
+              <div className="text-sm sm:text-base prose prose-invert prose-indigo max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    strong: ({ children }) => <strong className="font-bold text-indigo-100">{children}</strong>,
+                    em: ({ children }) => <em className="italic text-indigo-200">{children}</em>,
+                    code: ({ children, className }) => {
+                      const isInline = !className;
+                      return isInline ? (
+                        <code className="bg-indigo-900/50 px-1.5 py-0.5 rounded text-indigo-200 text-sm">{children}</code>
+                      ) : (
+                        <code className={className}>{children}</code>
+                      );
+                    },
+                    pre: ({ children }) => (
+                      <pre className="bg-indigo-900/50 p-3 rounded-lg overflow-x-auto mb-2 text-sm">
+                        {children}
+                      </pre>
+                    ),
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto mb-2 -mx-2">
+                        <table className="min-w-full border-collapse border border-indigo-500/30 my-2">
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    thead: ({ children }) => (
+                      <thead className="bg-indigo-900/50">{children}</thead>
+                    ),
+                    tbody: ({ children }) => (
+                      <tbody className="divide-y divide-indigo-500/20">{children}</tbody>
+                    ),
+                    tr: ({ children }) => (
+                      <tr className="border-b border-indigo-500/20">{children}</tr>
+                    ),
+                    th: ({ children }) => (
+                      <th className="border border-indigo-500/30 px-3 py-2 text-left font-bold text-indigo-100 text-sm">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children }) => (
+                      <td className="border border-indigo-500/30 px-3 py-2 text-indigo-200 text-sm">
+                        {children}
+                      </td>
+                    ),
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="ml-2">{children}</li>,
+                    h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3 text-indigo-100">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3 text-indigo-100">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2 text-indigo-100">{children}</h3>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-indigo-500 pl-3 italic my-2 text-indigo-300">
+                        {children}
+                      </blockquote>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              </div>
+            ) : (
+              <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
+                {message.content}
+              </p>
+            )}
           </div>
         </div>
       ))}
@@ -144,10 +211,58 @@ export const ChatBotMessageList = ({
       {isTyping && typingMessage && (
         <div className="flex justify-start">
           <div className="max-w-[80%] sm:max-w-[70%] rounded-2xl p-3 sm:p-4 glass text-indigo-200 border border-indigo-500/30">
-            <p className="text-sm sm:text-base whitespace-pre-wrap break-words">
-              {typingMessage}
+            <div className="text-sm sm:text-base prose prose-invert prose-indigo max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                  strong: ({ children }) => <strong className="font-bold text-indigo-100">{children}</strong>,
+                  em: ({ children }) => <em className="italic text-indigo-200">{children}</em>,
+                  code: ({ children, className }) => {
+                    const isInline = !className;
+                    return isInline ? (
+                      <code className="bg-indigo-900/50 px-1.5 py-0.5 rounded text-indigo-200 text-sm">{children}</code>
+                    ) : (
+                      <code className={className}>{children}</code>
+                    );
+                  },
+                  pre: ({ children }) => (
+                    <pre className="bg-indigo-900/50 p-3 rounded-lg overflow-x-auto mb-2 text-sm">
+                      {children}
+                    </pre>
+                  ),
+                  table: ({ children }) => (
+                    <div className="overflow-x-auto mb-2 -mx-2">
+                      <table className="min-w-full border-collapse border border-indigo-500/30 my-2">
+                        {children}
+                      </table>
+                    </div>
+                  ),
+                  thead: ({ children }) => (
+                    <thead className="bg-indigo-900/50">{children}</thead>
+                  ),
+                  tbody: ({ children }) => (
+                    <tbody className="divide-y divide-indigo-500/20">{children}</tbody>
+                  ),
+                  tr: ({ children }) => (
+                    <tr className="border-b border-indigo-500/20">{children}</tr>
+                  ),
+                  th: ({ children }) => (
+                    <th className="border border-indigo-500/30 px-3 py-2 text-left font-bold text-indigo-100 text-sm">
+                      {children}
+                    </th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="border border-indigo-500/30 px-3 py-2 text-indigo-200 text-sm">
+                      {children}
+                    </td>
+                  ),
+                }}
+              >
+                {typingMessage}
+              </ReactMarkdown>
               <span className="inline-block w-2 h-4 bg-indigo-400 ml-1 animate-pulse">|</span>
-            </p>
+            </div>
           </div>
         </div>
       )}

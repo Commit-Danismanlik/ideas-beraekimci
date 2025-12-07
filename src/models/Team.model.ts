@@ -34,6 +34,8 @@ export const DEFAULT_CHATBOT_RULES: string[] = [
   '     |--------|--------|',
   '     | Veri   | Veri   |',
   '   - Asla HTML tablo döndürme (talep edilmedikçe).',
+  '   - Tablolar mesaj balonunun genişliğine uyum sağlar (yatay scroll ile).',
+  '   - Çok geniş tablolar için özet tablo veya daha kompakt format kullan.',
   '',
   '4) LİSTELER',
   '   - Adım adım anlatımlar için madde işaretli veya numaralı liste kullan.',
