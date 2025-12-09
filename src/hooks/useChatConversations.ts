@@ -34,30 +34,30 @@ export const useChatConversations = (): UseChatConversationsReturn => {
   const loadConversations = useCallback(
     async (teamId: string): Promise<void> => {
       if (!teamId) {
-        console.log('useChatConversations: teamId yok, conversations temizleniyor');
+        // console.log('useChatConversations: teamId yok, conversations temizleniyor');
         setConversations([]);
         return;
       }
 
-      console.log('useChatConversations: Conversations yükleniyor...', { teamId });
+      // console.log('useChatConversations: Conversations yükleniyor...', { teamId });
       setLoading(true);
       setError(null);
       try {
         const result: IListQueryResult<IChatConversation> = await conversationService.getAllConversations(teamId);
         if (result.success) {
-          console.log('useChatConversations: Conversations başarıyla yüklendi', {
-            count: result.data.length,
-            conversations: result.data.map((c) => ({ id: c.id, title: c.title })),
-          });
+          // console.log('useChatConversations: Conversations başarıyla yüklendi', {
+          //   count: result.data.length,
+          //   conversations: result.data.map((c) => ({ id: c.id, title: c.title })),
+          // });
           setConversations(result.data);
         } else {
-          console.error('useChatConversations: Conversations yüklenemedi', result.error);
+          // console.error('useChatConversations: Conversations yüklenemedi', result.error);
           setError(result.error || 'Konuşmalar yüklenemedi');
           setConversations([]);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
-        console.error('useChatConversations: Hata oluştu', err);
+        // console.error('useChatConversations: Hata oluştu', err);
         setError(errorMessage);
         setConversations([]);
       } finally {
@@ -101,25 +101,25 @@ export const useChatConversations = (): UseChatConversationsReturn => {
       userId: string,
       dto: ICreateChatConversationDto
     ): Promise<IQueryResult<IChatConversation>> => {
-      console.log('useChatConversations: createConversation çağrıldı', { teamId, userId, title: dto.title });
+      // console.log('useChatConversations: createConversation çağrıldı', { teamId, userId, title: dto.title });
       setError(null);
       try {
         const result = await conversationService.createConversation(teamId, userId, dto);
         if (result.success && result.data) {
-          console.log('useChatConversations: Conversation başarıyla oluşturuldu ve listeye eklendi', {
-            conversationId: result.data.id,
-            title: result.data.title,
-          });
+          // console.log('useChatConversations: Conversation başarıyla oluşturuldu ve listeye eklendi', {
+          //   conversationId: result.data.id,
+          //   title: result.data.title,
+          // });
           // Yeni konuşmayı listeye ekle
           setConversations((prev) => [result.data!, ...prev]);
         } else {
-          console.error('useChatConversations: Conversation oluşturulamadı', result.error);
+          // console.error('useChatConversations: Conversation oluşturulamadı', result.error);
           setError(result.error || 'Konuşma oluşturulamadı');
         }
         return result;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
-        console.error('useChatConversations: createConversation hatası', err);
+        // console.error('useChatConversations: createConversation hatası', err);
         setError(errorMessage);
         return { success: false, error: errorMessage };
       }

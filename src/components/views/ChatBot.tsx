@@ -74,7 +74,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
           setApiKeyConfigured(false);
         }
       } catch (error) {
-        console.error('API key kontrolü başarısız:', error);
+        // console.error('API key kontrolü başarısız:', error);
         setApiKeyConfigured(false);
       }
     };
@@ -101,7 +101,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
           setTeamMembers([]);
         }
       } catch (error) {
-        console.error('Takım üyeleri yüklenemedi:', error);
+        // console.error('Takım üyeleri yüklenemedi:', error);
         setTeamMembers([]);
       }
     };
@@ -128,17 +128,17 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
   const saveConversation = useCallback(
     async (allMessages: IChatMessage[]): Promise<void> => {
       if (!selectedTeamId || !user || allMessages.length === 0) {
-        console.log('saveConversation: Eksik parametreler, conversation kaydedilmedi', {
-          selectedTeamId,
-          hasUser: !!user,
-          messageCount: allMessages.length,
-        });
+        // console.log('saveConversation: Eksik parametreler, conversation kaydedilmedi', {
+        //   selectedTeamId,
+        //   hasUser: !!user,
+        //   messageCount: allMessages.length,
+        // });
         return;
       }
 
       const firstUserMessage = allMessages.find((msg) => msg.role === 'user');
       if (!firstUserMessage) {
-        console.log('saveConversation: User mesajı bulunamadı, conversation kaydedilmedi');
+        // console.log('saveConversation: User mesajı bulunamadı, conversation kaydedilmedi');
         return;
       }
 
@@ -146,7 +146,7 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
       // Bu sayede 2 ayrı conversation oluşması engellenecek
       const hasAssistantMessage = allMessages.some((msg) => msg.role === 'assistant');
       if (!hasAssistantMessage && !currentConversation) {
-        console.log('saveConversation: Sadece user mesajı var, assistant yanıtı bekleniyor. Conversation oluşturulmadı.');
+        // console.log('saveConversation: Sadece user mesajı var, assistant yanıtı bekleniyor. Conversation oluşturulmadı.');
         return;
       }
 
@@ -162,40 +162,40 @@ export const ChatBot = ({ isOpen, onClose, hasTeam, selectedTeamId }: ChatBotPro
 
       if (currentConversation) {
         // Mevcut conversation'ı güncelle
-        console.log('saveConversation: Mevcut conversation güncelleniyor...', {
-          conversationId: currentConversation.id,
-          messageCount: messagesWithUserId.length,
-        });
+        // console.log('saveConversation: Mevcut conversation güncelleniyor...', {
+        //   conversationId: currentConversation.id,
+        //   messageCount: messagesWithUserId.length,
+        // });
         const result = await updateConversationInList(selectedTeamId, currentConversation.id, { messages: messagesWithUserId });
         if (result.success && result.data) {
-          console.log('saveConversation: Conversation başarıyla güncellendi', {
-            conversationId: result.data.id,
-            title: result.data.title,
-          });
+          // console.log('saveConversation: Conversation başarıyla güncellendi', {
+          //   conversationId: result.data.id,
+          //   title: result.data.title,
+          // });
           setCurrentConversation(result.data);
           setSidebarRefreshKey((prev) => prev + 1);
         } else {
-          console.error('saveConversation: Conversation güncellenemedi', result.error);
+          // console.error('saveConversation: Conversation güncellenemedi', result.error);
         }
       } else {
         // Yeni conversation oluştur (sadece assistant mesajı varsa)
-        console.log('saveConversation: Yeni conversation oluşturuluyor...', {
-          title,
-          messageCount: messagesWithUserId.length,
-        });
+        // console.log('saveConversation: Yeni conversation oluşturuluyor...', {
+        //   title,
+        //   messageCount: messagesWithUserId.length,
+        // });
         const result = await createConversationInList(selectedTeamId, user.uid, {
           title,
           messages: messagesWithUserId,
         });
         if (result.success && result.data) {
-          console.log('saveConversation: Conversation başarıyla oluşturuldu', {
-            conversationId: result.data.id,
-            title: result.data.title,
-          });
+          // console.log('saveConversation: Conversation başarıyla oluşturuldu', {
+          //   conversationId: result.data.id,
+          //   title: result.data.title,
+          // });
           setCurrentConversation(result.data);
           setSidebarRefreshKey((prev) => prev + 1);
         } else {
-          console.error('saveConversation: Conversation oluşturulamadı', result.error);
+          // console.error('saveConversation: Conversation oluşturulamadı', result.error);
         }
       }
     },

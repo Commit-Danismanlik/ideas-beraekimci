@@ -36,7 +36,7 @@ export const ChatHistorySidebar = ({
 
   useEffect(() => {
     if (teamId) {
-      console.log('ChatHistorySidebar: Conversations yükleniyor...', { teamId, refreshKey });
+      // console.log('ChatHistorySidebar: Conversations yükleniyor...', { teamId, refreshKey });
       loadConversations(teamId);
     }
   }, [teamId, loadConversations, refreshKey]);

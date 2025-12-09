@@ -228,12 +228,12 @@ export class RoleService implements IRoleService {
       // Not: Veritabanı güncellemesi Firebase Security Rules nedeniyle başarısız olabilir
       // (sadece ownerId olan kullanıcılar roles subcollection'ına yazabilir)
       // Ancak runtime'da zaten doğru permission'lar kullanıldığı için bu kritik değil
-      this.logger.debug('Owner rolü permission\'ları eşleşmiyor - runtime\'da güncellenmiş rol döndürülüyor', {
-        teamId,
-        roleId: ownerRole.id,
-        currentPermissions,
-        requiredPermissions,
-      });
+      // this.logger.debug('Owner rolü permission\'ları eşleşmiyor - runtime\'da güncellenmiş rol döndürülüyor', {
+      //   teamId,
+      //   roleId: ownerRole.id,
+      //   currentPermissions,
+      //   requiredPermissions,
+      // });
       return {
         success: true,
         data: {
