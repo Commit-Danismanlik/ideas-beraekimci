@@ -166,14 +166,26 @@ export class TeamMemberInfoService {
               birthDate: userResult.data.birthDate,
             });
           } else {
-            // Hala bulunamadıysa, sadece userId'yi email olarak göster
-            usersMap.set(userId, {
-              email: userId,
-              displayName: undefined, // undefined bırak, böylece email gösterilir
-            });
+            // Hala bulunamadıysa, Firebase Auth'dan bilgi çekmeyi dene (sadece current user için)
+            const auth = getAuth();
+            if (auth.currentUser && auth.currentUser.uid === userId) {
+              usersMap.set(userId, {
+                email: auth.currentUser.email || userId,
+                displayName: auth.currentUser.displayName || undefined,
+              });
+            } else {
+              // Başka kullanıcılar için userId'yi göster (şifrelenmiş ID)
+              // Ancak bu durumda kullanıcı bilgilerinin Firestore'da olması gerekiyor
+              console.warn(`Kullanıcı bilgisi Firestore'da bulunamadı: ${userId}. Lütfen kullanıcının Firestore'da kaydının olduğundan emin olun.`);
+              usersMap.set(userId, {
+                email: userId, // Geçici olarak userId'yi göster
+                displayName: undefined,
+              });
+            }
           }
         } catch (error) {
           console.error(`Kullanıcı bilgisi alınamadı: ${userId}`, error);
+          // Son çare olarak userId'yi göster
           usersMap.set(userId, {
             email: userId,
             displayName: undefined,

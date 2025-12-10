@@ -170,28 +170,81 @@ export class RoleService implements IRoleService {
   }
 
   // Create Default Roles
-  public async createDefaultRoles(teamId: string): Promise<void> {
-    const now = new Date();
+  public async createDefaultRoles(teamId: string): Promise<IQueryResult<boolean>> {
+    try {
+      const now = new Date();
 
-    // Owner rolü - subcollection olarak (takım sahibine özel, tüm yetkiler)
-    await this.roleRepository.create(teamId, {
-      name: 'Owner',
-      permissions: DEFAULT_PERMISSIONS.OWNER,
-      isCustom: false,
-      isDefault: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+      // Önce rollerin zaten var olup olmadığını kontrol et
+      const existingRolesResult = await this.roleRepository.getDefaultRoles(teamId);
+      if (existingRolesResult.success && existingRolesResult.data.length > 0) {
+        const hasOwner = existingRolesResult.data.some(r => r.name === 'Owner');
+        const hasMember = existingRolesResult.data.some(r => r.name === 'Member');
+        
+        if (hasOwner && hasMember) {
+          this.logger.info('Varsayılan roller zaten mevcut', { teamId });
+          return {
+            success: true,
+            data: true,
+          };
+        }
+      }
 
-    // Member rolü - subcollection olarak (varsayılan üye rolü)
-    await this.roleRepository.create(teamId, {
-      name: 'Member',
-      permissions: DEFAULT_PERMISSIONS.MEMBER,
-      isCustom: false,
-      isDefault: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+      // Owner rolü - subcollection olarak (takım sahibine özel, tüm yetkiler)
+      const ownerResult = await this.roleRepository.create(teamId, {
+        name: 'Owner',
+        permissions: DEFAULT_PERMISSIONS.OWNER,
+        isCustom: false,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      if (!ownerResult.success) {
+        this.logger.error('Owner rolü oluşturulamadı', { teamId, error: ownerResult.error });
+        return {
+          success: false,
+          data: false,
+          error: `Owner rolü oluşturulamadı: ${ownerResult.error}`,
+        };
+      }
+
+      // Member rolü - subcollection olarak (varsayılan üye rolü)
+      const memberResult = await this.roleRepository.create(teamId, {
+        name: 'Member',
+        permissions: DEFAULT_PERMISSIONS.MEMBER,
+        isCustom: false,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      if (!memberResult.success) {
+        this.logger.error('Member rolü oluşturulamadı', { teamId, error: memberResult.error });
+        return {
+          success: false,
+          data: false,
+          error: `Member rolü oluşturulamadı: ${memberResult.error}`,
+        };
+      }
+
+      this.logger.info('Varsayılan roller başarıyla oluşturuldu', { 
+        teamId, 
+        ownerRoleId: ownerResult.data?.id, 
+        memberRoleId: memberResult.data?.id 
+      });
+
+      return {
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      this.logger.error('createDefaultRoles exception', { teamId, error });
+      return {
+        success: false,
+        data: false,
+        error: error instanceof Error ? error.message : 'Varsayılan roller oluşturulamadı',
+      };
+    }
   }
 
   // Get Owner Role

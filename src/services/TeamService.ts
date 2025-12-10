@@ -219,7 +219,29 @@ export class TeamService implements ITeamService {
         };
       }
 
-      // Member rolünü getir veya oluştur (katılanlar otomatik Member rolüne atanır)
+      // ÖNCE: Kullanıcıyı members array'ine ekle (Firebase Rules için gerekli)
+      // Böylece isTeamMember() true döner ve roller oluşturulabilir
+      this.logger.info('Kullanıcı önce members array\'ine ekleniyor (roller oluşturma için)', { teamId, userId });
+      const tempUpdatedMembers = [...team.members, userId];
+      const tempUpdateResult = await this.teamRepository.update(teamId, {
+        members: tempUpdatedMembers,
+      });
+
+      if (!tempUpdateResult.success) {
+        this.logger.error('Kullanıcı members array\'ine eklenemedi', {
+          teamId,
+          userId,
+          error: tempUpdateResult.error,
+        });
+        return {
+          success: false,
+          error: 'Takıma katılamadı: ' + tempUpdateResult.error,
+        };
+      }
+
+      this.logger.info('Kullanıcı members array\'ine eklendi', { teamId, userId });
+
+      // ŞİMDİ: Member rolünü getir veya oluştur (katılanlar otomatik Member rolüne atanır)
       this.logger.info('Member rolü getiriliyor', { teamId });
       let memberRoleResult = await this.roleService.getMemberRole(teamId);
 
@@ -227,17 +249,36 @@ export class TeamService implements ITeamService {
       if (!memberRoleResult.success || !memberRoleResult.data) {
         this.logger.info('Member rolü bulunamadı, oluşturuluyor', { teamId });
 
-        // Varsayılan rolleri oluştur
-        await this.roleService.createDefaultRoles(teamId);
+        // Varsayılan rolleri oluştur (artık kullanıcı members array'inde, isTeamMember() true döner)
+        const createRolesResult = await this.roleService.createDefaultRoles(teamId);
+        
+        if (!createRolesResult.success) {
+          // Hata durumunda members array'inden geri al
+          this.logger.error('Varsayılan roller oluşturulamadı, geri alınıyor', { 
+            teamId, 
+            error: createRolesResult.error 
+          });
+          await this.teamRepository.update(teamId, {
+            members: team.members,
+          });
+          return {
+            success: false,
+            error: createRolesResult.error || 'Takım rolleri oluşturulamadı. Lütfen tekrar deneyin.',
+          };
+        }
 
         // Tekrar dene
         memberRoleResult = await this.roleService.getMemberRole(teamId);
 
         if (!memberRoleResult.success || !memberRoleResult.data) {
-          this.logger.error('Member rolü oluşturulamadı', { teamId });
+          // Hata durumunda members array'inden geri al
+          this.logger.error('Member rolü oluşturulduktan sonra bulunamadı, geri alınıyor', { teamId });
+          await this.teamRepository.update(teamId, {
+            members: team.members,
+          });
           return {
             success: false,
-            error: 'Takım rolleri oluşturulamadı. Lütfen tekrar deneyin.',
+            error: 'Takım rolleri oluşturuldu ancak Member rolü bulunamadı. Lütfen tekrar deneyin.',
           };
         }
 
@@ -260,10 +301,14 @@ export class TeamService implements ITeamService {
       });
 
       if (!memberCreateResult.success) {
-        this.logger.error('Üye eklenme hatası', {
+        // Hata durumunda members array'inden geri al
+        this.logger.error('Üye eklenme hatası, geri alınıyor', {
           teamId,
           userId,
           error: memberCreateResult.error,
+        });
+        await this.teamRepository.update(teamId, {
+          members: team.members,
         });
         return {
           success: false,
@@ -273,11 +318,9 @@ export class TeamService implements ITeamService {
 
       this.logger.info('Üye Member rolüyle subcollection\'a eklendi', { teamId, userId });
 
-      // Team document'ine members array ve member count'u güncelle
-      this.logger.info('Team document güncelleniyor', { teamId });
-      const updatedMembers = [...team.members, userId];
+      // Team document'ine member count'u güncelle (members array zaten güncellendi)
+      this.logger.info('Team document member count güncelleniyor', { teamId });
       const updatedTeam = await this.teamRepository.update(teamId, {
-        members: updatedMembers,
         memberCount: team.memberCount + 1,
       });
 

@@ -124,7 +124,7 @@ const TodoListComponent = ({
             )}
             {todo.assignedTo && (
               <p className="text-xs text-blue-400 mt-1 font-semibold">
-                🎯 Atanan: {todo.assignedTo}
+                🎯 Atanan: {getUserName(todo.assignedTo)}
               </p>
             )}
             <div className="mt-2 flex gap-2 items-center flex-wrap">

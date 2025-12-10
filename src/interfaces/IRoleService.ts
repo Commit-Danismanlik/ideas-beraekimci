@@ -10,7 +10,7 @@ export interface IRoleService {
   deleteRole(teamId: string, roleId: string, userId: string): Promise<IQueryResult<boolean>>;
   
   // Default roles
-  createDefaultRoles(teamId: string): Promise<void>;
+  createDefaultRoles(teamId: string): Promise<IQueryResult<boolean>>;
   getOwnerRole(teamId: string): Promise<IQueryResult<IRole>>;
   getAdminRole(teamId: string): Promise<IQueryResult<IRole>>; // Geriye dönük uyumluluk
   getMemberRole(teamId: string): Promise<IQueryResult<IRole>>;
