@@ -241,6 +241,33 @@ export class TeamService implements ITeamService {
 
       this.logger.info('Kullanıcı members array\'ine eklendi', { teamId, userId });
 
+      // Kullanıcının Firestore'da kaydı var mı kontrol et, yoksa oluştur
+      try {
+        const { getUserService } = await import('../di/container');
+        const userService = getUserService();
+        const existingUserResult = await userService.getUserById(userId);
+        
+        if (!existingUserResult.success || !existingUserResult.data) {
+          // Kullanıcı Firestore'da yok, oluştur
+          this.logger.info('Kullanıcı Firestore\'da bulunamadı, oluşturuluyor', { userId });
+          const { getAuth } = await import('firebase/auth');
+          const auth = getAuth();
+          const currentUser = auth.currentUser;
+          
+          if (currentUser && currentUser.uid === userId) {
+            await userService.createOrUpdateUserFromAuth(
+              userId,
+              currentUser.email || '',
+              currentUser.displayName || undefined
+            );
+            this.logger.info('Kullanıcı Firestore\'a kaydedildi', { userId });
+          }
+        }
+      } catch (error) {
+        this.logger.warn('Kullanıcı Firestore kaydı kontrol edilemedi', { userId, error });
+        // Hata olsa bile devam et
+      }
+
       // ŞİMDİ: Member rolünü getir veya oluştur (katılanlar otomatik Member rolüne atanır)
       this.logger.info('Member rolü getiriliyor', { teamId });
       let memberRoleResult = await this.roleService.getMemberRole(teamId);
@@ -329,6 +356,16 @@ export class TeamService implements ITeamService {
           teamId,
           userId,
         });
+        
+        // Cache'i temizle - yeni kullanıcı bilgileri için
+        try {
+          const { getTeamMemberInfoService } = await import('../di/container');
+          const memberInfoService = getTeamMemberInfoService();
+          memberInfoService.invalidateCache(teamId);
+          this.logger.info('Cache temizlendi', { teamId });
+        } catch (error) {
+          this.logger.warn('Cache temizlenemedi', { teamId, error });
+        }
       }
 
       return updatedTeam;

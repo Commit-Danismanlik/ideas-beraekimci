@@ -1,6 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { Firestore } from 'firebase/firestore';
+import { doc, getDoc, Firestore } from 'firebase/firestore';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
 import { IRoleService } from '../interfaces/IRoleService';
 import { IUserService } from '../interfaces/IUserService';
@@ -174,13 +173,30 @@ export class TeamMemberInfoService {
                 displayName: auth.currentUser.displayName || undefined,
               });
             } else {
-              // Başka kullanıcılar için userId'yi göster (şifrelenmiş ID)
-              // Ancak bu durumda kullanıcı bilgilerinin Firestore'da olması gerekiyor
-              console.warn(`Kullanıcı bilgisi Firestore'da bulunamadı: ${userId}. Lütfen kullanıcının Firestore'da kaydının olduğundan emin olun.`);
-              usersMap.set(userId, {
-                email: userId, // Geçici olarak userId'yi göster
-                displayName: undefined,
-              });
+              // Başka kullanıcılar için tekrar Firestore'dan dene (belki permission hatası olmuştur)
+              try {
+                const retryDoc = await getDoc(doc(this.db, 'users', userId));
+                if (retryDoc.exists()) {
+                  const userData = retryDoc.data();
+                  usersMap.set(userId, {
+                    email: userData.email || userId,
+                    displayName: userData.name || userData.displayName,
+                    birthDate: userData.birthDate?.toDate(),
+                  });
+                } else {
+                  console.warn(`Kullanıcı bilgisi Firestore'da bulunamadı: ${userId}. Kullanıcının Firestore'da kaydı olmayabilir.`);
+                  usersMap.set(userId, {
+                    email: userId, // Geçici olarak userId'yi göster
+                    displayName: undefined,
+                  });
+                }
+              } catch (retryError) {
+                console.error(`Kullanıcı bilgisi retry hatası: ${userId}`, retryError);
+                usersMap.set(userId, {
+                  email: userId,
+                  displayName: undefined,
+                });
+              }
             }
           }
         } catch (error) {
