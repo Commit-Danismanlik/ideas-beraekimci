@@ -2,7 +2,7 @@ import { ITeamService } from '../interfaces/ITeamService';
 import { IRoleService } from '../interfaces/IRoleService';
 import { TeamRepository } from '../repositories/TeamRepository';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
-import { ITeam, ICreateTeamDto, IUpdateTeamDto } from '../models/Team.model';
+import { ITeam, ICreateTeamDto, IUpdateTeamDto, DEFAULT_CHATBOT_RULES } from '../models/Team.model';
 import { IQueryResult, IListQueryResult } from '../types/base.types';
 import { TeamSetupService } from './TeamSetupService';
 import { getLogger } from './Logger';
@@ -44,6 +44,7 @@ export class TeamService implements ITeamService {
       taskIds: [],
       noteIds: [],
       todoIds: [],
+      chatbotRules: [...DEFAULT_CHATBOT_RULES], // Default chatbot kurallarını kopyala
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -108,8 +109,8 @@ export class TeamService implements ITeamService {
     return this.teamRepository.update(id, dto);
   }
 
-  // Delete Team
-  public async deleteTeam(id: string): Promise<IQueryResult<boolean>> {
+  // Delete Team - Sadece owner silebilir
+  public async deleteTeam(id: string, userId: string): Promise<IQueryResult<boolean>> {
     if (!id || id.trim() === '') {
       return {
         success: false,
@@ -118,8 +119,17 @@ export class TeamService implements ITeamService {
       };
     }
 
-    const exists = await this.teamRepository.exists(id);
-    if (!exists) {
+    if (!userId || userId.trim() === '') {
+      return {
+        success: false,
+        data: false,
+        error: 'Geçersiz kullanıcı ID',
+      };
+    }
+
+    // Takımı getir
+    const teamResult = await this.teamRepository.getById(id);
+    if (!teamResult.success || !teamResult.data) {
       return {
         success: false,
         data: false,
@@ -127,7 +137,27 @@ export class TeamService implements ITeamService {
       };
     }
 
-    return this.teamRepository.delete(id);
+    const team = teamResult.data;
+
+    // Sadece owner silebilir
+    if (team.ownerId !== userId) {
+      return {
+        success: false,
+        data: false,
+        error: 'Sadece takım sahibi takımı silebilir',
+      };
+    }
+
+    // Takımı sil (subcollection'lar Firestore'da otomatik silinmez ama 
+    // parent document silindiğinde erişilemez hale gelir)
+    // Not: Subcollection'ları manuel silmek için Cloud Functions kullanılabilir
+    const deleteResult = await this.teamRepository.delete(id);
+    
+    if (deleteResult.success) {
+      this.logger.info('Takım silindi', { teamId: id, deletedBy: userId });
+    }
+
+    return deleteResult;
   }
 
   // Get User Teams
@@ -189,7 +219,56 @@ export class TeamService implements ITeamService {
         };
       }
 
-      // Member rolünü getir veya oluştur (katılanlar otomatik Member rolüne atanır)
+      // ÖNCE: Kullanıcıyı members array'ine ekle (Firebase Rules için gerekli)
+      // Böylece isTeamMember() true döner ve roller oluşturulabilir
+      this.logger.info('Kullanıcı önce members array\'ine ekleniyor (roller oluşturma için)', { teamId, userId });
+      const tempUpdatedMembers = [...team.members, userId];
+      const tempUpdateResult = await this.teamRepository.update(teamId, {
+        members: tempUpdatedMembers,
+      });
+
+      if (!tempUpdateResult.success) {
+        this.logger.error('Kullanıcı members array\'ine eklenemedi', {
+          teamId,
+          userId,
+          error: tempUpdateResult.error,
+        });
+        return {
+          success: false,
+          error: 'Takıma katılamadı: ' + tempUpdateResult.error,
+        };
+      }
+
+      this.logger.info('Kullanıcı members array\'ine eklendi', { teamId, userId });
+
+      // Kullanıcının Firestore'da kaydı var mı kontrol et, yoksa oluştur
+      try {
+        const { getUserService } = await import('../di/container');
+        const userService = getUserService();
+        const existingUserResult = await userService.getUserById(userId);
+        
+        if (!existingUserResult.success || !existingUserResult.data) {
+          // Kullanıcı Firestore'da yok, oluştur
+          this.logger.info('Kullanıcı Firestore\'da bulunamadı, oluşturuluyor', { userId });
+          const { getAuth } = await import('firebase/auth');
+          const auth = getAuth();
+          const currentUser = auth.currentUser;
+          
+          if (currentUser && currentUser.uid === userId) {
+            await userService.createOrUpdateUserFromAuth(
+              userId,
+              currentUser.email || '',
+              currentUser.displayName || undefined
+            );
+            this.logger.info('Kullanıcı Firestore\'a kaydedildi', { userId });
+          }
+        }
+      } catch (error) {
+        this.logger.warn('Kullanıcı Firestore kaydı kontrol edilemedi', { userId, error });
+        // Hata olsa bile devam et
+      }
+
+      // ŞİMDİ: Member rolünü getir veya oluştur (katılanlar otomatik Member rolüne atanır)
       this.logger.info('Member rolü getiriliyor', { teamId });
       let memberRoleResult = await this.roleService.getMemberRole(teamId);
 
@@ -197,17 +276,36 @@ export class TeamService implements ITeamService {
       if (!memberRoleResult.success || !memberRoleResult.data) {
         this.logger.info('Member rolü bulunamadı, oluşturuluyor', { teamId });
 
-        // Varsayılan rolleri oluştur
-        await this.roleService.createDefaultRoles(teamId);
+        // Varsayılan rolleri oluştur (artık kullanıcı members array'inde, isTeamMember() true döner)
+        const createRolesResult = await this.roleService.createDefaultRoles(teamId);
+        
+        if (!createRolesResult.success) {
+          // Hata durumunda members array'inden geri al
+          this.logger.error('Varsayılan roller oluşturulamadı, geri alınıyor', { 
+            teamId, 
+            error: createRolesResult.error 
+          });
+          await this.teamRepository.update(teamId, {
+            members: team.members,
+          });
+          return {
+            success: false,
+            error: createRolesResult.error || 'Takım rolleri oluşturulamadı. Lütfen tekrar deneyin.',
+          };
+        }
 
         // Tekrar dene
         memberRoleResult = await this.roleService.getMemberRole(teamId);
 
         if (!memberRoleResult.success || !memberRoleResult.data) {
-          this.logger.error('Member rolü oluşturulamadı', { teamId });
+          // Hata durumunda members array'inden geri al
+          this.logger.error('Member rolü oluşturulduktan sonra bulunamadı, geri alınıyor', { teamId });
+          await this.teamRepository.update(teamId, {
+            members: team.members,
+          });
           return {
             success: false,
-            error: 'Takım rolleri oluşturulamadı. Lütfen tekrar deneyin.',
+            error: 'Takım rolleri oluşturuldu ancak Member rolü bulunamadı. Lütfen tekrar deneyin.',
           };
         }
 
@@ -230,10 +328,14 @@ export class TeamService implements ITeamService {
       });
 
       if (!memberCreateResult.success) {
-        this.logger.error('Üye eklenme hatası', {
+        // Hata durumunda members array'inden geri al
+        this.logger.error('Üye eklenme hatası, geri alınıyor', {
           teamId,
           userId,
           error: memberCreateResult.error,
+        });
+        await this.teamRepository.update(teamId, {
+          members: team.members,
         });
         return {
           success: false,
@@ -243,11 +345,9 @@ export class TeamService implements ITeamService {
 
       this.logger.info('Üye Member rolüyle subcollection\'a eklendi', { teamId, userId });
 
-      // Team document'ine members array ve member count'u güncelle
-      this.logger.info('Team document güncelleniyor', { teamId });
-      const updatedMembers = [...team.members, userId];
+      // Team document'ine member count'u güncelle (members array zaten güncellendi)
+      this.logger.info('Team document member count güncelleniyor', { teamId });
       const updatedTeam = await this.teamRepository.update(teamId, {
-        members: updatedMembers,
         memberCount: team.memberCount + 1,
       });
 
@@ -256,6 +356,16 @@ export class TeamService implements ITeamService {
           teamId,
           userId,
         });
+        
+        // Cache'i temizle - yeni kullanıcı bilgileri için
+        try {
+          const { getTeamMemberInfoService } = await import('../di/container');
+          const memberInfoService = getTeamMemberInfoService();
+          memberInfoService.invalidateCache(teamId);
+          this.logger.info('Cache temizlendi', { teamId });
+        } catch (error) {
+          this.logger.warn('Cache temizlenemedi', { teamId, error });
+        }
       }
 
       return updatedTeam;
@@ -268,7 +378,7 @@ export class TeamService implements ITeamService {
     }
   }
 
-  // Leave Team
+  // Leave Team - Owner da çıkabilir
   public async leaveTeam(teamId: string, userId: string): Promise<IQueryResult<ITeam>> {
     if (!teamId || !userId) {
       return {
@@ -287,14 +397,6 @@ export class TeamService implements ITeamService {
 
     const team = teamResult.data;
 
-    // Owner takımdan ayrılamaz
-    if (team.ownerId === userId) {
-      return {
-        success: false,
-        error: 'Takım sahibi takımdan ayrılamaz',
-      };
-    }
-
     // Üye mi kontrol et
     if (!team.members.includes(userId)) {
       return {
@@ -303,7 +405,7 @@ export class TeamService implements ITeamService {
       };
     }
 
-    // Üyeliği subcollection'dan getir
+    // Üyeliği subcollection'dan getir ve sil
     const memberResult = await this.teamMemberRepository.getMemberByUserId(teamId, userId);
     if (memberResult.success && memberResult.data.length > 0) {
       const member = memberResult.data[0];
@@ -316,6 +418,10 @@ export class TeamService implements ITeamService {
       members: updatedMembers,
       memberCount: Math.max(0, team.memberCount - 1),
     });
+
+    if (updatedTeam.success) {
+      this.logger.info('Kullanıcı takımdan ayrıldı', { teamId, userId, isOwner: team.ownerId === userId });
+    }
 
     return updatedTeam;
   }

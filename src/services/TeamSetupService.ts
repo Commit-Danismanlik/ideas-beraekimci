@@ -26,7 +26,16 @@ export class TeamSetupService {
   public async createDefaultRoles(teamId: string): Promise<boolean> {
     try {
       this.logger.info('Varsayılan roller oluşturuluyor (Owner ve Member)...', { teamId });
-      await this.roleService.createDefaultRoles(teamId);
+      const result = await this.roleService.createDefaultRoles(teamId);
+      
+      if (!result.success) {
+        this.logger.error('Varsayılan roller oluşturulamadı', { 
+          teamId, 
+          error: result.error 
+        });
+        return false;
+      }
+
       this.logger.info('Varsayılan roller oluşturuldu', { teamId });
       return true;
     } catch (error) {

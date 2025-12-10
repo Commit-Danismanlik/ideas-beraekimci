@@ -92,6 +92,9 @@ export const useRepositories = (
     }
 
     try {
+      // Cache'i temizle - yeni kullanıcı bilgileri için
+      memberInfoService.invalidateCache(selectedTeam);
+      
       const membersData = await memberInfoService.getMembersWithInfo(
         selectedTeam,
         selectedTeamData.members

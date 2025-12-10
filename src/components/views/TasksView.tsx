@@ -34,7 +34,6 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
     members,
     membersMap,
     loading,
-    hasMore,
     filters,
     setFilters,
     searchQuery,
@@ -42,7 +41,6 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
     selectedWeek,
     setSelectedWeek,
     fetchTasks,
-    loadMore,
     createTask,
     updateTask,
     deleteTask,
@@ -180,8 +178,6 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
           taskModal.open();
         }}
         onDeleteTask={handleDeleteTask}
-        hasMore={hasMore}
-        onLoadMore={() => loadMore(selectedTeam)}
       />
 
       {/* Task Modal */}

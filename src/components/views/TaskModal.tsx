@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { ITask } from '../../models/Task.model';
@@ -215,13 +216,49 @@ export const TaskModal = ({
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-3 sm:px-4 py-2.5 sm:py-3 glass border border-indigo-500/30 rounded-xl text-indigo-200 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 hover:border-indigo-400/50 transition-all placeholder-indigo-300/50 text-sm sm:text-base"
                 rows={4}
-                placeholder="Görev açıklaması..."
+                placeholder="Görev açıklaması... - Markdown desteği: **kalın**, _italik_"
               />
             ) : (
               <div className="px-4 py-3 glass rounded-xl border border-indigo-500/30 min-h-[100px]">
-                <p className="text-indigo-200/80 whitespace-pre-wrap text-sm sm:text-base">
-                  {task.description || 'Açıklama yok'}
-                </p>
+                {task.description ? (
+                  <div className="text-indigo-200/80 text-sm sm:text-base prose prose-invert prose-indigo max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        strong: ({ children }) => <strong className="font-bold text-indigo-100">{children}</strong>,
+                        em: ({ children }) => <em className="italic text-indigo-200">{children}</em>,
+                        code: ({ children, className }) => {
+                          const isInline = !className;
+                          return isInline ? (
+                            <code className="bg-indigo-900/50 px-1.5 py-0.5 rounded text-indigo-200 text-sm">{children}</code>
+                          ) : (
+                            <code className={className}>{children}</code>
+                          );
+                        },
+                        pre: ({ children }) => (
+                          <pre className="bg-indigo-900/50 p-3 rounded-lg overflow-x-auto mb-2 text-sm">
+                            {children}
+                          </pre>
+                        ),
+                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                        li: ({ children }) => <li className="ml-2">{children}</li>,
+                        h1: ({ children }) => <h1 className="text-xl font-bold mb-2 mt-3 text-indigo-100">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-lg font-bold mb-2 mt-3 text-indigo-100">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-base font-bold mb-1 mt-2 text-indigo-100">{children}</h3>,
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-4 border-indigo-500 pl-3 italic my-2 text-indigo-300">
+                            {children}
+                          </blockquote>
+                        ),
+                      }}
+                    >
+                      {task.description}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-indigo-300/50 text-sm sm:text-base">Açıklama yok</p>
+                )}
               </div>
             )}
           </div>

@@ -1,8 +1,8 @@
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { Firestore } from 'firebase/firestore';
+import { doc, getDoc, Firestore } from 'firebase/firestore';
 import { TeamMemberRepository } from '../repositories/TeamMemberRepository';
 import { IRoleService } from '../interfaces/IRoleService';
+import { IUserService } from '../interfaces/IUserService';
 
 export interface IMemberWithRole {
   userId: string;
@@ -30,6 +30,7 @@ interface RoleInfo {
 export class TeamMemberInfoService {
   private teamMemberRepository: TeamMemberRepository;
   private roleService: IRoleService;
+  private userService: IUserService;
   private db: Firestore;
   private cache = new Map<string, { data: IMemberWithRole[]; timestamp: number }>();
   private readonly CACHE_TTL = 2 * 60 * 1000; // 2 dakika
@@ -37,10 +38,12 @@ export class TeamMemberInfoService {
   constructor(
     teamMemberRepository: TeamMemberRepository,
     roleService: IRoleService,
+    userService: IUserService,
     firestore: Firestore
   ) {
     this.teamMemberRepository = teamMemberRepository;
     this.roleService = roleService;
+    this.userService = userService;
     this.db = firestore;
   }
 
@@ -134,6 +137,9 @@ export class TeamMemberInfoService {
         chunk.map((userId) => getDoc(doc(this.db, 'users', userId)))
       );
 
+      // Firestore'dan bulunamayan kullanıcılar için UserService'den tekrar dene
+      const missingUserIds: string[] = [];
+
       userDocs.forEach((userDoc, index) => {
         const userId = chunk[index];
         if (userDoc.exists()) {
@@ -144,13 +150,64 @@ export class TeamMemberInfoService {
             birthDate: userData.birthDate?.toDate(),
           });
         } else {
-          // Kullanıcı bulunamadıysa placeholder
-          usersMap.set(userId, {
-            email: userId,
-            displayName: userId.substring(0, 8),
-          });
+          missingUserIds.push(userId);
         }
       });
+
+      // Firestore'da bulunamayan kullanıcılar için UserService'den tekrar dene
+      for (const userId of missingUserIds) {
+        try {
+          const userResult = await this.userService.getUserById(userId);
+          if (userResult.success && userResult.data) {
+            usersMap.set(userId, {
+              email: userResult.data.email,
+              displayName: userResult.data.name,
+              birthDate: userResult.data.birthDate,
+            });
+          } else {
+            // Hala bulunamadıysa, Firebase Auth'dan bilgi çekmeyi dene (sadece current user için)
+            const auth = getAuth();
+            if (auth.currentUser && auth.currentUser.uid === userId) {
+              usersMap.set(userId, {
+                email: auth.currentUser.email || userId,
+                displayName: auth.currentUser.displayName || undefined,
+              });
+            } else {
+              // Başka kullanıcılar için tekrar Firestore'dan dene (belki permission hatası olmuştur)
+              try {
+                const retryDoc = await getDoc(doc(this.db, 'users', userId));
+                if (retryDoc.exists()) {
+                  const userData = retryDoc.data();
+                  usersMap.set(userId, {
+                    email: userData.email || userId,
+                    displayName: userData.name || userData.displayName,
+                    birthDate: userData.birthDate?.toDate(),
+                  });
+                } else {
+                  console.warn(`Kullanıcı bilgisi Firestore'da bulunamadı: ${userId}. Kullanıcının Firestore'da kaydı olmayabilir.`);
+                  usersMap.set(userId, {
+                    email: userId, // Geçici olarak userId'yi göster
+                    displayName: undefined,
+                  });
+                }
+              } catch (retryError) {
+                console.error(`Kullanıcı bilgisi retry hatası: ${userId}`, retryError);
+                usersMap.set(userId, {
+                  email: userId,
+                  displayName: undefined,
+                });
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Kullanıcı bilgisi alınamadı: ${userId}`, error);
+          // Son çare olarak userId'yi göster
+          usersMap.set(userId, {
+            email: userId,
+            displayName: undefined,
+          });
+        }
+      }
     });
 
     await Promise.all(userPromises);

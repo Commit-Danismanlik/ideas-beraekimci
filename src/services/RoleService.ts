@@ -170,28 +170,81 @@ export class RoleService implements IRoleService {
   }
 
   // Create Default Roles
-  public async createDefaultRoles(teamId: string): Promise<void> {
-    const now = new Date();
+  public async createDefaultRoles(teamId: string): Promise<IQueryResult<boolean>> {
+    try {
+      const now = new Date();
 
-    // Owner rolü - subcollection olarak (takım sahibine özel, tüm yetkiler)
-    await this.roleRepository.create(teamId, {
-      name: 'Owner',
-      permissions: DEFAULT_PERMISSIONS.OWNER,
-      isCustom: false,
-      isDefault: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+      // Önce rollerin zaten var olup olmadığını kontrol et
+      const existingRolesResult = await this.roleRepository.getDefaultRoles(teamId);
+      if (existingRolesResult.success && existingRolesResult.data.length > 0) {
+        const hasOwner = existingRolesResult.data.some(r => r.name === 'Owner');
+        const hasMember = existingRolesResult.data.some(r => r.name === 'Member');
+        
+        if (hasOwner && hasMember) {
+          this.logger.info('Varsayılan roller zaten mevcut', { teamId });
+          return {
+            success: true,
+            data: true,
+          };
+        }
+      }
 
-    // Member rolü - subcollection olarak (varsayılan üye rolü)
-    await this.roleRepository.create(teamId, {
-      name: 'Member',
-      permissions: DEFAULT_PERMISSIONS.MEMBER,
-      isCustom: false,
-      isDefault: true,
-      createdAt: now,
-      updatedAt: now,
-    });
+      // Owner rolü - subcollection olarak (takım sahibine özel, tüm yetkiler)
+      const ownerResult = await this.roleRepository.create(teamId, {
+        name: 'Owner',
+        permissions: DEFAULT_PERMISSIONS.OWNER,
+        isCustom: false,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      if (!ownerResult.success) {
+        this.logger.error('Owner rolü oluşturulamadı', { teamId, error: ownerResult.error });
+        return {
+          success: false,
+          data: false,
+          error: `Owner rolü oluşturulamadı: ${ownerResult.error}`,
+        };
+      }
+
+      // Member rolü - subcollection olarak (varsayılan üye rolü)
+      const memberResult = await this.roleRepository.create(teamId, {
+        name: 'Member',
+        permissions: DEFAULT_PERMISSIONS.MEMBER,
+        isCustom: false,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      if (!memberResult.success) {
+        this.logger.error('Member rolü oluşturulamadı', { teamId, error: memberResult.error });
+        return {
+          success: false,
+          data: false,
+          error: `Member rolü oluşturulamadı: ${memberResult.error}`,
+        };
+      }
+
+      this.logger.info('Varsayılan roller başarıyla oluşturuldu', { 
+        teamId, 
+        ownerRoleId: ownerResult.data?.id, 
+        memberRoleId: memberResult.data?.id 
+      });
+
+      return {
+        success: true,
+        data: true,
+      };
+    } catch (error) {
+      this.logger.error('createDefaultRoles exception', { teamId, error });
+      return {
+        success: false,
+        data: false,
+        error: error instanceof Error ? error.message : 'Varsayılan roller oluşturulamadı',
+      };
+    }
   }
 
   // Get Owner Role
@@ -209,6 +262,38 @@ export class RoleService implements IRoleService {
       return {
         success: false,
         error: 'Owner rolü bulunamadı',
+      };
+    }
+
+    // Owner rolünün permission'larını DEFAULT_PERMISSIONS.OWNER ile tamamen senkronize et
+    const requiredPermissions = DEFAULT_PERMISSIONS.OWNER;
+    const currentPermissions = ownerRole.permissions || [];
+    
+    // Permission'ları sıralayarak karşılaştır (sıra farklı olabilir)
+    const currentSorted = [...currentPermissions].sort();
+    const requiredSorted = [...requiredPermissions].sort();
+    const permissionsMatch = 
+      currentSorted.length === requiredSorted.length &&
+      currentSorted.every((perm, index) => perm === requiredSorted[index]);
+
+    if (!permissionsMatch) {
+      // Permission'lar eşleşmiyor, runtime'da DEFAULT_PERMISSIONS.OWNER ile güncellenmiş rol döndür
+      // Not: Veritabanı güncellemesi Firebase Security Rules nedeniyle başarısız olabilir
+      // (sadece ownerId olan kullanıcılar roles subcollection'ına yazabilir)
+      // Ancak runtime'da zaten doğru permission'lar kullanıldığı için bu kritik değil
+      // this.logger.debug('Owner rolü permission\'ları eşleşmiyor - runtime\'da güncellenmiş rol döndürülüyor', {
+      //   teamId,
+      //   roleId: ownerRole.id,
+      //   currentPermissions,
+      //   requiredPermissions,
+      // });
+      return {
+        success: true,
+        data: {
+          ...ownerRole,
+          permissions: requiredPermissions,
+          updatedAt: new Date(),
+        },
       };
     }
 
@@ -271,6 +356,18 @@ export class RoleService implements IRoleService {
 
       const role = roleResult.data;
 
+      // Owner rolü için özel kontrol: DEFAULT_PERMISSIONS.OWNER'daki tüm permission'ları otomatik ver
+      if (role.name === 'Owner' && role.isDefault) {
+        // Önce Owner rolünü güncelle (eksik permission'lar varsa)
+        const ownerRoleResult = await this.getOwnerRole(teamId);
+        if (ownerRoleResult.success && ownerRoleResult.data) {
+          // Güncellenmiş Owner rolündeki permission'ları kontrol et
+          return ownerRoleResult.data.permissions.includes(permission);
+        }
+        // Güncelleme başarısız olsa bile DEFAULT_PERMISSIONS.OWNER'dan kontrol et
+        return DEFAULT_PERMISSIONS.OWNER.includes(permission);
+      }
+
       // Permission kontrolü
       return role.permissions.includes(permission);
     } catch (error) {
@@ -296,7 +393,20 @@ export class RoleService implements IRoleService {
         return [];
       }
 
-      return roleResult.data.permissions;
+      const role = roleResult.data;
+
+      // Owner rolü için özel kontrol: DEFAULT_PERMISSIONS.OWNER'daki tüm permission'ları otomatik ver
+      if (role.name === 'Owner' && role.isDefault) {
+        // Önce Owner rolünü güncelle (eksik permission'lar varsa)
+        const ownerRoleResult = await this.getOwnerRole(teamId);
+        if (ownerRoleResult.success && ownerRoleResult.data) {
+          return ownerRoleResult.data.permissions;
+        }
+        // Güncelleme başarısız olsa bile DEFAULT_PERMISSIONS.OWNER döndür
+        return DEFAULT_PERMISSIONS.OWNER;
+      }
+
+      return role.permissions;
     } catch (error) {
       return [];
     }

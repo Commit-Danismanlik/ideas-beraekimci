@@ -15,7 +15,9 @@ export type Permission =
   | 'REMOVE_MEMBERS'
   | 'EDIT_TEAM'
   | 'DELETE_TEAM'
-  | 'VIEW_TEAM_ID';
+  | 'VIEW_TEAM_ID'
+  | 'EDIT_CHAT_CONVERSATION'
+  | 'DELETE_CHAT_CONVERSATION';
 
 // Role model - Subcollection içinde
 export interface IRole extends IBaseEntity {
@@ -65,6 +67,8 @@ export const DEFAULT_PERMISSIONS = {
     'EDIT_TEAM',
     'DELETE_TEAM',
     'VIEW_TEAM_ID',
+    'EDIT_CHAT_CONVERSATION',
+    'DELETE_CHAT_CONVERSATION',
   ] as Permission[],
   MEMBER: [] as Permission[], // Member sadece görüntüleme yapabilir, düzenleme/silme/oluşturma yetkisi yok
 };
@@ -85,5 +89,7 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, string> = {
   EDIT_TEAM: 'Takım bilgilerini düzenleyebilir',
   DELETE_TEAM: 'Takımı silebilir',
   VIEW_TEAM_ID: 'Takım ID\'sini görebilir',
+  EDIT_CHAT_CONVERSATION: 'Chat sohbet başlığını düzenleyebilir',
+  DELETE_CHAT_CONVERSATION: 'Chat sohbeti silebilir',
 };
 
