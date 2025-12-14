@@ -11,6 +11,7 @@ export interface IRoleService {
   
   // Default roles
   createDefaultRoles(teamId: string): Promise<IQueryResult<boolean>>;
+  cleanupDefaultRoles(teamId: string): Promise<IQueryResult<boolean>>;
   getOwnerRole(teamId: string): Promise<IQueryResult<IRole>>;
   getAdminRole(teamId: string): Promise<IQueryResult<IRole>>; // Geriye dönük uyumluluk
   getMemberRole(teamId: string): Promise<IQueryResult<IRole>>;

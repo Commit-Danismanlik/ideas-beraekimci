@@ -16,6 +16,7 @@ export class RoleRepository extends SubcollectionRepository<IRole> {
     if (data.isCustom !== undefined) firestoreData.isCustom = data.isCustom;
     if (data.isDefault !== undefined) firestoreData.isDefault = data.isDefault;
     if (data.color !== undefined) firestoreData.color = data.color;
+    if (data.isDeleted !== undefined) firestoreData.isDeleted = data.isDeleted;
     if (data.createdAt !== undefined) {
       firestoreData.createdAt = Timestamp.fromDate(data.createdAt);
     }
@@ -34,6 +35,7 @@ export class RoleRepository extends SubcollectionRepository<IRole> {
       isCustom: data.isCustom as boolean,
       isDefault: data.isDefault as boolean,
       color: data.color as string | undefined,
+      isDeleted: data.isDeleted as boolean | undefined,
       createdAt: (data.createdAt as Timestamp).toDate(),
       updatedAt: (data.updatedAt as Timestamp).toDate(),
     };

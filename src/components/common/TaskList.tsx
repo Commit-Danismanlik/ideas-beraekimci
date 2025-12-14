@@ -18,6 +18,7 @@ interface TaskListProps {
   canDeleteTask: boolean;
   onTaskClick: (task: ITask) => void;
   onDeleteTask: (taskId: string) => void;
+  itemsPerPage?: number;
 }
 
 /**
@@ -33,9 +34,9 @@ const TaskListComponent = ({
   canDeleteTask,
   onTaskClick,
   onDeleteTask,
+  itemsPerPage = 5,
 }: TaskListProps): JSX.Element => {
   const [currentPage, setCurrentPage] = useState<number>(0);
-  const itemsPerPage = 5;
 
   // Pagination için görevleri hesapla
   const paginatedTasks = useMemo(() => {

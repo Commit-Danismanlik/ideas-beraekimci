@@ -14,6 +14,8 @@ interface TaskFormProps {
   onShowForm: (show: boolean) => void;
   onSubmit: () => Promise<void>;
   onCancel: () => void;
+  itemsPerPage: number;
+  onItemsPerPageChange: (value: number) => void;
 }
 
 /**
@@ -28,16 +30,34 @@ export const TaskForm = ({
   onShowForm,
   onSubmit,
   onCancel,
+  itemsPerPage,
+  onItemsPerPageChange,
 }: TaskFormProps): JSX.Element => {
   if (!showForm) {
     return (
-      <div className="mb-4">
+      <div className="mb-4 flex justify-between items-center">
         <button
           onClick={() => onShowForm(true)}
           className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
         >
           + Yeni Görev
         </button>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-300">Sayfa Başına:</label>
+          <input
+            type="number"
+            min="1"
+            max="50"
+            value={itemsPerPage}
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              if (!isNaN(value) && value >= 1 && value <= 50) {
+                onItemsPerPageChange(value);
+              }
+            }}
+            className="w-16 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-gray-200 text-sm text-center"
+          />
+        </div>
       </div>
     );
   }

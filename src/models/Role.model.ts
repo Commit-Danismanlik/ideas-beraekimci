@@ -26,6 +26,7 @@ export interface IRole extends IBaseEntity {
   isCustom: boolean;
   isDefault: boolean; // member, admin gibi varsayılan roller
   color?: string; // Custom roller için hex color (örn: #3B82F6)
+  isDeleted?: boolean; // Soft delete - silinmiş olarak işaretlenmiş roller
 }
 
 // Team Member model - Subcollection içinde

@@ -135,6 +135,9 @@ export const TeamManagement = ({ userTeams }: TeamManagementProps) => {
     setError(null);
     
     try {
+      // Önce tekrar eden default rolleri temizle
+      await roleService.cleanupDefaultRoles(selectedTeam);
+
       // Rolleri ve üye ID'lerini paralel çek
       const [rolesResult, membersArray] = await Promise.all([
         roleService.getTeamRoles(selectedTeam),
