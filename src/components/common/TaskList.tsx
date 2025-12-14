@@ -19,6 +19,7 @@ interface TaskListProps {
   onTaskClick: (task: ITask) => void;
   onDeleteTask: (taskId: string) => void;
   itemsPerPage?: number;
+  columnCount?: number;
 }
 
 /**
@@ -35,6 +36,7 @@ const TaskListComponent = ({
   onTaskClick,
   onDeleteTask,
   itemsPerPage = 5,
+  columnCount = 1,
 }: TaskListProps): JSX.Element => {
   const [currentPage, setCurrentPage] = useState<number>(0);
 
@@ -44,6 +46,18 @@ const TaskListComponent = ({
     const endIndex = startIndex + itemsPerPage;
     return filteredTasks.slice(startIndex, endIndex);
   }, [filteredTasks, currentPage, itemsPerPage]);
+
+  // Kolonlara göre görevleri böl
+  const tasksByColumns = useMemo(() => {
+    if (columnCount === 1) {
+      return [paginatedTasks];
+    }
+    const columns: ITask[][] = Array.from({ length: columnCount }, () => []);
+    paginatedTasks.forEach((task, index) => {
+      columns[index % columnCount].push(task);
+    });
+    return columns;
+  }, [paginatedTasks, columnCount]);
 
   const pageCount = Math.ceil(filteredTasks.length / itemsPerPage);
 
@@ -158,16 +172,57 @@ const TaskListComponent = ({
     );
   }
 
+  if (columnCount === 1) {
+    return (
+      <>
+        <MemoizedVirtualizedList
+          items={paginatedTasks}
+          itemKey={(t) => t.id}
+          itemHeight={120}
+          height={Math.min(600, Math.max(320, paginatedTasks.length * 120))}
+          className=""
+          renderItem={renderTaskItem}
+        />
+
+        {/* Pagination */}
+        {pageCount > 1 && (
+          <div className="flex justify-center mt-6">
+            <ReactPaginate
+              breakLabel="..."
+              nextLabel="Sonraki >"
+              onPageChange={handlePageClick}
+              pageRangeDisplayed={3}
+              marginPagesDisplayed={2}
+              pageCount={pageCount}
+              previousLabel="< Önceki"
+              renderOnZeroPageCount={null}
+              containerClassName="flex items-center gap-2"
+              pageClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors select-none"
+              pageLinkClassName="block px-3 py-2 w-full h-full"
+              previousClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+              previousLinkClassName="block px-3 py-2 w-full h-full"
+              nextClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+              nextLinkClassName="block px-3 py-2 w-full h-full"
+              breakClassName="px-3 py-2 text-gray-400 select-none"
+              activeClassName="bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-700"
+              disabledClassName="opacity-50 cursor-not-allowed"
+              forcePage={currentPage}
+            />
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
-      <MemoizedVirtualizedList
-        items={paginatedTasks}
-        itemKey={(t) => t.id}
-        itemHeight={120}
-        height={Math.min(600, Math.max(320, paginatedTasks.length * 120))}
-        className=""
-        renderItem={renderTaskItem}
-      />
+      <div className={`grid gap-4 ${columnCount === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+        {tasksByColumns.map((columnTasks, columnIndex) => (
+          <div key={columnIndex} className="space-y-4">
+            {columnTasks.map((task) => renderTaskItem(task))}
+          </div>
+        ))}
+      </div>
 
       {/* Pagination */}
       {pageCount > 1 && (

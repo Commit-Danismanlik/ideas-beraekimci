@@ -50,6 +50,7 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
   const taskModal = useModal(false);
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null);
   const [itemsPerPage, setItemsPerPage] = useState<number>(5);
+  const [columnCount, setColumnCount] = useState<number>(1);
   const taskForm = useForm({
     title: '',
     description: '',
@@ -167,6 +168,8 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
           }}
           itemsPerPage={itemsPerPage}
           onItemsPerPageChange={setItemsPerPage}
+          columnCount={columnCount}
+          onColumnCountChange={setColumnCount}
         />
       )}
 
@@ -182,6 +185,7 @@ export const TasksView = ({ userTeams }: TasksViewProps): JSX.Element => {
         }}
         onDeleteTask={handleDeleteTask}
         itemsPerPage={itemsPerPage}
+        columnCount={columnCount}
       />
 
       {/* Task Modal */}

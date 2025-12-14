@@ -16,6 +16,8 @@ interface TaskFormProps {
   onCancel: () => void;
   itemsPerPage: number;
   onItemsPerPageChange: (value: number) => void;
+  columnCount: number;
+  onColumnCountChange: (value: number) => void;
 }
 
 /**
@@ -32,16 +34,50 @@ export const TaskForm = ({
   onCancel,
   itemsPerPage,
   onItemsPerPageChange,
+  columnCount,
+  onColumnCountChange,
 }: TaskFormProps): JSX.Element => {
   if (!showForm) {
     return (
       <div className="mb-4 flex justify-between items-center">
-        <button
-          onClick={() => onShowForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
-        >
-          + Yeni Görev
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onShowForm(true)}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg"
+          >
+            + Yeni Görev
+          </button>
+          <button
+            onClick={() => onColumnCountChange(1)}
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+              columnCount === 1
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            I
+          </button>
+          <button
+            onClick={() => onColumnCountChange(2)}
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+              columnCount === 2
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            II
+          </button>
+          <button
+            onClick={() => onColumnCountChange(3)}
+            className={`px-3 py-2 rounded-lg font-semibold transition-colors ${
+              columnCount === 3
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            III
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <label className="text-sm text-gray-300">Sayfa Başına:</label>
           <input
