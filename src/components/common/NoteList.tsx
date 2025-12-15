@@ -1,4 +1,5 @@
-import { memo } from 'react';
+import { memo, useState, useMemo, useCallback, useEffect } from 'react';
+import ReactPaginate from 'react-paginate';
 import { ITeamNote } from '../../models/TeamRepository.model';
 
 interface NoteListProps {
@@ -10,8 +11,7 @@ interface NoteListProps {
   onEdit: (note: ITeamNote) => void;
   onTogglePin: (id: string) => void;
   onDelete: (id: string) => void;
-  hasMore: boolean;
-  onLoadMore: () => void;
+  itemsPerPage?: number;
 }
 
 /**
@@ -28,9 +28,30 @@ const NoteListComponent = ({
   onEdit,
   onTogglePin,
   onDelete,
-  hasMore,
-  onLoadMore,
+  itemsPerPage = 6,
 }: NoteListProps): JSX.Element => {
+  const [currentPage, setCurrentPage] = useState<number>(0);
+
+  // Pagination için notları hesapla
+  const paginatedNotes = useMemo(() => {
+    const startIndex = currentPage * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return notes.slice(startIndex, endIndex);
+  }, [notes, currentPage, itemsPerPage]);
+
+  const pageCount = Math.ceil(notes.length / itemsPerPage);
+
+  // Sayfa değiştiğinde
+  const handlePageClick = useCallback((event: { selected: number }): void => {
+    setCurrentPage(event.selected);
+  }, []);
+
+  // notes değiştiğinde sayfayı sıfırla
+  useEffect(() => {
+    if (currentPage >= pageCount && pageCount > 0) {
+      setCurrentPage(0);
+    }
+  }, [notes.length, currentPage, pageCount]);
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center py-16">
@@ -61,7 +82,7 @@ const NoteListComponent = ({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {notes.map((note) => (
+        {paginatedNotes.map((note) => (
           <div
             key={note.id}
             className={`glass rounded-2xl p-4 border transition-all duration-300 hover:shadow-glow ${
@@ -120,15 +141,30 @@ const NoteListComponent = ({
         ))}
       </div>
 
-      {/* Daha Fazla Yükle */}
-      {!loading && hasMore && (
+      {/* Pagination */}
+      {notes.length > 0 && pageCount > 1 && (
         <div className="flex justify-center mt-6">
-          <button
-            onClick={onLoadMore}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 border border-indigo-500/30 rounded-xl text-indigo-100 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 font-semibold shadow-lg hover:shadow-indigo-500/50"
-          >
-            Daha Fazla Yükle
-          </button>
+          <ReactPaginate
+            breakLabel="..."
+            nextLabel="Sonraki >"
+            onPageChange={handlePageClick}
+            pageRangeDisplayed={3}
+            marginPagesDisplayed={2}
+            pageCount={pageCount}
+            previousLabel="< Önceki"
+            renderOnZeroPageCount={null}
+            containerClassName="flex items-center gap-2"
+            pageClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors select-none"
+            pageLinkClassName="block px-3 py-2 w-full h-full"
+            previousClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+            previousLinkClassName="block px-3 py-2 w-full h-full"
+            nextClassName="bg-gray-800 border border-gray-700 rounded text-gray-200 hover:bg-gray-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none"
+            nextLinkClassName="block px-3 py-2 w-full h-full"
+            breakClassName="px-3 py-2 text-gray-400 select-none"
+            activeClassName="bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-700"
+            disabledClassName="opacity-50 cursor-not-allowed"
+            forcePage={currentPage}
+          />
         </div>
       )}
     </>

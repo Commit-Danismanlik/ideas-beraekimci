@@ -301,8 +301,6 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
             onEdit={startEditNote}
             onTogglePin={handleTogglePin}
             onDelete={handleDeleteNote}
-            hasMore={hasMore}
-            onLoadMore={loadMore}
           />
         </div>
       )}

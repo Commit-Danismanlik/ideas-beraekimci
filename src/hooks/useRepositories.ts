@@ -195,88 +195,29 @@ export const useRepositories = (
 
     setLoading(true);
     if (activeTab === 'notes') {
-      // İlk 6 notu çek (performans için)
-      const take = 6;
-      const result = await noteService.getRecentNotes(selectedTeam, take);
+      // Her zaman tüm notları çek (filtreleme ve pagination için gerekli)
+      const result = await noteService.getTeamNotes(selectedTeam);
       if (result.success) {
         setNotes(result.data);
-        const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
-        setHasMore(!hasFilterOrSearch && result.data.length === take);
-        const last = result.data[result.data.length - 1];
-        setLastNoteCreatedAt(last ? last.createdAt : null);
+        setHasMore(false);
+        setLastNoteCreatedAt(null);
       }
     } else {
-      // İlk 6 todo'yu çek (performans için)
-      const take = 6;
-      const result = await todoService.getRecentTodos(selectedTeam, take);
+      // Her zaman tüm todo'ları çek (filtreleme ve pagination için gerekli)
+      const result = await todoService.getTeamTodos(selectedTeam);
       if (result.success) {
         setTodos(result.data);
-        const hasFilterOrSearch = todoSearchQuery.trim() !== '' || todoFilter.creatorId !== 'all';
-        setHasMore(!hasFilterOrSearch && result.data.length === take);
-        const last = result.data[result.data.length - 1];
-        setLastTodoCreatedAt(last ? last.createdAt : null);
+        setHasMore(false);
+        setLastTodoCreatedAt(null);
       }
     }
     setLoading(false);
-  }, [selectedTeam, activeTab, noteService, todoService, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter]);
+  }, [selectedTeam, activeTab, noteService, todoService]);
 
+  // loadMore artık gereksiz - tüm veriler zaten çekiliyor, pagination frontend'de yapılıyor
   const loadMore = useCallback(async (): Promise<void> => {
-    if (!selectedTeam || !hasMore) {
-      return;
-    }
-
-    // Filtreleme/arama yapıldığında pagination'ı devre dışı bırak
-    if (activeTab === 'notes') {
-      const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
-      if (hasFilterOrSearch || !lastNoteCreatedAt) {
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const take = 6;
-        const result = await noteService.getRecentNotesBefore(selectedTeam, lastNoteCreatedAt, take);
-        if (result.success && result.data.length > 0) {
-          setNotes((prev) => {
-            const newNotes = [...prev, ...result.data];
-            setHasMore(result.data.length === take);
-            const last = result.data[result.data.length - 1];
-            setLastNoteCreatedAt(last.createdAt);
-            return newNotes;
-          });
-        } else {
-          setHasMore(false);
-        }
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Todo'lar için pagination
-      const hasFilterOrSearch = todoSearchQuery.trim() !== '' || todoFilter.creatorId !== 'all';
-      if (hasFilterOrSearch || !lastTodoCreatedAt) {
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const take = 6;
-        const result = await todoService.getRecentTodosBefore(selectedTeam, lastTodoCreatedAt, take);
-        if (result.success && result.data.length > 0) {
-          setTodos((prev) => {
-            const newTodos = [...prev, ...result.data];
-            setHasMore(result.data.length === take);
-            const last = result.data[result.data.length - 1];
-            setLastTodoCreatedAt(last.createdAt);
-            return newTodos;
-          });
-        } else {
-          setHasMore(false);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [selectedTeam, hasMore, activeTab, lastNoteCreatedAt, lastTodoCreatedAt, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter, noteService, todoService]);
+    // Boş fonksiyon - pagination artık frontend'de yapılıyor
+  }, []);
 
   // Sadece team veya tab değiştiğinde veri çek
   useEffect(() => {
