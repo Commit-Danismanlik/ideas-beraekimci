@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Firebasee rules dosyası
+firebase.rules.txt
+firebase.rules
+
 # Environment variables
 .env
 .env.local
