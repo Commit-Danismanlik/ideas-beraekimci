@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useDashboard } from '../hooks/useDashboard';
 import { DashboardHeader } from '../components/views/DashboardHeader';
 import { DashboardBackground } from '../components/dashboard/DashboardBackground';
-import { DashboardNavigation } from '../components/views/DashboardNavigation';
 import { DashboardViewSwitcher } from '../components/dashboard/DashboardViewSwitcher';
 import { DashboardLoading } from '../components/dashboard/DashboardLoading';
 import { DashboardAnimations } from '../components/dashboard/DashboardAnimations';
@@ -22,7 +21,6 @@ export const Dashboard = (): JSX.Element => {
     showProfileModal,
     showChatBot,
     isMobileMenuOpen,
-    canManageTeam,
     hasTeam,
     selectedTeamId,
     setActiveView,
@@ -67,12 +65,6 @@ export const Dashboard = (): JSX.Element => {
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 py-10 lg:py-20">
-          <DashboardNavigation
-            activeView={activeView}
-            canManageTeam={canManageTeam}
-            onViewChange={setActiveView}
-          />
-
           <DashboardViewSwitcher
             activeView={activeView}
             hasTeam={hasTeam}
