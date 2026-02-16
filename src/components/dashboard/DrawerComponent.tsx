@@ -8,6 +8,7 @@ import {
   DrawerTrigger,
 } from '../ui/drawer';
 import { useDashboardLayoutContext } from '../../contexts/DashboardLayoutContext';
+import { IconButtonWithTooltip } from '../ui/IconButtonWithTooltip';
 
 const getLinkClassName = ({ isActive }: { isActive: boolean }): string => {
   const baseClass =
@@ -26,16 +27,16 @@ const MENU_ITEMS: Array<{
   icon: string;
   requiresManageTeam?: boolean;
 }> = [
-  { to: '/dashboard/personal', label: 'Personal', icon: '📝' },
-  { to: '/dashboard/repositories', label: 'Repositories', icon: '📦' },
-  { to: '/dashboard/tasks', label: 'Tasks', icon: '✅' },
-  {
-    to: '/dashboard/management',
-    label: 'Yönetim',
-    icon: '⚙️',
-    requiresManageTeam: true,
-  },
-];
+    { to: '/dashboard/personal', label: 'Personal', icon: '📝' },
+    { to: '/dashboard/repositories', label: 'Repositories', icon: '📦' },
+    { to: '/dashboard/tasks', label: 'Tasks', icon: '✅' },
+    {
+      to: '/dashboard/management',
+      label: 'Yönetim',
+      icon: '⚙️',
+      requiresManageTeam: true,
+    },
+  ];
 
 export const DrawerComponent = (): JSX.Element => {
   const { canManageTeam } = useDashboardLayoutContext();
@@ -47,9 +48,14 @@ export const DrawerComponent = (): JSX.Element => {
   return (
     <Drawer direction="left">
       <DrawerTrigger asChild>
-        <button className="mb-4 px-4 py-2 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all shadow-lg hover:shadow-indigo-500/50">
-          ☰ Menü
-        </button>
+        <IconButtonWithTooltip
+          onClick={() => { }}
+          tooltip="Menü"
+          className="h-10 w-10 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all shadow-lg hover:shadow-indigo-500/50"
+          ariaLabel="Menüyü aç"
+        >
+          ☰
+        </IconButtonWithTooltip>
       </DrawerTrigger>
       <DrawerContent className="h-full w-[280px] sm:w-[320px] min-w-0 flex flex-col glass-strong border-r border-indigo-500/20 rounded-r-2xl">
         <DrawerHeader className="border-b border-indigo-500/20 pb-4">
