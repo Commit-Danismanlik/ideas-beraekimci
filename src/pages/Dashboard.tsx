@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useDashboard } from '../hooks/useDashboard';
 import { DashboardHeader } from '../components/views/DashboardHeader';
-import { DashboardBackground } from '../components/common/DashboardBackground';
+import { DashboardBackground } from '../components/dashboard/DashboardBackground';
 import { DashboardNavigation } from '../components/views/DashboardNavigation';
-import { DashboardViewSwitcher } from '../components/common/DashboardViewSwitcher';
-import { DashboardLoading } from '../components/common/DashboardLoading';
-import { DashboardAnimations } from '../components/common/DashboardAnimations';
+import { DashboardViewSwitcher } from '../components/dashboard/DashboardViewSwitcher';
+import { DashboardLoading } from '../components/dashboard/DashboardLoading';
+import { DashboardAnimations } from '../components/dashboard/DashboardAnimations';
 import { ProfileModal } from '../components/views/ProfileModal';
 import { ChatBot } from '../components/views/ChatBot';
 

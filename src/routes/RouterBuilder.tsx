@@ -3,22 +3,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { IRouteConfig } from './RouteConfig';
 import { ProtectedRoute } from '../components/common/ProtectedRoute';
 
-/**
- * Router Builder - Functional Approach
- * SOLID: Single Responsibility - Sadece router oluşturmaktan sorumlu
- * IOC: Bağımlılıkları parametre olarak alır (Dependency Injection)
- */
-
-/**
- * Route'ları map'ler ve child route formatına çevirir
- * Pure Function - Yan etki yok
- * @param {Array<IRouteConfig>} routes - Route listesi
- * @returns {Array} Çevrilmiş route listesi
- */
-/**
- * Loading fallback component
- * Performance: Lazy loading sırasında gösterilir
- */
 const LoadingFallback = (): JSX.Element => (
   <div className="flex items-center justify-center min-h-screen bg-gray-900">
     <div className="text-center">
@@ -28,55 +12,99 @@ const LoadingFallback = (): JSX.Element => (
   </div>
 );
 
-const mapRoutesToChildren = (routes: IRouteConfig[]): Array<{
-  path: string;
+type RouteChild = {
+  path?: string;
+  index?: boolean;
   element: JSX.Element;
-}> => {
-  return routes
-    .filter((route) => route.path !== '*') // Wildcard route'u ayrı handle et
-    .map((route) => {
-      const Component = route.element;
-
-      // Protected route ise ProtectedRoute wrapper'ı ile sar
-      if (route.isProtected) {
-        return {
-          path: route.path === '/' ? '' : route.path,
-          element: (
-            <Suspense fallback={<LoadingFallback />}>
-              <ProtectedRoute>
-                <Component />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        };
-      }
-
-      // Redirect varsa Navigate kullan
-      if (route.redirectTo) {
-        return {
-          path: route.path === '/' ? '' : route.path,
-          element: <Navigate to={route.redirectTo || '/dashboard'} replace />,
-        };
-      }
-
-      // Normal route
-      return {
-        path: route.path === '/' ? '' : route.path,
-        element: (
-          <Suspense fallback={<LoadingFallback />}>
-            <Component />
-          </Suspense>
-        ),
-      };
-    });
 };
 
-/**
- * React Router instance'ı oluşturur
- * Pure Function - Aynı input için her zaman aynı output
- * @param {Object} routeConfig - Route konfigürasyon objesi
- * @returns {Router} BrowserRouter instance
- */
+const mapRouteToRouterConfig = (
+  route: IRouteConfig
+): { path: string; element: JSX.Element; children?: RouteChild[] } | null => {
+  if (route.path === '*') {
+    return null;
+  }
+
+  const path = route.path === '/' ? '' : route.path;
+
+  if (route.redirectTo) {
+    return {
+      path,
+      element: (
+        <Navigate to={route.redirectTo || '/dashboard/personal'} replace />
+      ),
+    };
+  }
+
+  const Component = route.element;
+  const wrapWithSuspense = (element: JSX.Element): JSX.Element => (
+    <Suspense fallback={<LoadingFallback />}>{element}</Suspense>
+  );
+
+  if (route.children && route.children.length > 0 && Component) {
+    const layoutElement = route.isProtected ? (
+      <ProtectedRoute>
+        <Component />
+      </ProtectedRoute>
+    ) : (
+      <Component />
+    );
+
+    const children: RouteChild[] = route.children
+      .filter((child) => child.element || child.redirectTo)
+      .map((child) => {
+        if (child.index && child.redirectTo) {
+          return {
+            index: true,
+            element: <Navigate to={child.redirectTo} replace />,
+          };
+        }
+        const ChildComponent = child.element;
+        if (!ChildComponent) {
+          return { path: child.path!, element: <Navigate to="." replace /> };
+        }
+        return {
+          path: child.path ?? '',
+          element: wrapWithSuspense(<ChildComponent />),
+        };
+      });
+
+    return {
+      path,
+      element: wrapWithSuspense(layoutElement),
+      children,
+    };
+  }
+
+  if (route.isProtected && Component) {
+    return {
+      path,
+      element: wrapWithSuspense(
+        <ProtectedRoute>
+          <Component />
+        </ProtectedRoute>
+      ),
+    };
+  }
+
+  if (Component) {
+    return {
+      path,
+      element: wrapWithSuspense(<Component />),
+    };
+  }
+
+  return null;
+};
+
+const mapRoutesToChildren = (
+  routes: IRouteConfig[]
+): Array<{ path: string; element: JSX.Element; children?: RouteChild[] }> => {
+  return routes
+    .map(mapRouteToRouterConfig)
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+};
+
 export const buildRouter = (routeConfig: {
   getRoutes: () => IRouteConfig[];
 }): ReturnType<typeof createBrowserRouter> => {
@@ -104,12 +132,6 @@ export const buildRouter = (routeConfig: {
   ]);
 };
 
-/**
- * Lazy loading desteği ile router oluşturur
- * Pure Function - Aynı input için her zaman aynı output
- * @param {Object} routeConfig - Route konfigürasyon objesi
- * @returns {Router} BrowserRouter instance with lazy loading
- */
 export const buildRouterWithLazyLoading = (
   routeConfig: {
     getRoutes: () => IRouteConfig[];
@@ -145,13 +167,6 @@ export const buildRouterWithLazyLoading = (
   ]);
 };
 
-/**
- * Router builder factory
- * Higher Order Function - Fonksiyon döner
- * IOC: RouteConfig'i inject eder
- * @param {Object} routeConfig - Route konfigürasyon objesi
- * @returns {Object} Builder metodları içeren obje
- */
 export const createRouterBuilder = (routeConfig: {
   getRoutes: () => IRouteConfig[];
 }) => ({
