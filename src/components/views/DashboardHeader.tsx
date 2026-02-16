@@ -1,4 +1,5 @@
 import { useAuthContext } from '../../contexts/AuthContext';
+import { User, Users, LogOut, Menu, X } from 'lucide-react';
 
 interface DashboardHeaderProps {
   onLogout: () => Promise<void>;
@@ -7,6 +8,40 @@ interface DashboardHeaderProps {
   onShowMyTeam: () => void;
   isMobileMenuOpen: boolean;
   onToggleMobileMenu: () => void;
+}
+
+const iconButtonSize = 'h-10 w-10';
+const tooltipClasses =
+  'absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-800/95 text-indigo-100 border border-indigo-500/30 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 -translate-y-1 transition-all duration-200 delay-75 z-[60]';
+
+function IconButtonWithTooltip({
+  onClick,
+  tooltip,
+  children,
+  className,
+  ariaLabel,
+}: {
+  onClick: () => void;
+  tooltip: string;
+  children: React.ReactNode;
+  className: string;
+  ariaLabel: string;
+}): JSX.Element {
+  return (
+    <div className="group relative">
+      <span className={tooltipClasses} role="tooltip">
+        {tooltip}
+      </span>
+      <button
+        type="button"
+        onClick={onClick}
+        className={className}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </button>
+    </div>
+  );
 }
 
 export const DashboardHeader = ({
@@ -19,102 +54,93 @@ export const DashboardHeader = ({
 }: DashboardHeaderProps): JSX.Element => {
   const { user } = useAuthContext();
 
+  const iconButtonBase =
+    `${iconButtonSize} flex items-center justify-center rounded-xl text-white transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900`;
+
+  const primaryButton = `${iconButtonBase} bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg hover:shadow-indigo-500/40`;
+  const logoutButton = `${iconButtonBase} bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg hover:shadow-red-500/40`;
+
   return (
-    <div className="glass-strong border-b border-indigo-500/20 shadow-glow sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+    <header className="glass-strong border-b border-indigo-500/20 shadow-glow sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex justify-between items-center">
           {/* Logo ve Başlık */}
-          <div className="flex items-center gap-2 lg:gap-4">
+          <div className="flex items-center gap-2 lg:gap-4 min-w-0">
             <img
               src="/gbtalks_row.svg"
               alt="GBTalks Logo"
-              className="h-8 lg:h-12 drop-shadow-lg"
+              className="h-8 lg:h-10 shrink-0 drop-shadow-lg"
             />
-            <div className="hidden sm:block">
-              <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+            <div className="hidden sm:block min-w-0">
+              <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent truncate">
                 Dashboard
               </h1>
-              <p className="text-sm lg:text-base text-indigo-300/70 hidden lg:block">
+              <p className="text-xs lg:text-sm text-indigo-300/70 hidden lg:block truncate">
                 Hoş geldin, {user?.displayName || user?.email}
               </p>
             </div>
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden lg:flex gap-3">
-            <button
+          {/* Desktop: yalnızca ikon butonlar + tooltip */}
+          <div className="hidden lg:flex items-center gap-2 shrink-0">
+            <IconButtonWithTooltip
               onClick={onShowChatBot}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105 flex items-center gap-2"
+              tooltip="ChatBot"
+              className={primaryButton}
+              ariaLabel="ChatBot'u aç"
             >
               <img
                 src="/gemini-color.svg"
-                alt="Gemini"
+                alt=""
                 className="w-5 h-5"
+                aria-hidden
               />
-              ChatBot
-            </button>
-            <button
+            </IconButtonWithTooltip>
+            <IconButtonWithTooltip
               onClick={onShowProfile}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105"
+              tooltip="Profil"
+              className={primaryButton}
+              ariaLabel="Profil"
             >
-              👤 Profil
-            </button>
-            <button
+              <User className="w-5 h-5" strokeWidth={2} aria-hidden />
+            </IconButtonWithTooltip>
+            <IconButtonWithTooltip
               onClick={onShowMyTeam}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 transform hover:scale-105"
+              tooltip="Takımım"
+              className={primaryButton}
+              ariaLabel="Takımım"
             >
-              👥 Takımım
-            </button>
-            <button
+              <Users className="w-5 h-5" strokeWidth={2} aria-hidden />
+            </IconButtonWithTooltip>
+            <IconButtonWithTooltip
               onClick={onLogout}
-              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-2.5 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-red-500/50 transform hover:scale-105"
+              tooltip="Çıkış Yap"
+              className={logoutButton}
+              ariaLabel="Çıkış yap"
             >
-              Çıkış Yap
-            </button>
+              <LogOut className="w-5 h-5" strokeWidth={2} aria-hidden />
+            </IconButtonWithTooltip>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={onToggleMobileMenu}
-            className="lg:hidden text-white p-2 rounded-lg hover:bg-slate-800 transition-all duration-300"
-            aria-label="Menu"
-          >
-            <div
-              className={`w-8 h-8 transition-transform duration-300 ${
-                isMobileMenuOpen ? 'rotate-90' : ''
-              }`}
+          {/* Mobil menü butonu */}
+          <div className="lg:hidden relative group">
+            <span className={tooltipClasses} role="tooltip">
+              {isMobileMenuOpen ? 'Menüyü kapat' : 'Menü'}
+            </span>
+            <button
+              type="button"
+              onClick={onToggleMobileMenu}
+              className={`${iconButtonSize} flex items-center justify-center rounded-xl text-white hover:bg-slate-800/80 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900`}
+              aria-label={isMobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
-                <svg
-                  className="w-8 h-8"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <X className="w-5 h-5" strokeWidth={2} aria-hidden />
               ) : (
-                <svg
-                  className="w-8 h-8"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+                <Menu className="w-5 h-5" strokeWidth={2} aria-hidden />
               )}
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -185,7 +211,7 @@ export const DashboardHeader = ({
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
