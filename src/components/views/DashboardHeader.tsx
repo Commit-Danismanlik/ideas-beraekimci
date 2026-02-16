@@ -1,5 +1,7 @@
 import { useAuthContext } from '../../contexts/AuthContext';
 import { User, Users, LogOut, Menu, X } from 'lucide-react';
+import { DrawerComponent } from '../dashboard/DrawerComponent';
+import { IconButtonWithTooltip } from '../ui/IconButtonWithTooltip';
 
 interface DashboardHeaderProps {
   onLogout: () => Promise<void>;
@@ -11,38 +13,6 @@ interface DashboardHeaderProps {
 }
 
 const iconButtonSize = 'h-10 w-10';
-const tooltipClasses =
-  'absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-800/95 text-indigo-100 border border-indigo-500/30 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 -translate-y-1 transition-all duration-200 delay-75 z-[60]';
-
-function IconButtonWithTooltip({
-  onClick,
-  tooltip,
-  children,
-  className,
-  ariaLabel,
-}: {
-  onClick: () => void;
-  tooltip: string;
-  children: React.ReactNode;
-  className: string;
-  ariaLabel: string;
-}): JSX.Element {
-  return (
-    <div className="group relative">
-      <span className={tooltipClasses} role="tooltip">
-        {tooltip}
-      </span>
-      <button
-        type="button"
-        onClick={onClick}
-        className={className}
-        aria-label={ariaLabel}
-      >
-        {children}
-      </button>
-    </div>
-  );
-}
 
 export const DashboardHeader = ({
   onLogout,
@@ -83,6 +53,7 @@ export const DashboardHeader = ({
 
           {/* Desktop: yalnızca ikon butonlar + tooltip */}
           <div className="hidden lg:flex items-center gap-2 shrink-0">
+            <DrawerComponent />
             <IconButtonWithTooltip
               onClick={onShowChatBot}
               tooltip="ChatBot"
@@ -123,31 +94,27 @@ export const DashboardHeader = ({
           </div>
 
           {/* Mobil menü butonu */}
-          <div className="lg:hidden relative group">
-            <span className={tooltipClasses} role="tooltip">
-              {isMobileMenuOpen ? 'Menüyü kapat' : 'Menü'}
-            </span>
-            <button
-              type="button"
+          <div className="lg:hidden">
+            <IconButtonWithTooltip
               onClick={onToggleMobileMenu}
+              tooltip={isMobileMenuOpen ? 'Menüyü kapat' : 'Menü'}
               className={`${iconButtonSize} flex items-center justify-center rounded-xl text-white hover:bg-slate-800/80 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900`}
-              aria-label={isMobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-              aria-expanded={isMobileMenuOpen}
+              ariaLabel={isMobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+              ariaExpanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
                 <X className="w-5 h-5" strokeWidth={2} aria-hidden />
               ) : (
                 <Menu className="w-5 h-5" strokeWidth={2} aria-hidden />
               )}
-            </button>
+            </IconButtonWithTooltip>
           </div>
         </div>
 
         {/* Mobile Menu */}
         <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
         >
           <div className="mt-4 pb-4 border-t border-indigo-500/20">
             <div className="flex flex-col gap-2 pt-4">
@@ -156,9 +123,8 @@ export const DashboardHeader = ({
                   onShowChatBot();
                   onToggleMobileMenu();
                 }}
-                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] flex items-center gap-2 ${
-                  isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
-                }`}
+                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] flex items-center gap-2 ${isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
+                  }`}
               >
                 <img
                   src="/gemini-color.svg"
@@ -172,9 +138,8 @@ export const DashboardHeader = ({
                   onShowProfile();
                   onToggleMobileMenu();
                 }}
-                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
-                  isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
-                }`}
+                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
+                  }`}
               >
                 👤 Profil
               </button>
@@ -183,9 +148,8 @@ export const DashboardHeader = ({
                   onShowMyTeam();
                   onToggleMobileMenu();
                 }}
-                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
-                  isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
-                }`}
+                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
+                  }`}
               >
                 👥 Takımım
               </button>
@@ -194,16 +158,14 @@ export const DashboardHeader = ({
                   onLogout();
                   onToggleMobileMenu();
                 }}
-                className={`w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${
-                  isMobileMenuOpen ? 'animate-fade-in-up delay-400' : ''
-                }`}
+                className={`w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${isMobileMenuOpen ? 'animate-fade-in-up delay-400' : ''
+                  }`}
               >
                 Çıkış Yap
               </button>
               <div
-                className={`pt-2 text-sm text-indigo-300/70 px-4 ${
-                  isMobileMenuOpen ? 'animate-fade-in delay-500' : ''
-                }`}
+                className={`pt-2 text-sm text-indigo-300/70 px-4 ${isMobileMenuOpen ? 'animate-fade-in delay-500' : ''
+                  }`}
               >
                 Hoş geldin, {user?.displayName || user?.email}
               </div>
