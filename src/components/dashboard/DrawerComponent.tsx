@@ -51,7 +51,7 @@ export const DrawerComponent = (): JSX.Element => {
         <IconButtonWithTooltip
           onClick={() => { }}
           tooltip="Menü"
-          className="h-10 w-10 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all shadow-lg hover:shadow-indigo-500/50"
+          className="w-full lg:w-10 h-10 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white transition-all shadow-lg hover:shadow-indigo-500/50 flex items-center justify-center"
           ariaLabel="Menüyü aç"
         >
           ☰

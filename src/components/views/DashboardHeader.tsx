@@ -30,6 +30,11 @@ export const DashboardHeader = ({
   const primaryButton = `${iconButtonBase} bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg hover:shadow-indigo-500/40`;
   const logoutButton = `${iconButtonBase} bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg hover:shadow-red-500/40`;
 
+  const mobileButtonBase =
+    'w-full h-12 flex items-center justify-center rounded-xl text-white transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900';
+  const mobilePrimaryButton = `${mobileButtonBase} bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md`;
+  const mobileLogoutButton = `${mobileButtonBase} bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-md`;
+
   return (
     <header className="glass-strong border-b border-indigo-500/20 shadow-glow sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-3">
@@ -116,56 +121,50 @@ export const DashboardHeader = ({
           className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
         >
-          <div className="mt-4 pb-4 border-t border-indigo-500/20">
-            <div className="flex flex-col gap-2 pt-4">
-              <button
-                onClick={() => {
-                  onShowChatBot();
-                  onToggleMobileMenu();
-                }}
-                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] flex items-center gap-2 ${isMobileMenuOpen ? 'animate-fade-in-up delay-100' : ''
-                  }`}
-              >
-                <img
-                  src="/gemini-color.svg"
-                  alt="Gemini"
-                  className="w-5 h-5"
-                />
-                ChatBot
-              </button>
-              <button
-                onClick={() => {
-                  onShowProfile();
-                  onToggleMobileMenu();
-                }}
-                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
-                  }`}
-              >
-                👤 Profil
-              </button>
-              <button
-                onClick={() => {
-                  onShowMyTeam();
-                  onToggleMobileMenu();
-                }}
-                className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${isMobileMenuOpen ? 'animate-fade-in-up delay-200' : ''
-                  }`}
-              >
-                👥 Takımım
-              </button>
-              <button
-                onClick={() => {
-                  onLogout();
-                  onToggleMobileMenu();
-                }}
-                className={`w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-glow text-left transform hover:scale-[1.02] ${isMobileMenuOpen ? 'animate-fade-in-up delay-400' : ''
-                  }`}
-              >
-                Çıkış Yap
-              </button>
+          <div className="mt-4 pb-4 border-t border-indigo-500/20 pt-4">
+            <div className="flex flex-col gap-4">
+              <DrawerComponent />
+              <div className="grid grid-cols-2 gap-3">
+                <IconButtonWithTooltip
+                  onClick={onShowChatBot}
+                  tooltip="ChatBot"
+                  className={mobilePrimaryButton}
+                  ariaLabel="ChatBot'u aç"
+                >
+                  <img
+                    src="/gemini-color.svg"
+                    alt=""
+                    className="w-5 h-5"
+                    aria-hidden
+                  />
+                </IconButtonWithTooltip>
+                <IconButtonWithTooltip
+                  onClick={onShowProfile}
+                  tooltip="Profil"
+                  className={mobilePrimaryButton}
+                  ariaLabel="Profil"
+                >
+                  <User className="w-5 h-5" strokeWidth={2} aria-hidden />
+                </IconButtonWithTooltip>
+                <IconButtonWithTooltip
+                  onClick={onShowMyTeam}
+                  tooltip="Takımım"
+                  className={mobilePrimaryButton}
+                  ariaLabel="Takımım"
+                >
+                  <Users className="w-5 h-5" strokeWidth={2} aria-hidden />
+                </IconButtonWithTooltip>
+                <IconButtonWithTooltip
+                  onClick={onLogout}
+                  tooltip="Çıkış Yap"
+                  className={mobileLogoutButton}
+                  ariaLabel="Çıkış yap"
+                >
+                  <LogOut className="w-5 h-5" strokeWidth={2} aria-hidden />
+                </IconButtonWithTooltip>
+              </div>
               <div
-                className={`pt-2 text-sm text-indigo-300/70 px-4 ${isMobileMenuOpen ? 'animate-fade-in delay-500' : ''
-                  }`}
+                className={`text-sm text-indigo-300/70 px-1 ${isMobileMenuOpen ? 'animate-fade-in delay-500' : ''}`}
               >
                 Hoş geldin, {user?.displayName || user?.email}
               </div>
