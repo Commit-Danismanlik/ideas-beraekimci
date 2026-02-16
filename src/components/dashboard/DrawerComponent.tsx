@@ -73,7 +73,7 @@ export const DrawerComponent = (): JSX.Element => {
           ))}
         </nav>
         <div className="h-10 pl-3 pt-0 border-t border-indigo-500/10 flex items-center ">
-          <p className="text-xs text-indigo-300/50"> Copyright © 2026 GP Talks</p>
+          <p className="text-xs text-indigo-300/50"> Copyright © 2026 GB Talks</p>
         </div>
       </DrawerContent>
     </Drawer>
