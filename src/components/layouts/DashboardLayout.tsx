@@ -3,12 +3,12 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../hooks/useDashboard';
 import { DashboardLayoutProvider } from '../../contexts/DashboardLayoutContext';
 import { DashboardHeader } from '../views/DashboardHeader';
-import { DashboardBackground } from '../common/DashboardBackground';
-import { DrawerNavigation } from '../views/DrawerNavigation';
-import { DashboardLoading } from '../common/DashboardLoading';
-import { DashboardAnimations } from '../common/DashboardAnimations';
+import { DashboardBackground } from '../dashboard/DashboardBackground';
+import { DashboardLoading } from '../dashboard/DashboardLoading';
+import { DashboardAnimations } from '../dashboard/DashboardAnimations';
 import { ProfileModal } from '../views/ProfileModal';
 import { ChatBot } from '../views/ChatBot';
+import { DrawerComponent } from '../dashboard/DrawerComponent';
 
 /**
  * Dashboard Layout Component
@@ -75,7 +75,7 @@ export const DashboardLayout = (): JSX.Element => {
           />
 
           <div className="max-w-7xl mx-auto px-4 py-10 lg:py-20">
-            <DrawerNavigation />
+            <DrawerComponent />
             <div className="glass-strong rounded-3xl shadow-glow-lg p-4 sm:p-6 animate-fade-in-scale">
               <Outlet />
             </div>
