@@ -160,11 +160,11 @@ export const PersonalRepositoriesView = (): JSX.Element => {
   const mappedTodos = filteredTodos.map(mapTodoToTeamLike);
 
   return (
-    <div>
-      <div className="flex gap-x-4">
-        <div className="flex flex-col gap-y-4">
+    <div className="w-full overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-x-4">
+        <div className="flex flex-col gap-y-4 shrink-0 lg:w-auto sm:px-5 px-0">
           <div className="flex flex-col gap-y-2">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent truncate">
               Personal Repositories
             </h2>
           </div>
@@ -172,9 +172,9 @@ export const PersonalRepositoriesView = (): JSX.Element => {
         </div>
 
         {activeTab === 'notes' && (
-          <div className='w-full'>
+          <div className="w-full min-w-0">
             <div
-              className={`flex flex-col sm:flex-row gap-x-2.5 sm:items-center ${showNoteForm ? 'flex-wrap' : ''}`}
+              className={`flex flex-col sm:flex-row gap-2 sm:gap-x-2.5 sm:items-center ${showNoteForm ? 'flex-wrap' : ''}`}
             >
               <div className="flex-1 min-w-0">
                 <NoteSearch searchQuery={noteSearchQuery} onSearchChange={setNoteSearchQuery} />
@@ -212,7 +212,7 @@ export const PersonalRepositoriesView = (): JSX.Element => {
         {activeTab === 'todos' && (
           <div className="w-full">
             <div
-              className={`flex flex-col sm:flex-row gap-x-2.5 sm:items-center ${showTodoForm ? 'flex-wrap' : ''}`}
+              className={`flex flex-col sm:flex-row gap-2 sm:gap-x-2.5 sm:items-center ${showTodoForm ? 'flex-wrap' : ''}`}
             >
               <div className="flex-1 min-w-0">
                 <TodoSearch searchQuery={todoSearchQuery} onSearchChange={setTodoSearchQuery} />

@@ -257,9 +257,9 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
   const selectedTeamData = userTeams.find((t) => t.id === selectedTeam);
 
   return (
-    <div>
-      <div className='flex gap-x-4'>
-        <div className='flex flex-col gap-y-4'>
+    <div className="w-full overflow-x-hidden">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-x-4">
+        <div className="flex flex-col gap-y-4 shrink-0 lg:w-auto sm:px-5 px-0">
           <RepositoryHeader
             userTeams={userTeams}
             selectedTeam={selectedTeam}
@@ -272,18 +272,18 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
         </div>
 
         {activeTab === 'notes' && (
-          <div>
+          <div className="w-full min-w-0">
             <RepositoryPermissionWarning canCreateRepository={canCreateRepository} type="note" />
 
             <div
-              className={`flex flex-col sm:flex-row gap-x-2.5 sm:items-center ${noteFormModal.isOpen ? 'flex-wrap' : ''}`}
+              className={`flex flex-col sm:flex-row gap-2 sm:gap-x-2.5 sm:items-center ${noteFormModal.isOpen ? 'flex-wrap' : ''}`}
             >
               <div className="flex-1 min-w-0">
                 <NoteSearch searchQuery={noteSearchQuery} onSearchChange={setNoteSearchQuery} />
               </div>
               <button
                 onClick={noteFiltersModal.open}
-                className="flex-shrink-0 px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition-all font-medium"
+                className="flex-shrink-0 w-full sm:w-auto px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition-all font-medium"
               >
                 Filtreler
               </button>
@@ -351,17 +351,17 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
         )}
 
         {activeTab === 'todos' && (
-          <div className='w-full'>
+          <div className="w-full min-w-0">
             <RepositoryPermissionWarning canCreateRepository={canCreateRepository} type="todo" />
             <div
-              className={`flex flex-col sm:flex-row gap-x-2.5 sm:items-center ${noteFormModal.isOpen ? 'flex-wrap' : ''}`}
+              className={`flex flex-col sm:flex-row gap-2 sm:gap-x-2.5 sm:items-center ${noteFormModal.isOpen ? 'flex-wrap' : ''}`}
             >
               <div className="flex-1 min-w-0">
                 <TodoSearch searchQuery={todoSearchQuery} onSearchChange={setTodoSearchQuery} />
               </div>
               <button
                 onClick={todoFiltersModal.open}
-                className="flex-shrink-0 px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition-all font-medium"
+                className="flex-shrink-0 w-full sm:w-auto px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition-all font-medium"
               >
                 Filtreler
               </button>

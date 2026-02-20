@@ -21,8 +21,8 @@ export const RepositoryPermissionWarning = ({
       : "ℹ️ To-Do oluşturma yetkiniz yok. Sadece mevcut to-do'ları görüntüleyebilirsiniz.";
 
   return (
-    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-      <p className="text-sm text-yellow-800">{message}</p>
+    <div className="mb-4 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <p className="text-xs sm:text-sm text-yellow-800">{message}</p>
     </div>
   );
 };
