@@ -32,7 +32,7 @@ export const TodoForm = ({
 }: TodoFormProps): JSX.Element => {
   if (!showForm) {
     return (
-      <div className="mb-4">
+      <div className="">
         <button
           onClick={() => onShowForm(true)}
           className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/50 transform hover:scale-105"
@@ -44,7 +44,7 @@ export const TodoForm = ({
   }
 
   return (
-    <div className="mb-4">
+    <div className="">
       <div className="glass rounded-2xl p-4 border border-indigo-500/20">
         <input
           type="text"

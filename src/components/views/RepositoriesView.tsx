@@ -40,7 +40,6 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     filteredTodos,
     members,
     loading,
-    hasMore,
     activeTab,
     setActiveTab,
     noteSearchQuery,
@@ -52,13 +51,12 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     todoFilter,
     setTodoFilter,
     fetchData,
-    loadMore,
     getUserName,
   } = useRepositories(selectedTeam, userTeams);
 
   const [editingNote, setEditingNote] = useState<ITeamNote | null>(null);
   const [editingTodo, setEditingTodo] = useState<ITeamTodo | null>(null);
-  
+
   const editNoteForm = useForm({
     title: '',
     content: '',
@@ -71,12 +69,14 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     priority: 'medium' as 'low' | 'medium' | 'high',
     completed: false,
   });
-  
+
   const noteFormModal = useModal(false);
   const todoFormModal = useModal(false);
   const noteEditModal = useModal(false);
   const todoEditModal = useModal(false);
-  
+  const noteFiltersModal = useModal(false);
+  const todoFiltersModal = useModal(false);
+
   const noteForm = useForm({ title: '', content: '', category: '' });
   const todoForm = useForm({
     title: '',
@@ -84,7 +84,7 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
     priority: 'medium' as 'low' | 'medium' | 'high',
     assignedTo: '',
   });
-  
+
   const { copy: copyToClipboard } = useClipboard();
 
   const canCreateRepository = hasPermission('CREATE_REPOSITORY');
@@ -258,91 +258,175 @@ export const RepositoriesView = ({ userTeams }: RepositoriesViewProps): JSX.Elem
 
   return (
     <div>
-      <RepositoryHeader
-        userTeams={userTeams}
-        selectedTeam={selectedTeam}
-        onTeamChange={setSelectedTeam}
-        selectedTeamData={selectedTeamData}
-        canViewTeamId={canViewTeamId}
-        onCopyTeamId={handleCopyTeamId}
-      />
-
-      <RepositoryTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Notes Tab */}
-      {activeTab === 'notes' && (
-        <div>
-          <RepositoryPermissionWarning canCreateRepository={canCreateRepository} type="note" />
-
-          {canCreateRepository && (
-            <NoteForm
-              showForm={noteFormModal.isOpen}
-              formData={noteForm.formData}
-              onFormChange={noteForm.setFormData}
-              onShowForm={noteFormModal.toggle}
-              onSubmit={handleCreateNote}
-              onCancel={() => {
-                noteFormModal.close();
-                noteForm.reset();
-              }}
-            />
-          )}
-
-          <NoteSearch searchQuery={noteSearchQuery} onSearchChange={setNoteSearchQuery} />
-
-          <NoteFilters filter={noteFilter} members={members} onFilterChange={setNoteFilter} />
-
-          <NoteList
-            notes={filteredNotes}
-            loading={loading}
-            getUserName={getUserName}
-            canEditRepository={canEditRepository}
-            canDeleteRepository={canDeleteRepository}
-            onEdit={startEditNote}
-            onTogglePin={handleTogglePin}
-            onDelete={handleDeleteNote}
-            hasMore={hasMore}
-            onLoadMore={loadMore}
+      <div className='flex gap-x-4'>
+        <div className='flex flex-col gap-y-4'>
+          <RepositoryHeader
+            userTeams={userTeams}
+            selectedTeam={selectedTeam}
+            onTeamChange={setSelectedTeam}
+            selectedTeamData={selectedTeamData}
+            canViewTeamId={canViewTeamId}
+            onCopyTeamId={handleCopyTeamId}
           />
+          <RepositoryTabs activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
-      )}
 
-      {/* Todos Tab */}
-      {activeTab === 'todos' && (
-        <div>
-          <TodoSearch searchQuery={todoSearchQuery} onSearchChange={setTodoSearchQuery} />
+        {activeTab === 'notes' && (
+          <div>
+            <RepositoryPermissionWarning canCreateRepository={canCreateRepository} type="note" />
 
-          <TodoFilters filter={todoFilter} members={members} onFilterChange={setTodoFilter} />
+            <div
+              className={`flex flex-col sm:flex-row gap-x-2.5 sm:items-center ${noteFormModal.isOpen ? 'flex-wrap' : ''}`}
+            >
+              <div className="flex-1 min-w-0">
+                <NoteSearch searchQuery={noteSearchQuery} onSearchChange={setNoteSearchQuery} />
+              </div>
+              <button
+                onClick={noteFiltersModal.open}
+                className="flex-shrink-0 px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition-all font-medium"
+              >
+                Filtreler
+              </button>
+              {canCreateRepository && (
+                <div
+                  className={`${noteFormModal.isOpen ? 'w-full' : ''}`}
+                >
+                  <NoteForm
+                    showForm={noteFormModal.isOpen}
+                    formData={noteForm.formData}
+                    onFormChange={noteForm.setFormData}
+                    onShowForm={noteFormModal.toggle}
+                    onSubmit={handleCreateNote}
+                    onCancel={() => {
+                      noteFormModal.close();
+                      noteForm.reset();
+                    }}
+                  />
+                </div>
+              )}
+            </div>
 
-          <RepositoryPermissionWarning canCreateRepository={canCreateRepository} type="todo" />
+            {noteFiltersModal.isOpen && (
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-scale p-4">
+                <div className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-glow-lg border border-indigo-500/20 animate-fade-in-up">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                      Filtreler
+                    </h3>
+                    <button
+                      onClick={noteFiltersModal.close}
+                      className="p-2 text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <NoteFilters
+                    filter={noteFilter}
+                    members={members}
+                    onFilterChange={setNoteFilter}
+                  />
+                  <div className="mt-4">
+                    <button
+                      onClick={noteFiltersModal.close}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50"
+                    >
+                      Tamam
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
-          {canCreateRepository && (
-            <TodoForm
-              showForm={todoFormModal.isOpen}
-              formData={todoForm.formData}
-              members={members}
-              onFormChange={todoForm.setFormData}
-              onShowForm={todoFormModal.toggle}
-              onSubmit={handleCreateTodo}
-              onCancel={() => {
-                todoFormModal.close();
-                todoForm.reset();
-              }}
+            <NoteList
+              notes={filteredNotes}
+              loading={loading}
+              getUserName={getUserName}
+              canEditRepository={canEditRepository}
+              canDeleteRepository={canDeleteRepository}
+              onEdit={startEditNote}
+              onTogglePin={handleTogglePin}
+              onDelete={handleDeleteNote}
             />
-          )}
+          </div>
+        )}
 
-          <TodoList
-            todos={filteredTodos}
-            loading={loading}
-            getUserName={getUserName}
-            canEditRepository={canEditRepository}
-            canDeleteRepository={canDeleteRepository}
-            onToggleComplete={handleToggleTodo}
-            onEdit={startEditTodo}
-            onDelete={handleDeleteTodo}
-          />
-        </div>
-      )}
+        {activeTab === 'todos' && (
+          <div className='w-full'>
+            <RepositoryPermissionWarning canCreateRepository={canCreateRepository} type="todo" />
+            <div
+              className={`flex flex-col sm:flex-row gap-x-2.5 sm:items-center ${noteFormModal.isOpen ? 'flex-wrap' : ''}`}
+            >
+              <div className="flex-1 min-w-0">
+                <TodoSearch searchQuery={todoSearchQuery} onSearchChange={setTodoSearchQuery} />
+              </div>
+              <button
+                onClick={todoFiltersModal.open}
+                className="flex-shrink-0 px-4 py-2.5 glass border border-indigo-500/30 rounded-xl text-indigo-200 hover:border-indigo-400/50 hover:bg-indigo-500/10 transition-all font-medium"
+              >
+                Filtreler
+              </button>
+              {canCreateRepository && (
+                <div className={`${todoFormModal.isOpen ? 'w-full' : ''}`}>
+                  <TodoForm
+                    showForm={todoFormModal.isOpen}
+                    formData={todoForm.formData}
+                    members={members}
+                    onFormChange={todoForm.setFormData}
+                    onShowForm={todoFormModal.toggle}
+                    onSubmit={handleCreateTodo}
+                    onCancel={() => {
+                      todoFormModal.close();
+                      todoForm.reset();
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {todoFiltersModal.isOpen && (
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-scale p-4">
+                <div className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-md shadow-glow-lg border border-indigo-500/20 animate-fade-in-up">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                      Filtreler
+                    </h3>
+                    <button
+                      onClick={todoFiltersModal.close}
+                      className="p-2 text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/20 rounded-lg transition-all duration-300 transform hover:scale-110"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <TodoFilters
+                    filter={todoFilter}
+                    members={members}
+                    onFilterChange={setTodoFilter}
+                  />
+                  <div className="mt-4">
+                    <button
+                      onClick={todoFiltersModal.close}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/50"
+                    >
+                      Tamam
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <TodoList
+              todos={filteredTodos}
+              loading={loading}
+              getUserName={getUserName}
+              canEditRepository={canEditRepository}
+              canDeleteRepository={canDeleteRepository}
+              onToggleComplete={handleToggleTodo}
+              onEdit={startEditTodo}
+              onDelete={handleDeleteTodo}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Edit Modals */}
       <NoteEditModal

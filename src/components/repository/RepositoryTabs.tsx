@@ -11,7 +11,7 @@ interface RepositoryTabsProps {
  */
 export const RepositoryTabs = ({ activeTab, onTabChange }: RepositoryTabsProps): JSX.Element => {
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="flex flex-col gap-4 mb-6">
       <button
         onClick={() => onTabChange('notes')}
         className={`px-6 py-2 rounded-xl font-bold transition-all duration-300 transform ${
