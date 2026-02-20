@@ -24,7 +24,6 @@ export interface UseRepositoriesState {
   filteredTodos: ITeamTodo[];
   members: IMemberWithRole[];
   loading: boolean;
-  hasMore: boolean;
 
   // Tab
   activeTab: TabType;
@@ -45,7 +44,6 @@ export interface UseRepositoriesState {
   // Actions
   fetchData: () => Promise<void>;
   fetchMembers: () => Promise<void>;
-  loadMore: () => Promise<void>;
   getUserName: (userId: string) => string;
 }
 
@@ -64,9 +62,6 @@ export const useRepositories = (
   const [filteredTodos, setFilteredTodos] = useState<ITeamTodo[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [members, setMembers] = useState<IMemberWithRole[]>([]);
-  const [hasMore, setHasMore] = useState<boolean>(true);
-  const [lastNoteCreatedAt, setLastNoteCreatedAt] = useState<Date | null>(null);
-  const [lastTodoCreatedAt, setLastTodoCreatedAt] = useState<Date | null>(null);
   const [noteSearchQuery, setNoteSearchQuery] = useState<string>('');
   const [todoSearchQuery, setTodoSearchQuery] = useState<string>('');
   const [noteFilter, setNoteFilter] = useState<INoteFilter>({
@@ -195,88 +190,18 @@ export const useRepositories = (
 
     setLoading(true);
     if (activeTab === 'notes') {
-      // İlk 6 notu çek (performans için)
-      const take = 6;
-      const result = await noteService.getRecentNotes(selectedTeam, take);
+      const result = await noteService.getTeamNotes(selectedTeam);
       if (result.success) {
         setNotes(result.data);
-        const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
-        setHasMore(!hasFilterOrSearch && result.data.length === take);
-        const last = result.data[result.data.length - 1];
-        setLastNoteCreatedAt(last ? last.createdAt : null);
       }
     } else {
-      // İlk 6 todo'yu çek (performans için)
-      const take = 6;
-      const result = await todoService.getRecentTodos(selectedTeam, take);
+      const result = await todoService.getTeamTodos(selectedTeam);
       if (result.success) {
         setTodos(result.data);
-        const hasFilterOrSearch = todoSearchQuery.trim() !== '' || todoFilter.creatorId !== 'all';
-        setHasMore(!hasFilterOrSearch && result.data.length === take);
-        const last = result.data[result.data.length - 1];
-        setLastTodoCreatedAt(last ? last.createdAt : null);
       }
     }
     setLoading(false);
-  }, [selectedTeam, activeTab, noteService, todoService, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter]);
-
-  const loadMore = useCallback(async (): Promise<void> => {
-    if (!selectedTeam || !hasMore) {
-      return;
-    }
-
-    // Filtreleme/arama yapıldığında pagination'ı devre dışı bırak
-    if (activeTab === 'notes') {
-      const hasFilterOrSearch = noteSearchQuery.trim() !== '' || noteFilter.creatorId !== 'all';
-      if (hasFilterOrSearch || !lastNoteCreatedAt) {
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const take = 6;
-        const result = await noteService.getRecentNotesBefore(selectedTeam, lastNoteCreatedAt, take);
-        if (result.success && result.data.length > 0) {
-          setNotes((prev) => {
-            const newNotes = [...prev, ...result.data];
-            setHasMore(result.data.length === take);
-            const last = result.data[result.data.length - 1];
-            setLastNoteCreatedAt(last.createdAt);
-            return newNotes;
-          });
-        } else {
-          setHasMore(false);
-        }
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // Todo'lar için pagination
-      const hasFilterOrSearch = todoSearchQuery.trim() !== '' || todoFilter.creatorId !== 'all';
-      if (hasFilterOrSearch || !lastTodoCreatedAt) {
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const take = 6;
-        const result = await todoService.getRecentTodosBefore(selectedTeam, lastTodoCreatedAt, take);
-        if (result.success && result.data.length > 0) {
-          setTodos((prev) => {
-            const newTodos = [...prev, ...result.data];
-            setHasMore(result.data.length === take);
-            const last = result.data[result.data.length - 1];
-            setLastTodoCreatedAt(last.createdAt);
-            return newTodos;
-          });
-        } else {
-          setHasMore(false);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-  }, [selectedTeam, hasMore, activeTab, lastNoteCreatedAt, lastTodoCreatedAt, noteSearchQuery, todoSearchQuery, noteFilter, todoFilter, noteService, todoService]);
+  }, [selectedTeam, activeTab, noteService, todoService]);
 
   // Sadece team veya tab değiştiğinde veri çek
   useEffect(() => {
@@ -300,7 +225,6 @@ export const useRepositories = (
     filteredTodos,
     members,
     loading,
-    hasMore,
     activeTab,
     setActiveTab,
     noteSearchQuery,
@@ -313,7 +237,6 @@ export const useRepositories = (
     setTodoFilter,
     fetchData,
     fetchMembers,
-    loadMore,
     getUserName,
   };
 };

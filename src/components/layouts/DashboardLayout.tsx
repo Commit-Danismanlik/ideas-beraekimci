@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useDashboard } from '../../hooks/useDashboard';
 import { DashboardLayoutProvider } from '../../contexts/DashboardLayoutContext';
 import { DashboardHeader } from '../views/DashboardHeader';
-import { DashboardBackground } from '../dashboard/DashboardBackground';
 import { DashboardLoading } from '../dashboard/DashboardLoading';
 import { DashboardAnimations } from '../dashboard/DashboardAnimations';
 import { ProfileModal } from '../views/ProfileModal';
@@ -59,9 +58,7 @@ export const DashboardLayout = (): JSX.Element => {
 
   return (
     <DashboardLayoutProvider value={layoutContextValue}>
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
-        <DashboardBackground />
-
+      <div className="min-h-screen relative overflow-hidden bg-slate-950">
         <div className="relative z-10">
           <DashboardHeader
             onLogout={handleLogout}
@@ -72,10 +69,8 @@ export const DashboardLayout = (): JSX.Element => {
             onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           />
 
-          <div className="max-w-7xl mx-auto px-4 py-10 lg:py-20">
-            <div className="glass-strong rounded-3xl shadow-glow-lg p-4 sm:p-6 animate-fade-in-scale">
+          <div className="max-w-screen-2xl mx-auto px-4 py-10 lg:py-20">
               <Outlet />
-            </div>
           </div>
         </div>
 

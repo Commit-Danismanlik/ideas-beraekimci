@@ -21,7 +21,7 @@ export const DashboardViewSwitcher = ({
   onTeamChange,
 }: DashboardViewSwitcherProps): JSX.Element => {
   return (
-    <div className="glass-strong rounded-3xl shadow-glow-lg p-4 sm:p-6 animate-fade-in-scale">
+    <div className="">
       {activeView === 'personal' && <PersonalRepositoriesView />}
 
       {activeView === 'repositories' &&
