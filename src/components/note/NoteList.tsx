@@ -93,8 +93,8 @@ const NoteListComponent = ({
   }
 
   return (
-    <div className='pl-4 w-full'>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+    <div className="pl-0 sm:pl-2 lg:pl-4 w-full min-w-0 mt-4 sm:mt-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5">
         {paginatedNotes.map((note) => (
           <div
             key={note.id}
@@ -104,7 +104,7 @@ const NoteListComponent = ({
                 : 'border-indigo-500/20 glass hover:border-indigo-400/50'
             }`}
           >
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <div className="flex justify-between items-start gap-3 mb-4">
                 <h3 className="text-lg font-bold text-indigo-50 leading-tight min-w-0 flex-1">
                   {note.isPinned && (
@@ -150,7 +150,7 @@ const NoteListComponent = ({
               </div>
 
               <div className="relative">
-                <p className="text-indigo-200/90 text-sm leading-relaxed whitespace-pre-wrap h-36 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-indigo-500/30">
+                <p className="text-indigo-200/90 text-sm leading-relaxed whitespace-pre-wrap h-28 sm:h-36 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-indigo-500/30">
                   {note.content || (
                     <span className="text-indigo-400/50 italic">İçerik yok</span>
                   )}
@@ -163,7 +163,7 @@ const NoteListComponent = ({
                     {note.category}
                   </span>
                 )}
-                <span className="text-xs text-indigo-400/70 flex items-center gap-1.5 ml-auto">
+                <span className="text-xs text-indigo-400/70 flex items-center gap-1.5 ml-auto flex-shrink-0 min-w-0">
                   <span>📅</span>
                   <span>{new Date(note.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   <span className="text-indigo-500/50">•</span>
@@ -179,7 +179,7 @@ const NoteListComponent = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6 overflow-x-auto">
           <Pagination>
             <PaginationContent>
               <PaginationItem>

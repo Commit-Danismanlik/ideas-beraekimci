@@ -94,12 +94,12 @@ const TodoListComponent = ({
   }
 
   return (
-    <div className="pl-4 w-full">
+    <div className="pl-0 sm:pl-2 lg:pl-4 w-full min-w-0 mt-4 sm:mt-0">
       <div className="flex flex-col gap-3">
         {paginatedTodos.map((todo) => (
           <div
             key={todo.id}
-            className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow px-4 py-3 flex items-center gap-3 ${
+            className={`group relative overflow-hidden rounded-xl sm:rounded-2xl border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow px-3 sm:px-4 py-3 flex items-start sm:items-center gap-3 ${
               todo.completed
                 ? 'opacity-70 border-indigo-400/20 glass'
                 : 'border-indigo-500/20 glass hover:border-indigo-400/50'
@@ -123,22 +123,35 @@ const TodoListComponent = ({
                 {todo.completed && <span className="text-[10px] text-white font-bold">✓</span>}
               </div>
             )}
-            <div className="flex-1 min-w-0 flex items-center gap-3">
-              <h3
-                className={`font-bold text-indigo-50 leading-tight truncate shrink-0 max-w-[180px] ${
-                  todo.completed ? 'line-through text-indigo-300/60' : ''
-                }`}
-              >
-                {todo.title}
-              </h3>
+            <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
+              {canEditRepository ? (
+                <button
+                  type="button"
+                  onClick={() => onEdit(todo)}
+                  className={`font-bold text-indigo-50 leading-tight truncate min-w-0 flex-1 text-left hover:text-indigo-100 hover:underline cursor-pointer transition-colors ${
+                    todo.completed ? 'line-through text-indigo-300/60' : ''
+                  }`}
+                  title="Düzenlemek için tıklayın"
+                >
+                  {todo.title}
+                </button>
+              ) : (
+                <h3
+                  className={`font-bold text-indigo-50 leading-tight truncate min-w-0 flex-1 ${
+                    todo.completed ? 'line-through text-indigo-300/60' : ''
+                  }`}
+                >
+                  {todo.title}
+                </h3>
+              )}
               {todo.description && (
-                <p className="text-sm text-indigo-200/70 truncate flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-indigo-200/70 truncate min-w-0 order-3 sm:order-none">
                   {todo.description.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').slice(0, 60)}
                   {todo.description.length > 60 ? '...' : ''}
                 </p>
               )}
               <span
-                className={`shrink-0 px-3 py-1 text-xs font-medium rounded-lg ${
+                className={`shrink-0 self-start px-3 py-1 text-xs font-medium rounded-lg ${
                   todo.priority === 'high'
                     ? 'bg-red-500/15 border border-red-400/25 text-red-300'
                     : todo.priority === 'medium'
@@ -164,7 +177,7 @@ const TodoListComponent = ({
                 </span>
               </span>
             </div>
-            <div className="flex shrink-0 gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+            <div className="flex shrink-0 gap-1 opacity-70 group-hover:opacity-100 transition-opacity self-end sm:self-auto flex-row">
               {canEditRepository && (
                 <button
                   onClick={() => onEdit(todo)}
@@ -189,7 +202,7 @@ const TodoListComponent = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
+        <div className="flex justify-center mt-6 overflow-x-auto">
           <Pagination>
             <PaginationContent>
               <PaginationItem>

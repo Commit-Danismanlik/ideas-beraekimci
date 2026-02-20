@@ -74,7 +74,7 @@ export const NoteEditModal = ({
       aria-labelledby="note-edit-title"
     >
       <div
-        className="glass-strong rounded-2xl sm:rounded-3xl p-5 sm:p-6 w-full max-w-4xl overflow-y-auto shadow-glow-lg border border-indigo-500/20 animate-fade-in-up"
+        className="glass-strong rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-glow-lg border border-indigo-500/20 animate-fade-in-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-5">
@@ -154,7 +154,7 @@ export const NoteEditModal = ({
               id="edit-note-content"
               value={formData.content}
               onChange={(e) => onFormChange({ ...formData, content: e.target.value })}
-              className={`${INPUT_CLASS} min-h-[400px] lg:min-h-[500px] resize-y w-full`}
+              className={`${INPUT_CLASS} min-h-[200px] sm:min-h-[300px] lg:min-h-[500px] resize-y w-full`}
               placeholder="Notunuzun detaylarını yazın..."
             />
           </div>

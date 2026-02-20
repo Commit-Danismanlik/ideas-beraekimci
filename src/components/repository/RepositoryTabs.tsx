@@ -11,10 +11,10 @@ interface RepositoryTabsProps {
  */
 export const RepositoryTabs = ({ activeTab, onTabChange }: RepositoryTabsProps): JSX.Element => {
   return (
-    <div className="flex flex-col gap-4 mb-6">
+    <div className="flex flex-row lg:flex-col gap-2 lg:gap-4 mb-4 lg:mb-6 flex-wrap sm:flex-nowrap">
       <button
         onClick={() => onTabChange('notes')}
-        className={`px-6 py-2 rounded-xl font-bold transition-all duration-300 transform ${
+        className={`flex-1 lg:flex-initial px-4 sm:px-6 py-2 rounded-xl font-bold transition-all duration-300 transform text-sm sm:text-base ${
           activeTab === 'notes'
             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow'
             : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-105'
@@ -24,7 +24,7 @@ export const RepositoryTabs = ({ activeTab, onTabChange }: RepositoryTabsProps):
       </button>
       <button
         onClick={() => onTabChange('todos')}
-        className={`px-6 py-2 rounded-xl font-bold transition-all duration-300 transform ${
+        className={`flex-1 lg:flex-initial px-4 sm:px-6 py-2 rounded-xl font-bold transition-all duration-300 transform text-sm sm:text-base ${
           activeTab === 'todos'
             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow'
             : 'glass text-indigo-200 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-400/50 hover:scale-105'
